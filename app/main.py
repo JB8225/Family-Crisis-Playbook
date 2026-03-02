@@ -24,10 +24,19 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY environment variables")
+print(f"SUPABASE_URL = {SUPABASE_URL}")
+print(f"SUPABASE_KEY starts with = {str(SUPABASE_KEY)[:30]}")
+print(f"SUPABASE_KEY length = {len(str(SUPABASE_KEY))}")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("Supabase connected successfully")
+    except Exception as e:
+        print(f"Supabase connection failed: {e}")
+else:
+    print("WARNING: Missing SUPABASE_URL or SUPABASE_KEY")
 
 # ═══ WALKTHROUGH DEFINITION ═══
 # Load the question structure (source of truth)
