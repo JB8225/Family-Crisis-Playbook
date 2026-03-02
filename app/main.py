@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from supabase import create_client, Client
+from supabase._sync.client import SyncClient as Client
 from dotenv import load_dotenv
 
 load_dotenv()
