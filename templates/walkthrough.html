@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Family Crisis Playbook — Guided Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--navy:#1B2A3D;--deep:#0F1923;--gold:#D4A853;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--serif:'Source Serif 4',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--deep);color:#fff;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* PROGRESS */
+.pbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,25,35,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+.pbar-in{max-width:600px;margin:0 auto;padding:14px 24px}
+.pbar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pbar-sec{font-size:15px;font-weight:600;color:var(--gold)}
+.pbar-pct{font-size:15px;color:rgba(255,255,255,.4)}
+.pbar-track{height:4px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--gold),#E8C36A);border-radius:100px;transition:width .5s ease}
+
+/* WELCOME */
+.welcome{max-width:560px;margin:0 auto;padding:80px 24px;text-align:center}
+.welcome h1{font-family:var(--serif);font-size:clamp(30px,5vw,42px);font-weight:700;line-height:1.15;margin-bottom:20px}
+.welcome h1 span{color:var(--gold)}
+.welcome .quote{font-family:var(--serif);font-size:clamp(22px,3.5vw,28px);font-weight:700;color:var(--gold);font-style:italic;margin:20px auto;max-width:400px;line-height:1.3}
+.welcome .body{font-size:18px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:32px;max-width:460px;margin-left:auto;margin-right:auto}
+.w-steps{display:flex;flex-direction:column;gap:12px;max-width:400px;margin:0 auto 36px;text-align:left}
+.w-step{display:flex;gap:12px;align-items:center;padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.w-step-n{width:32px;height:32px;border-radius:50%;background:rgba(212,168,83,.12);border:1px solid rgba(212,168,83,.25);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold);flex-shrink:0}
+.w-step-t{font-size:16px;color:rgba(255,255,255,.6)}
+.w-time{display:flex;gap:20px;justify-content:center;margin-bottom:36px;flex-wrap:wrap}
+.w-time span{font-size:15px;color:rgba(255,255,255,.4)}
+.w-time strong{color:rgba(255,255,255,.7)}
+
+/* SECTION INTRO */
+.sintro{text-align:center;padding:120px 24px 60px;max-width:520px;margin:0 auto}
+.sintro .icon{font-size:48px;margin-bottom:16px}
+.sintro h2{font-family:var(--serif);font-size:clamp(28px,5vw,36px);font-weight:700;margin-bottom:12px;line-height:1.2}
+.sintro .sub{font-size:18px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px}
+.sintro .reassure{font-size:16px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:24px}
+.sintro .privacy{display:inline-flex;gap:8px;align-items:center;padding:10px 18px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:15px;color:rgba(255,255,255,.4);margin-bottom:32px}
+.sintro .meta{font-size:15px;color:rgba(255,255,255,.25);margin-top:12px}
+
+/* SECTION COMPLETE */
+.sdone{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.sdone .chk{width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,.15);border:2px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px}
+.sdone h2{font-family:var(--serif);font-size:26px;font-weight:700;margin-bottom:8px}
+.sdone .pct{font-size:17px;color:rgba(255,255,255,.45);margin-bottom:32px}
+.halfway{display:inline-block;padding:10px 22px;border-radius:10px;background:rgba(212,168,83,.08);border:1px solid rgba(212,168,83,.2);font-size:16px;font-weight:600;color:var(--gold);margin-bottom:24px}
+
+/* ENCOURAGEMENT */
+.encourage{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.encourage h2{font-family:var(--serif);font-size:clamp(24px,4vw,30px);font-weight:700;margin-bottom:16px;color:var(--gold)}
+.encourage p{font-size:17px;color:rgba(255,255,255,.45);margin-bottom:28px}
+
+/* CARD */
+.card-w{max-width:580px;margin:0 auto;padding:100px 24px 120px}
+.card-t{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.card-h{font-size:16px;color:rgba(255,255,255,.35);margin-bottom:24px}
+
+/* QUESTION */
+.qb{margin-bottom:28px}.qb:last-child{margin-bottom:0}
+.ql{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.4;margin-bottom:12px}
+.qhint{font-size:15px;color:rgba(255,255,255,.35);margin-bottom:10px;line-height:1.5}
+
+/* GROUPED */
+.grouped{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:20px 18px}
+.grouped .qb{margin-bottom:16px}.grouped .qb:last-child{margin-bottom:0}
+.grouped .ql{font-size:17px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:8px}
+.gtitle{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:16px}
+
+/* INPUTS */
+.qi{width:100%;font-family:var(--sans);font-size:17px;padding:16px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;outline:none;transition:all .3s ease}
+.qi:focus{border-color:rgba(212,168,83,.5);box-shadow:0 0 0 3px rgba(212,168,83,.1)}
+.qi::placeholder{color:rgba(255,255,255,.25)}
+textarea.qi{resize:vertical;min-height:80px}
+.mc{display:flex;flex-direction:column;gap:8px}
+.mc-o{padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:17px;line-height:1.4}
+.mc-o:hover{border-color:rgba(212,168,83,.3);background:rgba(212,168,83,.06)}
+.mc-o.sel{border-color:rgba(212,168,83,.5);background:rgba(212,168,83,.12);color:var(--gold)}
+.ms{display:flex;flex-wrap:wrap;gap:8px}
+.ms-o{padding:12px 18px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:16px}
+.ms-o:hover{border-color:rgba(212,168,83,.3)}
+.ms-o.sel{border-color:rgba(212,168,83,.5);background:rgba(212,168,83,.15);color:var(--gold)}
+.yn{display:flex;gap:10px}
+.yn-o{flex:1;padding:15px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:17px;text-align:center;font-weight:600}
+.yn-o:hover{border-color:rgba(212,168,83,.3)}
+.yn-o.sel{border-color:rgba(212,168,83,.5);background:rgba(212,168,83,.12);color:var(--gold)}
+
+/* FOLLOW-UP BUTTON */
+.fu{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;border-radius:8px;background:none;border:1px dashed rgba(255,255,255,.1);color:rgba(255,255,255,.3);font-family:var(--sans);font-size:15px;cursor:pointer;transition:all .2s ease}
+.fu:hover{border-color:rgba(212,168,83,.3);color:rgba(255,255,255,.5)}
+.fu.on{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06);color:#F59E0B;border-style:solid}
+
+/* CONDITIONAL CHILD */
+.cond{margin-top:12px;padding-left:16px;border-left:2px solid rgba(212,168,83,.2)}
+
+/* NAV */
+.nav{display:flex;gap:12px;margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06)}
+.nb{flex:1;padding:18px 24px;border-radius:10px;font-family:var(--sans);font-size:17px;font-weight:700;cursor:pointer;transition:all .3s ease;border:none;letter-spacing:.3px}
+.nb-back{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
+.nb-back:hover{background:rgba(255,255,255,.1)}
+.nb-next{background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy)}
+.nb-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,168,83,.3)}
+
+/* CTA BTN */
+.cta{display:inline-block;padding:18px 44px;border-radius:10px;background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy);font-family:var(--sans);font-size:17px;font-weight:700;border:none;cursor:pointer;transition:all .3s ease;letter-spacing:.5px}
+.cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,168,83,.35)}
+
+/* EMOTIONAL CLOSE */
+.emo{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.emo h2{font-family:var(--serif);font-size:clamp(26px,5vw,34px);font-weight:700;line-height:1.3;margin-bottom:16px}
+.emo p{font-size:17px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:12px}
+
+/* SUMMARY */
+.sum{max-width:580px;margin:0 auto;padding:100px 24px 80px;text-align:center}
+.sum-badge{display:inline-block;padding:6px 18px;border-radius:100px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);font-size:15px;font-weight:700;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.sum h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:700;margin-bottom:12px}
+.sum h1 span{color:var(--gold)}
+.sum .sub{font-size:17px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:40px;max-width:440px;margin-left:auto;margin-right:auto}
+.stats{display:flex;gap:16px;justify-content:center;margin-bottom:40px;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;max-width:160px;padding:20px 16px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.stat-n{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--gold)}
+.stat-l{font-size:16px;color:rgba(255,255,255,.4);margin-top:4px}
+.ss{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:8px;text-align:left}
+.ss-i{font-size:20px;flex-shrink:0}.ss-n{font-size:17px;font-weight:600;color:rgba(255,255,255,.7);flex:1}.ss-p{font-size:17px;font-weight:700}
+.hwl{text-align:left;margin:32px auto;max-width:480px}
+.hwl-t{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:16px;color:#F59E0B}
+.hwi{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:10px;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);margin-bottom:8px}
+.hwi-i{font-size:15px;color:#F59E0B;margin-top:2px;flex-shrink:0}
+.hwi-t{font-size:17px;color:rgba(255,255,255,.6);line-height:1.5}
+.hwi-tip{font-size:15px;color:rgba(255,255,255,.3);margin-top:4px}
+
+/* UNLOCK */
+.unlock{background:linear-gradient(135deg,rgba(212,168,83,.08),rgba(212,168,83,.02));border:2px solid rgba(212,168,83,.35);border-radius:16px;padding:40px 28px;text-align:center;margin:40px auto;max-width:440px}
+.unlock .old{font-family:var(--serif);font-size:24px;font-weight:700;color:rgba(255,255,255,.3);text-decoration:line-through;margin-right:12px}
+.unlock .new{font-family:var(--serif);font-size:48px;font-weight:700;color:var(--gold)}
+.unlock .limit{display:inline-block;padding:6px 16px;border-radius:100px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:15px;font-weight:700;color:var(--red);margin:8px 0 12px}
+.unlock .usub{font-size:17px;color:rgba(255,255,255,.4);margin-bottom:24px}
+.unlock .ubtn{width:100%;padding:18px 32px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy);font-family:var(--sans);font-size:17px;font-weight:700;cursor:pointer;transition:all .3s ease;letter-spacing:.5px}
+.unlock .ubtn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(212,168,83,.4)}
+.unlock .trust{font-size:15px;color:rgba(255,255,255,.3);margin-top:14px}
+.unlock .saved{font-size:16px;color:rgba(255,255,255,.4);margin-top:20px;line-height:1.6}
+
+.fade{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){.stats{gap:10px}.stat{min-width:100px;padding:16px 12px}.nav{flex-direction:column}.nb-back{order:2}}
+
+/* ═══ VISUAL EFFECTS ═══ */
+/* 3D Tilt on cards */
+.tilt-card{transition:transform .3s ease,box-shadow .3s ease;transform-style:preserve-3d;will-change:transform}
+.tilt-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.3)}
+
+/* Glow effects on hover */
+.mc-o:hover{box-shadow:0 0 20px rgba(212,168,83,.12)}
+.mc-o.sel{box-shadow:0 0 25px rgba(212,168,83,.15)}
+.ms-o:hover{box-shadow:0 0 15px rgba(212,168,83,.1)}
+.ms-o.sel{box-shadow:0 0 20px rgba(212,168,83,.12)}
+.yn-o:hover{box-shadow:0 0 20px rgba(212,168,83,.12)}
+.yn-o.sel{box-shadow:0 0 25px rgba(212,168,83,.15)}
+.qi:focus{box-shadow:0 0 0 3px rgba(212,168,83,.1),0 0 25px rgba(212,168,83,.08)}
+.grouped:hover{border-color:rgba(212,168,83,.15);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.grouped{transition:all .3s ease}
+
+/* CTA glow */
+.cta{position:relative;overflow:hidden}
+.cta:hover{box-shadow:0 8px 35px rgba(212,168,83,.4),0 0 60px rgba(212,168,83,.15)}
+.cta::after{content:'';position:absolute;top:50%;left:50%;width:120px;height:120px;background:radial-gradient(circle,rgba(255,255,255,.25) 0%,transparent 70%);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform .4s ease,opacity .4s ease;pointer-events:none}
+.cta:hover::after{transform:translate(-50%,-50%) scale(1);opacity:1}
+
+/* Nav button glow */
+.nb-next:hover{box-shadow:0 6px 25px rgba(212,168,83,.35),0 0 50px rgba(212,168,83,.12)}
+.nb-back:hover{box-shadow:0 4px 20px rgba(255,255,255,.06)}
+
+/* Section icon float animation */
+.float-icon{animation:iconFloat 3s ease-in-out infinite}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* Welcome step cards entrance */
+.w-step{transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.w-step:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.2);border-color:rgba(212,168,83,.2)}
+
+/* Section complete check pulse */
+.sdone .chk{animation:checkPulse 2s ease-in-out infinite}
+@keyframes checkPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.2)}50%{box-shadow:0 0 0 12px rgba(16,185,129,0)}}
+
+/* Encouragement icon bounce */
+.encourage-icon{animation:gentleBounce 2s ease-in-out infinite}
+@keyframes gentleBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* Summary stat cards */
+.stat{transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.stat:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.2);border-color:rgba(212,168,83,.15)}
+
+/* Unlock card glow */
+.unlock{transition:box-shadow .3s ease}
+.unlock:hover{box-shadow:0 0 60px rgba(212,168,83,.1),0 20px 50px rgba(0,0,0,.3)}
+.unlock .ubtn{position:relative;overflow:hidden;transition:all .3s ease}
+.unlock .ubtn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(212,168,83,.4),0 0 60px rgba(212,168,83,.15)}
+
+/* Progress bar shimmer */
+.pbar-fill{background:linear-gradient(90deg,var(--gold),#E8C36A,var(--gold));background-size:200% 100%;animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* Halfway callout glow */
+.halfway{animation:halfwayPulse 2.5s ease-in-out infinite}
+@keyframes halfwayPulse{0%,100%{box-shadow:0 0 0 0 rgba(212,168,83,.15)}50%{box-shadow:0 0 20px rgba(212,168,83,.1)}}
+
+/* Emotional close dove float */
+.emo-dove{animation:doveFloat 4s ease-in-out infinite}
+@keyframes doveFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* Subtle background grain texture */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<script>
+const META={"title": "Family Crisis Playbook — Guided Walkthrough", "version": "2.0", "estimated_time": "22-28 minutes", "total_sections": 6, "homework_label": "Add to Follow-Up List", "privacy_note": "No passwords, PINs, or account numbers are collected. Those go in your sealed envelope.", "welcome": {"headline": "Your family needs a plan. Let's build it together.", "quote": "There's an envelope in my desk.", "body": "Answer a series of simple prompts — most are quick taps — and your playbook builds itself. If you don't know something, just add it to your follow-up list and keep moving.", "steps": ["Answer the prompts — most are quick taps", "Skip anything you need to look up — it becomes your follow-up list", "Unlock your finished playbook + follow-up checklist"], "stats": ["22-28 min", "6 sections", "Private"], "cta": "LET'S DO THIS"}, "emotional_close": {"headline": "Take a breath.", "body": "You just did what most families avoid for years. Everything you entered is organized, structured, and waiting for you.", "quote": "There's an envelope in my desk.", "sub": "You're one click away from being able to say that.", "cta": "SEE MY RESULTS"}, "unlock": {"price_original": 99, "price_sale": 49, "limit_text": "First 500 families only", "includes": ["Finished playbook document", "Break Glass emergency card", "Follow-up checklist with tips", "Envelope instructions"], "guarantee": "30-day money-back guarantee", "cta": "UNLOCK MY PLAYBOOK", "checkout_url": "https://thescamhotline.mysamcart.com/familycrisis"}, "encouragement_screens": {"after_section_3": {"show": true, "text": "You're over halfway done."}, "after_section_5": {"show": true, "text": "That was the trickiest section, and you just handled it."}}};
+const SECTIONS=[{"section_id": "medical", "section_number": 1, "title": "Medical & Emergency", "icon": "hospital", "subtitle": "Who takes charge if you can't speak for yourself?", "reassurance": "Don't worry about perfection. Just map what exists.", "privacy_note": null, "cards": [{"card_id": "med_decision_makers", "headline": "Decision Makers", "helper_text": "Who steps in if you can't speak for yourself?", "questions": [{"id": "Q1", "type": "text", "prompt": "Who should make medical decisions if you can't?", "placeholder": "Name and relationship — e.g., Sarah (wife)", "options": [], "follow_up_allowed": true, "follow_up_tip": "Ask your family who'd be comfortable in this role"}, {"id": "Q2", "type": "yes_no", "prompt": "Does this person know they've been chosen?", "options": ["Yes", "No"], "follow_up_allowed": true}, {"id": "Q3", "type": "text", "prompt": "Backup person if they're unavailable?", "placeholder": "Name and relationship", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "med_health", "headline": "Your Health", "helper_text": "Current medical picture — just the basics.", "grouped": true, "group_title": "Current medical picture", "questions": [{"id": "Q4", "type": "text", "prompt": "Current medical conditions", "placeholder": "List them, or 'none'", "options": [], "follow_up_allowed": true}, {"id": "Q5", "type": "text", "prompt": "Current medications", "placeholder": "List them, or 'none'", "options": [], "follow_up_allowed": true}, {"id": "Q6", "type": "text", "prompt": "Allergies (medications, foods, other)", "placeholder": "List them, or 'none'", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "med_network", "headline": "Your Medical Network", "helper_text": "Doctors and insurance — just names and providers.", "grouped": true, "group_title": "Doctors and insurance", "questions": [{"id": "Q7", "type": "text", "prompt": "Primary care doctor", "placeholder": "Name and practice", "options": [], "follow_up_allowed": true}, {"id": "Q8", "type": "text", "prompt": "Specialists you see regularly", "placeholder": "e.g., Dr. Smith — cardiologist. Or 'none'", "options": [], "follow_up_allowed": true}, {"id": "Q9", "type": "text", "prompt": "Health insurance provider", "placeholder": "e.g., Blue Cross PPO through employer", "options": [], "follow_up_allowed": true, "follow_up_tip": "Check your insurance card or call HR"}, {"id": "Q10", "type": "multiple_choice", "prompt": "Where is your insurance card?", "options": ["Wallet", "Phone app", "Filed at home", "Not sure"], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "med_emergency_prefs", "headline": "Emergency Preferences", "helper_text": "There are no wrong answers here.", "questions": [{"id": "Q11", "type": "multiple_choice", "prompt": "Do you have a living will or advance directive?", "options": ["Yes — I know where it is", "Yes — not sure where", "No", "Not sure what this is"], "follow_up_allowed": true}, {"id": "Q12", "type": "multiple_choice", "prompt": "Resuscitation preference?", "hint": "A DNR tells doctors not to restart your heart or use a breathing machine. No wrong answer.", "options": ["Full resuscitation", "Do not resuscitate (DNR)", "Haven't decided yet"], "follow_up_allowed": true}, {"id": "Q13", "type": "multiple_choice", "prompt": "Organ donor?", "options": ["Yes", "No", "Haven't decided"], "follow_up_allowed": true}], "conditional_logic": []}]}, {"section_id": "financial", "section_number": 2, "title": "Money & Accounts", "icon": "money", "subtitle": "Where does your money live? Just institution names — no account numbers.", "reassurance": "We're mapping the landscape, not documenting details.", "privacy_note": "Account numbers and balances go in your sealed envelope — not here.", "cards": [{"card_id": "fin_banks", "headline": "Bank Accounts", "helper_text": "Just the names of your banks — nothing sensitive.", "questions": [{"id": "Q14", "type": "textarea", "prompt": "Which banks or credit unions do you use?", "placeholder": "List all — e.g., Chase checking, Ally savings", "options": [], "follow_up_allowed": true}, {"id": "Q15", "type": "multi_select", "prompt": "Types of accounts?", "options": ["Checking", "Savings", "Money market", "CD", "Other"], "follow_up_allowed": true}, {"id": "Q16", "type": "text", "prompt": "Anyone else listed on these accounts?", "placeholder": "Who and which accounts, or 'just me'", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "fin_retirement", "headline": "Retirement & Investments", "helper_text": "Where your long-term money is held.", "questions": [{"id": "Q17", "type": "multi_select", "prompt": "What retirement accounts do you have?", "options": ["401k", "IRA", "Roth IRA", "Pension", "403b", "None", "Not sure"], "follow_up_allowed": true}, {"id": "Q18", "type": "text", "prompt": "Where are they held?", "placeholder": "e.g., Fidelity 401k, Vanguard Roth IRA", "options": [], "follow_up_allowed": true, "follow_up_tip": "Check your benefits portal or last statement"}, {"id": "Q19", "type": "text", "prompt": "Brokerage or investment accounts outside retirement?", "placeholder": "Institution names, or 'none'", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "fin_debts_docs", "headline": "Debts & Documents", "helper_text": "What you owe and where the papers are.", "grouped": true, "group_title": "What you owe and where the papers are", "questions": [{"id": "Q20", "type": "text", "prompt": "Mortgage or rent — who do you pay?", "placeholder": "Lender or landlord, or 'own outright'", "options": [], "follow_up_allowed": true}, {"id": "Q21", "type": "textarea", "prompt": "Any loans? (car, student, personal, business)", "placeholder": "Lender + type for each, or 'none'", "options": [], "follow_up_allowed": true}, {"id": "Q22", "type": "text", "prompt": "Credit cards you use?", "placeholder": "Issuer names — e.g., Chase Visa, Amex", "options": [], "follow_up_allowed": true}, {"id": "Q23", "type": "multi_select", "prompt": "Where are financial documents kept?", "options": ["Filing cabinet", "Safe", "Desk drawer", "Safe deposit box", "Computer or cloud", "Not organized"], "follow_up_allowed": true}, {"id": "Q24", "type": "yes_no", "prompt": "Do you have a safe deposit box?", "options": ["Yes", "No"], "follow_up_allowed": true}, {"id": "Q24A", "type": "text", "prompt": "Which bank, and who has the key?", "placeholder": "Bank and key holder", "options": [], "follow_up_allowed": true}], "conditional_logic": [{"rule": "show Q24A only if Q24 == 'Yes'"}]}]}, {"section_id": "income", "section_number": 3, "title": "Income & Bills", "icon": "document", "subtitle": "If your family had to take over Monday morning, could they?", "reassurance": "You don't need exact amounts. Just map where money comes in and goes out.", "privacy_note": null, "cards": [{"card_id": "inc_money_in", "headline": "Money Coming In", "helper_text": "Where does your money land?", "questions": [{"id": "Q25", "type": "text", "prompt": "What is your primary bank account — the one most of your money flows through?", "placeholder": "Bank name", "options": [], "follow_up_allowed": true}, {"id": "Q26", "type": "text", "prompt": "Any other accounts your family should know about?", "placeholder": "Bank names + purpose, or 'just the one'", "options": [], "follow_up_allowed": true}, {"id": "Q27", "type": "multi_select", "prompt": "Where does your income come from?", "options": ["Employer paycheck", "Self-employment", "Retirement", "Social Security", "Pension", "Investments", "Rental property", "Other"], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "inc_money_out", "headline": "Money Going Out", "helper_text": "How does money leave each month?", "grouped": true, "group_title": "How does money leave each month?", "questions": [{"id": "Q28", "type": "textarea", "prompt": "Bills on autopay", "placeholder": "e.g., mortgage, electric, car insurance, Netflix", "options": [], "follow_up_allowed": true, "follow_up_tip": "Check your bank's recurring transactions"}, {"id": "Q29", "type": "text", "prompt": "Bills you pay manually", "placeholder": "List them, or 'everything is autopay'", "options": [], "follow_up_allowed": true}, {"id": "Q30", "type": "textarea", "prompt": "Subscriptions and memberships", "placeholder": "Streaming, apps, gym, etc.", "options": [], "follow_up_allowed": true, "follow_up_tip": "Check credit card statements for recurring charges"}, {"id": "Q31", "type": "text", "prompt": "Annual payments that could be missed?", "placeholder": "e.g., property tax, HOA, car registration", "options": [], "follow_up_allowed": true}], "conditional_logic": []}]}, {"section_id": "insurance", "section_number": 4, "title": "Insurance & Benefits", "icon": "shield", "subtitle": "Insurance protects your family. But only if they know it exists.", "reassurance": "If you're not sure about something, that's what the follow-up list is for.", "privacy_note": null, "cards": [{"card_id": "ins_life", "headline": "Life Insurance", "helper_text": "Do you have coverage, and who gets it?", "questions": [{"id": "Q32", "type": "multiple_choice", "prompt": "Do you have life insurance?", "options": ["Yes — through employer", "Yes — private policy", "Yes — both", "No", "Not sure"], "follow_up_allowed": true}, {"id": "Q33", "type": "text", "prompt": "Provider(s)?", "placeholder": "Company name(s)", "options": [], "follow_up_allowed": true, "follow_up_tip": "Check your pay stub or call HR for employer coverage"}, {"id": "Q34", "type": "text", "prompt": "Approximate coverage amount?", "placeholder": "e.g., $500,000 — or 'not sure'", "options": [], "follow_up_allowed": true}, {"id": "Q35", "type": "text", "prompt": "Who is the beneficiary?", "placeholder": "Name(s)", "options": [], "follow_up_allowed": true}], "conditional_logic": [{"rule": "show Q33, Q34, Q35 only if Q32 in ['Yes — through employer', 'Yes — private policy', 'Yes — both']"}]}, {"card_id": "ins_other", "headline": "Other Coverage", "helper_text": "What else is covered?", "grouped": true, "group_title": "What else is covered?", "questions": [{"id": "Q36", "type": "multiple_choice", "prompt": "Disability insurance?", "options": ["Yes — through employer", "Yes — private", "No", "Not sure"], "follow_up_allowed": true}, {"id": "Q37", "type": "multiple_choice", "prompt": "Long-term care insurance?", "options": ["Yes", "No", "Not sure"], "follow_up_allowed": true}, {"id": "Q38", "type": "text", "prompt": "Home or renter's insurance?", "placeholder": "Company name", "options": [], "follow_up_allowed": true}, {"id": "Q39", "type": "text", "prompt": "Auto insurance?", "placeholder": "Company name", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "ins_policies", "headline": "Policies & Contacts", "helper_text": "Where are the documents, and who's your contact?", "questions": [{"id": "Q40", "type": "text", "prompt": "Any other policies? (umbrella, business, liability)", "placeholder": "List them, or 'none'", "options": [], "follow_up_allowed": true}, {"id": "Q41", "type": "multiple_choice", "prompt": "Where are insurance documents?", "options": ["Filing cabinet", "Email", "Online portal", "Agent has them", "Not sure"], "follow_up_allowed": true}, {"id": "Q42", "type": "text", "prompt": "Insurance agent or broker?", "placeholder": "Name and contact, or 'no agent'", "options": [], "follow_up_allowed": true}], "conditional_logic": []}]}, {"section_id": "digital", "section_number": 5, "title": "Digital Life & Access", "icon": "phone", "subtitle": "Let's note how you access things online. That's it.", "reassurance": "No perfect answer here. We're just mapping what exists.", "privacy_note": "We never collect passwords. This documents which tools you use, not how to get in.", "pre_section_encouragement": {"show": true, "text": "You're doing great. Almost through the hardest part."}, "cards": [{"card_id": "dig_how_you_log_in", "headline": "How You Log In", "helper_text": "The basics of how you access things.", "questions": [{"id": "Q43", "type": "multiple_choice", "prompt": "How do you manage your passwords?", "options": ["Password manager app", "Written in a notebook", "Saved in browser", "I remember them all", "A mix of these"], "follow_up_allowed": true}, {"id": "Q44", "type": "multi_select", "prompt": "If you use a password manager — which one?", "options": ["1Password", "LastPass", "Bitwarden", "Apple Keychain", "Google Password Manager", "Other"], "follow_up_allowed": true}, {"id": "Q45", "type": "multiple_choice", "prompt": "Where will the master password be stored?", "options": ["In the sealed envelope", "Written in a notebook — I'll note where", "I need to set this up", "Only in my head right now"], "follow_up_allowed": true}], "conditional_logic": [{"rule": "show Q44 only if Q43 in ['Password manager app', 'A mix of these']"}]}, {"card_id": "dig_key_accounts", "headline": "Your Key Accounts", "helper_text": "Just the big ones — email, phone, financial apps.", "questions": [{"id": "Q46", "type": "text", "prompt": "Primary email account?", "placeholder": "e.g., john.smith@gmail.com", "options": [], "follow_up_allowed": true}, {"id": "Q47", "type": "multiple_choice", "prompt": "Could your family get into your phone if needed?", "options": ["Yes — someone knows the code", "No — I'll add it to the envelope", "I'd rather not share this"], "follow_up_allowed": true}, {"id": "Q48", "type": "multiple_choice", "prompt": "Could your family get into your computer?", "options": ["Yes — someone knows the password", "No — I'll add it to the envelope", "I'd rather not share this", "Multiple computers — I'll sort this out"], "follow_up_allowed": true}, {"id": "Q49", "type": "multi_select", "prompt": "Financial apps you use?", "options": ["Venmo", "Zelle", "PayPal", "Cash App", "Robinhood", "None", "Other"], "follow_up_allowed": true}, {"id": "Q50", "type": "yes_no", "prompt": "Do you have any cryptocurrency?", "options": ["Yes", "No"], "follow_up_allowed": true}, {"id": "Q50A", "type": "text", "prompt": "Which platform, and where will access info be stored?", "placeholder": "e.g., Coinbase — access info in sealed envelope", "options": [], "follow_up_allowed": true}], "conditional_logic": [{"rule": "show Q50A only if Q50 == 'Yes'"}]}, {"card_id": "dig_where_stuff_lives", "headline": "Where Your Stuff Lives", "helper_text": "Photos, files, and cloud storage.", "questions": [{"id": "Q51", "type": "multi_select", "prompt": "Where are your photos stored?", "options": ["Phone", "iCloud", "Google Photos", "External hard drive", "Computer", "Printed only"], "follow_up_allowed": true}, {"id": "Q52", "type": "multi_select", "prompt": "Important documents in cloud storage?", "options": ["Google Drive", "Dropbox", "OneDrive", "iCloud", "None"], "follow_up_allowed": true}], "conditional_logic": []}]}, {"section_id": "wishes", "section_number": 6, "title": "Wishes & Final Instructions", "icon": "heart", "subtitle": "This is the part people avoid. But it's also the part your family will be most grateful you did.", "reassurance": "There are no wrong answers. Say as much or as little as feels right.", "privacy_note": null, "cards": [{"card_id": "wish_arrangements", "headline": "Final Arrangements", "helper_text": "What do you want to happen?", "questions": [{"id": "Q53", "type": "multiple_choice", "prompt": "Do you prefer burial or cremation?", "options": ["Burial", "Cremation", "No preference", "My family can decide"], "follow_up_allowed": true}, {"id": "Q54", "type": "text", "prompt": "Any specific wishes about your remains?", "placeholder": "Cemetery plot, ashes scattered, family can decide, etc.", "hint": "If you own a burial plot, include the cemetery name and location.", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "wish_ceremony", "headline": "Ceremony & Celebration", "helper_text": "How do you want to be remembered?", "questions": [{"id": "Q55", "type": "multiple_choice", "prompt": "What kind of service would you want?", "options": ["Traditional funeral", "Celebration of life", "Small and private", "Religious ceremony", "No service", "My family can decide"], "follow_up_allowed": true}, {"id": "Q56", "type": "textarea", "prompt": "Any specific requests?", "placeholder": "Songs, readings, speakers, setting — or 'my family can decide'", "options": [], "follow_up_allowed": true}, {"id": "Q57", "type": "textarea", "prompt": "Anyone who should be notified that your family might not think of?", "placeholder": "Old friends, colleagues, mentors — people outside your inner circle", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "wish_personal_items", "headline": "Personal Items", "helper_text": "Anything specific you want to go to specific people?", "questions": [{"id": "Q58", "type": "textarea", "prompt": "Specific items for specific people?", "placeholder": "e.g., grandpa's watch to Jake, piano to Sarah", "options": [], "follow_up_allowed": true}, {"id": "Q59", "type": "text", "prompt": "Anything to donate, sell, or destroy?", "placeholder": "Or 'nothing specific'", "options": [], "follow_up_allowed": true}], "conditional_logic": []}, {"card_id": "wish_in_your_words", "headline": "In Your Own Words", "helper_text": "This is optional. But families say it meant more than anything else.", "questions": [{"id": "Q60", "type": "textarea", "prompt": "Is there anything you want your family to know — messages, values, traditions, life lessons?", "placeholder": "As short or as long as you want. Some people write a sentence. Some write a page. Whatever feels right.", "hint": "This is optional. But the families who receive something like this say it meant more than anything else in the playbook.", "options": [], "follow_up_allowed": true}], "conditional_logic": []}]}];
+
+const ICONS={hospital:"\u{1F3E5}",money:"\u{1F4B0}",document:"\u{1F4C4}",shield:"\u{1F6E1}\u{FE0F}",phone:"\u{1F4F1}",heart:"\u{1F49B}"};
+let A={},H={},view="welcome",si=0,ci=0;
+
+function allQ(){const q=[];SECTIONS.forEach(s=>s.cards.forEach(c=>c.questions.forEach(x=>{q.push(x);}))); return q}
+function totalQ(){return allQ().length}
+function answered(){return Object.keys(A).filter(k=>A[k]&&String(A[k]).length>0&&!H[k]).length}
+function hwC(){return Object.keys(H).filter(k=>H[k]).length}
+function pPct(){const d=answered()+hwC();return totalQ()>0?Math.min(100,Math.round(d/totalQ()*100)):0}
+function sPct(i){const ids=[];SECTIONS[i].cards.forEach(c=>c.questions.forEach(q=>{ids.push(q.id)}));const d=ids.filter(id=>(A[id]&&String(A[id]).length>0)||H[id]).length;return ids.length>0?Math.round(d/ids.length*100):0}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function escA(s){return String(s||"").replace(/'/g,"\\'")}
+function findQ(id){for(const s of SECTIONS)for(const c of s.cards)for(const q of c.questions)if(q.id===id)return q;return null}
+function shouldShow(cardOrQ,card){
+  if(!card||!card.conditional_logic||card.conditional_logic.length===0)return true;
+  for(const r of card.conditional_logic){
+    const rule=r.rule;
+    const m1=rule.match(/show (\S+) only if (\S+) == '([^']+)'/);
+    if(m1&&cardOrQ===m1[1])return A[m1[2]]===m1[3];
+    const m2=rule.match(/show (\S+) only if (\S+) in \[([^\]]+)\]/);
+    if(m2&&cardOrQ===m2[1]){const vals=m2[3].split(",").map(v=>v.trim().replace(/'/g,""));return vals.includes(A[m2[2]])}
+    const m3=rule.match(/show ([\w,\s]+) only if (\S+) in \[([^\]]+)\]/);
+    if(m3){const qids=m3[1].split(",").map(x=>x.trim());if(qids.includes(cardOrQ)){const vals=m3[3].split(",").map(v=>v.trim().replace(/'/g,""));return vals.includes(A[m3[2]])}}
+  }
+  return true
+}
+
+function render(){document.body.innerHTML="";
+if(view==="welcome")rWelcome();
+else if(view==="section-intro")rSIntro();
+else if(view==="encourage")rEncourage();
+else if(view==="card")rCard();
+else if(view==="section-complete")rSDone();
+else if(view==="emotional-close")rEmo();
+else if(view==="summary")rSummary();
+window.scrollTo({top:0,behavior:"smooth"})}
+
+function renderPBar(){const s=SECTIONS[si];return`<div class="pbar"><div class="pbar-in"><div class="pbar-top"><span class="pbar-sec">${ICONS[s.icon]||""} Section ${si+1} of 6</span><span class="pbar-pct">${pPct()}% complete</span></div><div class="pbar-track"><div class="pbar-fill" style="width:${pPct()}%"></div></div></div></div>`}
+
+function rWelcome(){const m=META.welcome;document.body.innerHTML=`<div class="welcome fade"><p style="font-size:15px;font-weight:700;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;margin-bottom:24px">FAMILY CRISIS PLAYBOOK</p><h1>${m.headline.replace("Let's build it together.","<span>Let's build it together.</span>").replace("Your family needs a plan.","Your family needs a plan.<br/>")}</h1><p class="quote">"${m.quote}"</p><p class="body">${m.body}</p><div class="w-steps">${m.steps.map((s,i)=>`<div class="w-step"><div class="w-step-n">${i+1}</div><div class="w-step-t">${s}</div></div>`).join("")}</div><div class="w-time">${m.stats.map(s=>`<span><strong>${s}</strong></span>`).join("")}</div><button class="cta" onclick="startW()">${m.cta} \u2192</button><p style="font-size:15px;color:rgba(255,255,255,.3);margin-top:14px">${META.privacy_note}</p></div>`}
+
+function rSIntro(){const s=SECTIONS[si];const ic=ICONS[s.icon]||"";const priv=s.privacy_note?`<div class="privacy">\u{1F512} ${s.privacy_note}</div>`:"";document.body.innerHTML=`${renderPBar()}<div class="sintro fade"><div class="icon">${ic}</div><h2>${s.title}</h2><p class="sub">${s.subtitle}</p><p class="reassure">${s.reassurance}</p>${priv}<button class="cta" onclick="beginS()">BEGIN \u2192</button><p class="meta">${s.cards.length} screens</p></div>`}
+
+function rEncourage(){const s=SECTIONS[si];const txt=s.pre_section_encouragement?s.pre_section_encouragement.text:"You're doing great.";document.body.innerHTML=`${renderPBar()}<div class="encourage fade"><div style="font-size:48px;margin-bottom:20px">\u{1F4AA}</div><h2>${txt}</h2><p>The next section is quick. You've got this.</p><button class="cta" onclick="view='section-intro';render()">KEEP GOING \u2192</button></div>`}
+
+function rQ(q,card){
+  if(!shouldShow(q.id,card))return"";
+  const v=A[q.id]||"",df=H[q.id];let inp="";
+  if(q.type==="text")inp=`<input type="text" class="qi" value="${esc(v)}" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)"/>`;
+  else if(q.type==="textarea")inp=`<textarea class="qi" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)">${esc(v)}</textarea>`;
+  else if(q.type==="multiple_choice")inp=`<div class="mc">${q.options.map(o=>`<div class="mc-o${v===o?" sel":""}" onclick="sA('${q.id}','${escA(o)}');render()">${o}</div>`).join("")}</div>`;
+  else if(q.type==="multi_select"){const sel=v?v.split("||"):[];inp=`<div class="ms">${q.options.map(o=>`<div class="ms-o${sel.includes(o)?" sel":""}" onclick="tMS('${q.id}','${escA(o)}')">${o}</div>`).join("")}</div>`}
+  else if(q.type==="yes_no")inp=`<div class="yn"><div class="yn-o${v==="Yes"?" sel":""}" onclick="sA('${q.id}','Yes');render()">Yes</div><div class="yn-o${v==="No"?" sel":""}" onclick="sA('${q.id}','No');render()">No</div></div>`;
+  const hint=q.hint?`<div class="qhint">${q.hint}</div>`:"";
+  return`<div class="qb"><div class="ql">${q.prompt}</div>${hint}${inp}<button class="fu${df?" on":""}" onclick="tH('${q.id}')">${df?"\u{1F4CC} On follow-up list":"\u{1F4CC} Add to follow-up list"}</button></div>`}
+
+function rCard(){const s=SECTIONS[si],c=s.cards[ci];let inner="";
+  if(c.grouped){inner=`<div class="grouped"><div class="gtitle">${c.group_title||c.headline}</div>`;c.questions.forEach(q=>{inner+=rQ(q,c)});inner+=`</div>`}
+  else{c.questions.forEach(q=>{inner+=rQ(q,c)})}
+  const isFirst=si===0&&ci===0,isLast=ci>=s.cards.length-1,isLastS=si>=SECTIONS.length-1;
+  const nl=!isLast?"NEXT \u2192":isLastS?"FINISH \u2192":"NEXT SECTION \u2192";
+  document.body.innerHTML=`${renderPBar()}<div class="card-w fade"><div class="card-t">${c.headline}</div><div class="card-h">${c.helper_text}</div>${inner}<div class="nav">${!isFirst?'<button class="nb nb-back" onclick="goB()">\u2190 BACK</button>':""}<button class="nb nb-next" onclick="goN()">${nl}</button></div></div>`}
+
+function rSDone(){const s=SECTIONS[si],p=sPct(si);
+  const isHalf=si===2;const isDigital=si===4;
+  let extra="";
+  if(isHalf)extra=`<div class="halfway">\u{1F3AF} ${META.encouragement_screens.after_section_3.text}</div>`;
+  if(isDigital)extra=`<div class="halfway">${META.encouragement_screens.after_section_5.text}</div>`;
+  document.body.innerHTML=`${renderPBar()}<div class="sdone fade"><div class="chk">\u2713</div><h2>${ICONS[s.icon]||""} ${s.title} \u2014 done.</h2><p class="pct">${p}% of this section completed.</p>${extra}<button class="cta" onclick="nextS()">CONTINUE \u2192</button></div>`}
+
+function rEmo(){const m=META.emotional_close;document.body.innerHTML=`<div class="emo fade"><div style="font-size:48px;margin-bottom:24px">\u{1F54A}\u{FE0F}</div><h2>${m.headline}</h2><p style="margin-top:16px">${m.body}</p><p style="font-family:var(--serif);font-size:22px;color:var(--gold);font-style:italic;margin-top:28px">"${m.quote}"</p><p style="font-size:16px;color:rgba(255,255,255,.35);margin-top:8px">${m.sub}</p><button class="cta" style="margin-top:32px" onclick="showSum()">${m.cta} \u2192</button></div>`}
+
+function rSummary(){const a=answered(),h=hwC();
+  let sc="";SECTIONS.forEach((s,i)=>{const p=sPct(i),cl=p>=80?"var(--green)":p>=50?"var(--amber)":"var(--red)";sc+=`<div class="ss"><span class="ss-i">${ICONS[s.icon]||""}</span><span class="ss-n">${s.title}</span><span class="ss-p" style="color:${cl}">${p}%</span></div>`});
+  let hl="";if(h>0){let items="";Object.keys(H).forEach(id=>{if(!H[id])return;const q=findQ(id);if(!q)return;const tip=q.follow_up_tip||"";items+=`<div class="hwi"><span class="hwi-i">\u2610</span><div><div class="hwi-t">${q.prompt}</div>${tip?`<div class="hwi-tip">\u{1F4A1} ${tip}</div>`:""}</div></div>`});hl=`<div class="hwl"><div class="hwl-t">\u{1F4DD} Your Follow-Up List (${h} items)</div>${items}</div>`}
+  const u=META.unlock;
+  document.body.innerHTML=`<div class="sum fade"><div class="sum-badge">WALKTHROUGH COMPLETE</div><h1>Your playbook is <span>ready</span>.</h1><p class="sub">Everything you entered is organized and structured. Unlock it, print it, store it.</p><div class="stats"><div class="stat"><div class="stat-n">${a}</div><div class="stat-l">Answered</div></div><div class="stat"><div class="stat-n">${h}</div><div class="stat-l">Follow-ups</div></div><div class="stat"><div class="stat-n">6</div><div class="stat-l">Sections</div></div></div><div style="text-align:left;max-width:440px;margin:0 auto 32px"><p style="font-size:16px;font-weight:600;color:rgba(255,255,255,.5);margin-bottom:12px">Section Completion</p>${sc}</div>${hl}<div class="unlock"><div><span class="old">$${u.price_original}</span><span class="new">$${u.price_sale}</span></div><div class="limit">${u.limit_text}</div><p class="usub">Your finished playbook + Break Glass card + follow-up checklist</p><button class="ubtn" onclick="window.open('${u.checkout_url}','_blank')">${u.cta} \u2192</button><p class="trust">\u{1F512} Secure checkout \u00B7 ${u.guarantee}</p><p class="saved">Your answers are saved. Come back anytime to finish your follow-up list.</p></div><div style="margin-top:40px;padding:28px;border-radius:12px;background:rgba(212,168,83,.04);border:1px solid rgba(212,168,83,.15)"><p style="font-family:var(--serif);font-size:22px;font-weight:700;font-style:italic;color:var(--gold);margin-bottom:8px">"There's an envelope in my desk."</p><p style="font-size:16px;color:rgba(255,255,255,.4)">You earned that.</p></div></div>`}
+
+// ACTIONS
+function startW(){si=0;ci=0;view="section-intro";render()}
+function beginS(){ci=0;view="card";render()}
+function goN(){const s=SECTIONS[si];
+  if(ci<s.cards.length-1){ci++;view="card"}
+  else{view="section-complete"}
+  render()}
+function goB(){
+  if(view==="card"&&ci>0){ci--}
+  else if(view==="card"&&ci===0){view="section-intro"}
+  else if(view==="section-intro"&&si>0){si--;view="section-complete"}
+  render()}
+function nextS(){
+  if(si<SECTIONS.length-1){
+    si++;
+    const s=SECTIONS[si];
+    if(s.pre_section_encouragement&&s.pre_section_encouragement.show){view="encourage"}
+    else{view="section-intro"}
+  }else{view="emotional-close"}
+  render()}
+function showSum(){view="summary";render()}
+function sA(id,v){A[id]=v;if(v&&H[id])delete H[id]}
+function tMS(id,opt){const cur=A[id]?A[id].split("||"):[];const i=cur.indexOf(opt);if(i>-1)cur.splice(i,1);else cur.push(opt);A[id]=cur.filter(Boolean).join("||");if(H[id])delete H[id];render()}
+function tH(id){H[id]=!H[id];if(H[id])A[id]="";render()}
+
+
+// ═══ 3D TILT EFFECT ═══
+function initTilt(){
+  document.querySelectorAll('.grouped, .w-step, .stat, .unlock').forEach(el=>{
+    el.addEventListener('mousemove',function(e){
+      const rect=this.getBoundingClientRect();
+      const x=e.clientX-rect.left;
+      const y=e.clientY-rect.top;
+      const cx=rect.width/2;
+      const cy=rect.height/2;
+      const rotY=((x-cx)/cx)*6;
+      const rotX=-((y-cy)/cy)*6;
+      this.style.transform=`perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    });
+    el.addEventListener('mouseleave',function(){
+      this.style.transform='perspective(800px) rotateX(0) rotateY(0)';
+    });
+  });
+}
+
+// ═══ CURSOR-TRACKING GLOW ON BUTTONS ═══
+function initCursorGlow(){
+  document.querySelectorAll('.cta, .nb-next, .unlock .ubtn').forEach(btn=>{
+    btn.addEventListener('mousemove',function(e){
+      const rect=this.getBoundingClientRect();
+      const x=e.clientX-rect.left;
+      const y=e.clientY-rect.top;
+      this.style.background=`radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,.2) 0%, transparent 50%), linear-gradient(135deg, var(--gold), #C4933F)`;
+    });
+    btn.addEventListener('mouseleave',function(){
+      this.style.background='linear-gradient(135deg, var(--gold), #C4933F)';
+    });
+  });
+}
+
+// Hook into render
+const _origRender = render;
+render = function(){
+  _origRender();
+  requestAnimationFrame(()=>{
+    initTilt();
+    initCursorGlow();
+    // Add float class to section icons
+    document.querySelectorAll('.sintro .icon').forEach(el=>el.classList.add('float-icon'));
+    // Add encouragement icon class
+    document.querySelectorAll('.encourage div[style*="font-size:48px"]').forEach(el=>el.classList.add('encourage-icon'));
+    // Add dove float class
+    document.querySelectorAll('.emo div[style*="font-size:48px"]').forEach(el=>el.classList.add('emo-dove'));
+  });
+};
+
+
+// ═══ API INTEGRATION ═══
+let SESSION_ID = null;
+const API_BASE = window.location.origin;
+let saveTimeout = null;
+
+async function apiCall(endpoint, method='GET', body=null) {
+    try {
+        const opts = { method, headers: {'Content-Type': 'application/json'} };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(API_BASE + endpoint, opts);
+        if (!res.ok) throw new Error('API error: ' + res.status);
+        return await res.json();
+    } catch(e) {
+        console.warn('API call failed:', e.message);
+        return null;
+    }
+}
+
+async function startSession() {
+    // Check for existing session in URL or localStorage
+    const params = new URLSearchParams(window.location.search);
+    const existingId = params.get('session');
+    
+    if (existingId) {
+        const session = await apiCall('/api/session/' + existingId);
+        if (session) {
+            SESSION_ID = session.session_id;
+            A = session.answers || {};
+            H = {};
+            (session.homework || []).forEach(qid => { H[qid] = true; });
+            // Try to resume from where they left off
+            if (session.last_section_completed) {
+                const idx = SECTIONS.findIndex(s => s.section_id === session.last_section_completed);
+                if (idx >= 0 && idx < SECTIONS.length - 1) {
+                    si = idx + 1;
+                    view = 'section-intro';
+                }
+            }
+            console.log('Session resumed:', SESSION_ID);
+            render();
+            return;
+        }
+    }
+    
+    // Create new session
+    const result = await apiCall('/api/session/start', 'POST', {});
+    if (result) {
+        SESSION_ID = result.session_id;
+        // Add session ID to URL for resume
+        const url = new URL(window.location);
+        url.searchParams.set('session', SESSION_ID);
+        window.history.replaceState({}, '', url);
+        console.log('New session:', SESSION_ID);
+    }
+}
+
+function debounceSave() {
+    if (!SESSION_ID) return;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        apiCall('/api/session/' + SESSION_ID + '/answer', 'POST', { answers: A });
+    }, 800);
+}
+
+function saveHomework(qid) {
+    if (!SESSION_ID) return;
+    apiCall('/api/session/' + SESSION_ID + '/homework', 'POST', { question_id: qid });
+}
+
+function saveSectionComplete(sectionId) {
+    if (!SESSION_ID) return;
+    apiCall('/api/session/' + SESSION_ID + '/section-complete', 'POST', { section_id: sectionId });
+}
+
+function saveWalkthroughComplete() {
+    if (!SESSION_ID) return;
+    apiCall('/api/session/' + SESSION_ID + '/complete', 'POST', {});
+}
+
+// Override the original sA (setAnswer) to also trigger API save
+const _origSA = sA;
+sA = function(id, v) {
+    _origSA(id, v);
+    debounceSave();
+};
+
+// Override tH (toggleHomework) to also trigger API save
+const _origTH = tH;
+tH = function(id) {
+    _origTH(id);
+    saveHomework(id);
+};
+
+// Override tMS (toggleMultiSelect) to also trigger API save
+const _origTMS = tMS;
+tMS = function(id, opt) {
+    _origTMS(id, opt);
+    debounceSave();
+};
+
+// Override nextS (next section) to save section completion
+const _origNextS = nextS;
+nextS = function() {
+    const sectionId = SECTIONS[si].section_id;
+    saveSectionComplete(sectionId);
+    _origNextS();
+};
+
+// Override showSum (show summary) to mark walkthrough complete
+const _origShowSum = showSum;
+showSum = function() {
+    saveWalkthroughComplete();
+    _origShowSum();
+};
+
+// Override startW to create session
+const _origStartW = startW;
+startW = function() {
+    if (!SESSION_ID) {
+        startSession().then(() => { _origStartW(); });
+    } else {
+        _origStartW();
+    }
+};
+
+render();
+</script>
+</body>
+</html>

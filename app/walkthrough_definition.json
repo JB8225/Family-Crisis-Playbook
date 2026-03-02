@@ -1,0 +1,925 @@
+{
+  "meta": {
+    "title": "Family Crisis Playbook — Guided Walkthrough",
+    "version": "2.0",
+    "estimated_time": "22-28 minutes",
+    "total_sections": 6,
+    "homework_label": "Add to Follow-Up List",
+    "privacy_note": "No passwords, PINs, or account numbers are collected. Those go in your sealed envelope.",
+    "welcome": {
+      "headline": "Your family needs a plan. Let's build it together.",
+      "quote": "There's an envelope in my desk.",
+      "body": "Answer a series of simple prompts — most are quick taps — and your playbook builds itself. If you don't know something, just add it to your follow-up list and keep moving.",
+      "steps": [
+        "Answer the prompts — most are quick taps",
+        "Skip anything you need to look up — it becomes your follow-up list",
+        "Unlock your finished playbook + follow-up checklist"
+      ],
+      "stats": [
+        "22-28 min",
+        "6 sections",
+        "Private"
+      ],
+      "cta": "LET'S DO THIS"
+    },
+    "emotional_close": {
+      "headline": "Take a breath.",
+      "body": "You just did what most families avoid for years. Everything you entered is organized, structured, and waiting for you.",
+      "quote": "There's an envelope in my desk.",
+      "sub": "You're one click away from being able to say that.",
+      "cta": "SEE MY RESULTS"
+    },
+    "unlock": {
+      "price_original": 99,
+      "price_sale": 49,
+      "limit_text": "First 500 families only",
+      "includes": [
+        "Finished playbook document",
+        "Break Glass emergency card",
+        "Follow-up checklist with tips",
+        "Envelope instructions"
+      ],
+      "guarantee": "30-day money-back guarantee",
+      "cta": "UNLOCK MY PLAYBOOK",
+      "checkout_url": "https://thescamhotline.mysamcart.com/familycrisis"
+    },
+    "encouragement_screens": {
+      "after_section_3": {
+        "show": true,
+        "text": "You're over halfway done."
+      },
+      "after_section_5": {
+        "show": true,
+        "text": "That was the trickiest section, and you just handled it."
+      }
+    }
+  },
+  "sections": [
+    {
+      "section_id": "medical",
+      "section_number": 1,
+      "title": "Medical & Emergency",
+      "icon": "hospital",
+      "subtitle": "Who takes charge if you can't speak for yourself?",
+      "reassurance": "Don't worry about perfection. Just map what exists.",
+      "privacy_note": null,
+      "cards": [
+        {
+          "card_id": "med_decision_makers",
+          "headline": "Decision Makers",
+          "helper_text": "Who steps in if you can't speak for yourself?",
+          "questions": [
+            {
+              "id": "Q1",
+              "type": "text",
+              "prompt": "Who should make medical decisions if you can't?",
+              "placeholder": "Name and relationship — e.g., Sarah (wife)",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Ask your family who'd be comfortable in this role"
+            },
+            {
+              "id": "Q2",
+              "type": "yes_no",
+              "prompt": "Does this person know they've been chosen?",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q3",
+              "type": "text",
+              "prompt": "Backup person if they're unavailable?",
+              "placeholder": "Name and relationship",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "med_health",
+          "headline": "Your Health",
+          "helper_text": "Current medical picture — just the basics.",
+          "grouped": true,
+          "group_title": "Current medical picture",
+          "questions": [
+            {
+              "id": "Q4",
+              "type": "text",
+              "prompt": "Current medical conditions",
+              "placeholder": "List them, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q5",
+              "type": "text",
+              "prompt": "Current medications",
+              "placeholder": "List them, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q6",
+              "type": "text",
+              "prompt": "Allergies (medications, foods, other)",
+              "placeholder": "List them, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "med_network",
+          "headline": "Your Medical Network",
+          "helper_text": "Doctors and insurance — just names and providers.",
+          "grouped": true,
+          "group_title": "Doctors and insurance",
+          "questions": [
+            {
+              "id": "Q7",
+              "type": "text",
+              "prompt": "Primary care doctor",
+              "placeholder": "Name and practice",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q8",
+              "type": "text",
+              "prompt": "Specialists you see regularly",
+              "placeholder": "e.g., Dr. Smith — cardiologist. Or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q9",
+              "type": "text",
+              "prompt": "Health insurance provider",
+              "placeholder": "e.g., Blue Cross PPO through employer",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Check your insurance card or call HR"
+            },
+            {
+              "id": "Q10",
+              "type": "multiple_choice",
+              "prompt": "Where is your insurance card?",
+              "options": [
+                "Wallet",
+                "Phone app",
+                "Filed at home",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "med_emergency_prefs",
+          "headline": "Emergency Preferences",
+          "helper_text": "There are no wrong answers here.",
+          "questions": [
+            {
+              "id": "Q11",
+              "type": "multiple_choice",
+              "prompt": "Do you have a living will or advance directive?",
+              "options": [
+                "Yes — I know where it is",
+                "Yes — not sure where",
+                "No",
+                "Not sure what this is"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q12",
+              "type": "multiple_choice",
+              "prompt": "Resuscitation preference?",
+              "hint": "A DNR tells doctors not to restart your heart or use a breathing machine. No wrong answer.",
+              "options": [
+                "Full resuscitation",
+                "Do not resuscitate (DNR)",
+                "Haven't decided yet"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q13",
+              "type": "multiple_choice",
+              "prompt": "Organ donor?",
+              "options": [
+                "Yes",
+                "No",
+                "Haven't decided"
+              ],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        }
+      ]
+    },
+    {
+      "section_id": "financial",
+      "section_number": 2,
+      "title": "Money & Accounts",
+      "icon": "money",
+      "subtitle": "Where does your money live? Just institution names — no account numbers.",
+      "reassurance": "We're mapping the landscape, not documenting details.",
+      "privacy_note": "Account numbers and balances go in your sealed envelope — not here.",
+      "cards": [
+        {
+          "card_id": "fin_banks",
+          "headline": "Bank Accounts",
+          "helper_text": "Just the names of your banks — nothing sensitive.",
+          "questions": [
+            {
+              "id": "Q14",
+              "type": "textarea",
+              "prompt": "Which banks or credit unions do you use?",
+              "placeholder": "List all — e.g., Chase checking, Ally savings",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q15",
+              "type": "multi_select",
+              "prompt": "Types of accounts?",
+              "options": [
+                "Checking",
+                "Savings",
+                "Money market",
+                "CD",
+                "Other"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q16",
+              "type": "text",
+              "prompt": "Anyone else listed on these accounts?",
+              "placeholder": "Who and which accounts, or 'just me'",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "fin_retirement",
+          "headline": "Retirement & Investments",
+          "helper_text": "Where your long-term money is held.",
+          "questions": [
+            {
+              "id": "Q17",
+              "type": "multi_select",
+              "prompt": "What retirement accounts do you have?",
+              "options": [
+                "401k",
+                "IRA",
+                "Roth IRA",
+                "Pension",
+                "403b",
+                "None",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q18",
+              "type": "text",
+              "prompt": "Where are they held?",
+              "placeholder": "e.g., Fidelity 401k, Vanguard Roth IRA",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Check your benefits portal or last statement"
+            },
+            {
+              "id": "Q19",
+              "type": "text",
+              "prompt": "Brokerage or investment accounts outside retirement?",
+              "placeholder": "Institution names, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "fin_debts_docs",
+          "headline": "Debts & Documents",
+          "helper_text": "What you owe and where the papers are.",
+          "grouped": true,
+          "group_title": "What you owe and where the papers are",
+          "questions": [
+            {
+              "id": "Q20",
+              "type": "text",
+              "prompt": "Mortgage or rent — who do you pay?",
+              "placeholder": "Lender or landlord, or 'own outright'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q21",
+              "type": "textarea",
+              "prompt": "Any loans? (car, student, personal, business)",
+              "placeholder": "Lender + type for each, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q22",
+              "type": "text",
+              "prompt": "Credit cards you use?",
+              "placeholder": "Issuer names — e.g., Chase Visa, Amex",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q23",
+              "type": "multi_select",
+              "prompt": "Where are financial documents kept?",
+              "options": [
+                "Filing cabinet",
+                "Safe",
+                "Desk drawer",
+                "Safe deposit box",
+                "Computer or cloud",
+                "Not organized"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q24",
+              "type": "yes_no",
+              "prompt": "Do you have a safe deposit box?",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q24A",
+              "type": "text",
+              "prompt": "Which bank, and who has the key?",
+              "placeholder": "Bank and key holder",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": [
+            {
+              "rule": "show Q24A only if Q24 == 'Yes'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "income",
+      "section_number": 3,
+      "title": "Income & Bills",
+      "icon": "document",
+      "subtitle": "If your family had to take over Monday morning, could they?",
+      "reassurance": "You don't need exact amounts. Just map where money comes in and goes out.",
+      "privacy_note": null,
+      "cards": [
+        {
+          "card_id": "inc_money_in",
+          "headline": "Money Coming In",
+          "helper_text": "Where does your money land?",
+          "questions": [
+            {
+              "id": "Q25",
+              "type": "text",
+              "prompt": "What is your primary bank account — the one most of your money flows through?",
+              "placeholder": "Bank name",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q26",
+              "type": "text",
+              "prompt": "Any other accounts your family should know about?",
+              "placeholder": "Bank names + purpose, or 'just the one'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q27",
+              "type": "multi_select",
+              "prompt": "Where does your income come from?",
+              "options": [
+                "Employer paycheck",
+                "Self-employment",
+                "Retirement",
+                "Social Security",
+                "Pension",
+                "Investments",
+                "Rental property",
+                "Other"
+              ],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "inc_money_out",
+          "headline": "Money Going Out",
+          "helper_text": "How does money leave each month?",
+          "grouped": true,
+          "group_title": "How does money leave each month?",
+          "questions": [
+            {
+              "id": "Q28",
+              "type": "textarea",
+              "prompt": "Bills on autopay",
+              "placeholder": "e.g., mortgage, electric, car insurance, Netflix",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Check your bank's recurring transactions"
+            },
+            {
+              "id": "Q29",
+              "type": "text",
+              "prompt": "Bills you pay manually",
+              "placeholder": "List them, or 'everything is autopay'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q30",
+              "type": "textarea",
+              "prompt": "Subscriptions and memberships",
+              "placeholder": "Streaming, apps, gym, etc.",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Check credit card statements for recurring charges"
+            },
+            {
+              "id": "Q31",
+              "type": "text",
+              "prompt": "Annual payments that could be missed?",
+              "placeholder": "e.g., property tax, HOA, car registration",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        }
+      ]
+    },
+    {
+      "section_id": "insurance",
+      "section_number": 4,
+      "title": "Insurance & Benefits",
+      "icon": "shield",
+      "subtitle": "Insurance protects your family. But only if they know it exists.",
+      "reassurance": "If you're not sure about something, that's what the follow-up list is for.",
+      "privacy_note": null,
+      "cards": [
+        {
+          "card_id": "ins_life",
+          "headline": "Life Insurance",
+          "helper_text": "Do you have coverage, and who gets it?",
+          "questions": [
+            {
+              "id": "Q32",
+              "type": "multiple_choice",
+              "prompt": "Do you have life insurance?",
+              "options": [
+                "Yes — through employer",
+                "Yes — private policy",
+                "Yes — both",
+                "No",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q33",
+              "type": "text",
+              "prompt": "Provider(s)?",
+              "placeholder": "Company name(s)",
+              "options": [],
+              "follow_up_allowed": true,
+              "follow_up_tip": "Check your pay stub or call HR for employer coverage"
+            },
+            {
+              "id": "Q34",
+              "type": "text",
+              "prompt": "Approximate coverage amount?",
+              "placeholder": "e.g., $500,000 — or 'not sure'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q35",
+              "type": "text",
+              "prompt": "Who is the beneficiary?",
+              "placeholder": "Name(s)",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": [
+            {
+              "rule": "show Q33, Q34, Q35 only if Q32 in ['Yes — through employer', 'Yes — private policy', 'Yes — both']"
+            }
+          ]
+        },
+        {
+          "card_id": "ins_other",
+          "headline": "Other Coverage",
+          "helper_text": "What else is covered?",
+          "grouped": true,
+          "group_title": "What else is covered?",
+          "questions": [
+            {
+              "id": "Q36",
+              "type": "multiple_choice",
+              "prompt": "Disability insurance?",
+              "options": [
+                "Yes — through employer",
+                "Yes — private",
+                "No",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q37",
+              "type": "multiple_choice",
+              "prompt": "Long-term care insurance?",
+              "options": [
+                "Yes",
+                "No",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q38",
+              "type": "text",
+              "prompt": "Home or renter's insurance?",
+              "placeholder": "Company name",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q39",
+              "type": "text",
+              "prompt": "Auto insurance?",
+              "placeholder": "Company name",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "ins_policies",
+          "headline": "Policies & Contacts",
+          "helper_text": "Where are the documents, and who's your contact?",
+          "questions": [
+            {
+              "id": "Q40",
+              "type": "text",
+              "prompt": "Any other policies? (umbrella, business, liability)",
+              "placeholder": "List them, or 'none'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q41",
+              "type": "multiple_choice",
+              "prompt": "Where are insurance documents?",
+              "options": [
+                "Filing cabinet",
+                "Email",
+                "Online portal",
+                "Agent has them",
+                "Not sure"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q42",
+              "type": "text",
+              "prompt": "Insurance agent or broker?",
+              "placeholder": "Name and contact, or 'no agent'",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        }
+      ]
+    },
+    {
+      "section_id": "digital",
+      "section_number": 5,
+      "title": "Digital Life & Access",
+      "icon": "phone",
+      "subtitle": "Let's note how you access things online. That's it.",
+      "reassurance": "No perfect answer here. We're just mapping what exists.",
+      "privacy_note": "We never collect passwords. This documents which tools you use, not how to get in.",
+      "pre_section_encouragement": {
+        "show": true,
+        "text": "You're doing great. Almost through the hardest part."
+      },
+      "cards": [
+        {
+          "card_id": "dig_how_you_log_in",
+          "headline": "How You Log In",
+          "helper_text": "The basics of how you access things.",
+          "questions": [
+            {
+              "id": "Q43",
+              "type": "multiple_choice",
+              "prompt": "How do you manage your passwords?",
+              "options": [
+                "Password manager app",
+                "Written in a notebook",
+                "Saved in browser",
+                "I remember them all",
+                "A mix of these"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q44",
+              "type": "multi_select",
+              "prompt": "If you use a password manager — which one?",
+              "options": [
+                "1Password",
+                "LastPass",
+                "Bitwarden",
+                "Apple Keychain",
+                "Google Password Manager",
+                "Other"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q45",
+              "type": "multiple_choice",
+              "prompt": "Where will the master password be stored?",
+              "options": [
+                "In the sealed envelope",
+                "Written in a notebook — I'll note where",
+                "I need to set this up",
+                "Only in my head right now"
+              ],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": [
+            {
+              "rule": "show Q44 only if Q43 in ['Password manager app', 'A mix of these']"
+            }
+          ]
+        },
+        {
+          "card_id": "dig_key_accounts",
+          "headline": "Your Key Accounts",
+          "helper_text": "Just the big ones — email, phone, financial apps.",
+          "questions": [
+            {
+              "id": "Q46",
+              "type": "text",
+              "prompt": "Primary email account?",
+              "placeholder": "e.g., john.smith@gmail.com",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q47",
+              "type": "multiple_choice",
+              "prompt": "Could your family get into your phone if needed?",
+              "options": [
+                "Yes — someone knows the code",
+                "No — I'll add it to the envelope",
+                "I'd rather not share this"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q48",
+              "type": "multiple_choice",
+              "prompt": "Could your family get into your computer?",
+              "options": [
+                "Yes — someone knows the password",
+                "No — I'll add it to the envelope",
+                "I'd rather not share this",
+                "Multiple computers — I'll sort this out"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q49",
+              "type": "multi_select",
+              "prompt": "Financial apps you use?",
+              "options": [
+                "Venmo",
+                "Zelle",
+                "PayPal",
+                "Cash App",
+                "Robinhood",
+                "None",
+                "Other"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q50",
+              "type": "yes_no",
+              "prompt": "Do you have any cryptocurrency?",
+              "options": [
+                "Yes",
+                "No"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q50A",
+              "type": "text",
+              "prompt": "Which platform, and where will access info be stored?",
+              "placeholder": "e.g., Coinbase — access info in sealed envelope",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": [
+            {
+              "rule": "show Q50A only if Q50 == 'Yes'"
+            }
+          ]
+        },
+        {
+          "card_id": "dig_where_stuff_lives",
+          "headline": "Where Your Stuff Lives",
+          "helper_text": "Photos, files, and cloud storage.",
+          "questions": [
+            {
+              "id": "Q51",
+              "type": "multi_select",
+              "prompt": "Where are your photos stored?",
+              "options": [
+                "Phone",
+                "iCloud",
+                "Google Photos",
+                "External hard drive",
+                "Computer",
+                "Printed only"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q52",
+              "type": "multi_select",
+              "prompt": "Important documents in cloud storage?",
+              "options": [
+                "Google Drive",
+                "Dropbox",
+                "OneDrive",
+                "iCloud",
+                "None"
+              ],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        }
+      ]
+    },
+    {
+      "section_id": "wishes",
+      "section_number": 6,
+      "title": "Wishes & Final Instructions",
+      "icon": "heart",
+      "subtitle": "This is the part people avoid. But it's also the part your family will be most grateful you did.",
+      "reassurance": "There are no wrong answers. Say as much or as little as feels right.",
+      "privacy_note": null,
+      "cards": [
+        {
+          "card_id": "wish_arrangements",
+          "headline": "Final Arrangements",
+          "helper_text": "What do you want to happen?",
+          "questions": [
+            {
+              "id": "Q53",
+              "type": "multiple_choice",
+              "prompt": "Do you prefer burial or cremation?",
+              "options": [
+                "Burial",
+                "Cremation",
+                "No preference",
+                "My family can decide"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q54",
+              "type": "text",
+              "prompt": "Any specific wishes about your remains?",
+              "placeholder": "Cemetery plot, ashes scattered, family can decide, etc.",
+              "hint": "If you own a burial plot, include the cemetery name and location.",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "wish_ceremony",
+          "headline": "Ceremony & Celebration",
+          "helper_text": "How do you want to be remembered?",
+          "questions": [
+            {
+              "id": "Q55",
+              "type": "multiple_choice",
+              "prompt": "What kind of service would you want?",
+              "options": [
+                "Traditional funeral",
+                "Celebration of life",
+                "Small and private",
+                "Religious ceremony",
+                "No service",
+                "My family can decide"
+              ],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q56",
+              "type": "textarea",
+              "prompt": "Any specific requests?",
+              "placeholder": "Songs, readings, speakers, setting — or 'my family can decide'",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q57",
+              "type": "textarea",
+              "prompt": "Anyone who should be notified that your family might not think of?",
+              "placeholder": "Old friends, colleagues, mentors — people outside your inner circle",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "wish_personal_items",
+          "headline": "Personal Items",
+          "helper_text": "Anything specific you want to go to specific people?",
+          "questions": [
+            {
+              "id": "Q58",
+              "type": "textarea",
+              "prompt": "Specific items for specific people?",
+              "placeholder": "e.g., grandpa's watch to Jake, piano to Sarah",
+              "options": [],
+              "follow_up_allowed": true
+            },
+            {
+              "id": "Q59",
+              "type": "text",
+              "prompt": "Anything to donate, sell, or destroy?",
+              "placeholder": "Or 'nothing specific'",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        },
+        {
+          "card_id": "wish_in_your_words",
+          "headline": "In Your Own Words",
+          "helper_text": "This is optional. But families say it meant more than anything else.",
+          "questions": [
+            {
+              "id": "Q60",
+              "type": "textarea",
+              "prompt": "Is there anything you want your family to know — messages, values, traditions, life lessons?",
+              "placeholder": "As short or as long as you want. Some people write a sentence. Some write a page. Whatever feels right.",
+              "hint": "This is optional. But the families who receive something like this say it meant more than anything else in the playbook.",
+              "options": [],
+              "follow_up_allowed": true
+            }
+          ],
+          "conditional_logic": []
+        }
+      ]
+    }
+  ]
+}
