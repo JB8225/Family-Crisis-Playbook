@@ -20,6 +20,37 @@
               "follow_up_tip": "A basic will can be created online in about 30 minutes."
             },
             {
+              "id": "S1A",
+              "type": "multiple_choice",
+              "prompt": "When was your will last updated?",
+              "options": [
+                "Within the past year",
+                "1-3 years ago",
+                "3-5 years ago",
+                "5+ years ago",
+                "Not sure"
+              ],
+              "condition": {
+                "question_id": "S1",
+                "show_if": [
+                  "Yes"
+                ]
+              },
+              "follow_up_tip": "Wills should be reviewed every 3-5 years or after any major life change."
+            },
+            {
+              "id": "S1B",
+              "type": "yes_no",
+              "prompt": "Have there been major life changes since then — marriage, divorce, children, property, inheritance?",
+              "condition": {
+                "question_id": "S1",
+                "show_if": [
+                  "Yes"
+                ]
+              },
+              "follow_up_tip": "If yes, your will may not reflect your current wishes. Updating is usually quick and inexpensive."
+            },
+            {
               "id": "S2",
               "type": "yes_no",
               "prompt": "Do you have life insurance?",
