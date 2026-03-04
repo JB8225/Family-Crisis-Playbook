@@ -1,5 +1,5 @@
 """
-Family Crisis Playbook — FastAPI Backend
+The Resolved Brief — FastAPI Backend
 =========================================
 Phase 1: Walkthrough + Supabase session persistence
 Uses httpx for direct Supabase REST API calls (compatible with sb_secret_ keys)
@@ -136,7 +136,7 @@ def now_iso():
 
 
 # ═══ APP ═══
-app = FastAPI(title="Family Crisis Playbook", version="3.0")
+app = FastAPI(title="The Resolved Brief", version="3.0")
 
 templates_dir = os.path.join(os.path.dirname(__file__), "..", "templates")
 templates = Jinja2Templates(directory=templates_dir)
