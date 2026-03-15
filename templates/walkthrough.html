@@ -489,8 +489,8 @@ const _origShowSum=showSum;showSum=function(){saveWalkthroughComplete();_origSho
 const _origStartW=startW;startW=function(){if(!SESSION_ID){startSession().then(()=>{_origStartW();});}else{_origStartW();}};
 
 // SHARE FUNCTIONS
-const SHARE_URL = "https://family-crisis-playbook-production.up.railway.app";
-const SHARE_TEXT = "I just built my family\'s emergency plan in 30 minutes. You should too. It\'s the thing nobody wants to do but everyone needs.";
+const SHARE_URL = "https://familycrisisplaybook.com/quick-landing/";
+const SHARE_TEXT = "I came across this and realized my family wouldn\'t know what to do if something happened to me. This fixes that. Check it out.";
 
 function shareText(){
     const msg = SHARE_TEXT + " " + SHARE_URL;
