@@ -757,12 +757,15 @@ async def generate_resolved_brief(session_id: str, email: str, name: str) -> Opt
         email_sent = await send_brief_email(email, name, pdf_bytes)
         
         # Update session
-        supabase.table("sessions").update({
-            "purchase_status": "paid",
-            "pdf_generated": True,
-            "email": email,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
+        try:
+            supabase.table("sessions").update({
+                "purchase_status": "paid",
+                "pdf_generated": True,
+                "email": email,
+                "last_activity_at": now_iso(),
+            }).eq("session_id", session_id).execute()
+        except Exception as _ue:
+            print(f"Session update note (non-critical): {_ue}")
         
         # Cleanup temp file
         os.unlink(tmp_path)
@@ -880,8 +883,12 @@ async def samcart_webhook(request: Request):
 
 # ═══ MANUAL PDF GENERATION (for testing) ═══
 
+class ManualBriefRequest(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
+
 @app.post("/api/session/{session_id}/generate-brief")
-async def manual_generate_brief(session_id: str):
+async def manual_generate_brief(session_id: str, data: ManualBriefRequest = ManualBriefRequest()):
     """Manually trigger PDF generation for testing."""
     try:
         result = supabase.table("sessions").select("email, first_name").eq(
@@ -892,8 +899,8 @@ async def manual_generate_brief(session_id: str):
             raise HTTPException(status_code=404, detail="Session not found")
         
         session = result.data[0]
-        email = session.get("email") or "test@example.com"
-        name = session.get("first_name") or "Test User"
+        email = data.email or session.get("email") or "test@example.com"
+        name = data.name or session.get("first_name") or "Test User"
         
         status = await generate_resolved_brief(session_id, email, name)
         
