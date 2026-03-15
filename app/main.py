@@ -54,6 +54,7 @@ class TableRef:
         self._order_col = None
         self._order_desc = False
         self._limit_n = None
+        self._pending_update = None
     
     def select(self, cols="*"):
         self._select_cols = cols
@@ -78,29 +79,34 @@ class TableRef:
         return type("R", (), {"data": r.json()})()
     
     def update(self, data):
-        params = "&".join(self._filters)
-        url = f"{self.url}?{params}" if params else self.url
-        h = {**self.headers, "Prefer": "return=representation"}
-        r = _httpx.patch(url, headers=h, json=data, timeout=10)
-        r.raise_for_status()
-        return type("R", (), {"data": r.json()})()
+        self._pending_update = data
+        return self
     
     def execute(self):
-        params = []
-        if self._select_cols != "*":
-            params.append(f"select={self._select_cols}")
+        if self._pending_update is not None:
+            params = "&".join(self._filters)
+            url = f"{self.url}?{params}" if params else self.url
+            h = {**self.headers, "Prefer": "return=representation"}
+            r = _httpx.patch(url, headers=h, json=self._pending_update, timeout=10)
+            r.raise_for_status()
+            self._pending_update = None
+            return type("R", (), {"data": r.json()})()
         else:
-            params.append("select=*")
-        params.extend(self._filters)
-        if self._order_col:
-            direction = "desc" if self._order_desc else "asc"
-            params.append(f"order={self._order_col}.{direction}")
-        if self._limit_n:
-            params.append(f"limit={self._limit_n}")
-        url = f"{self.url}?{'&'.join(params)}"
-        r = _httpx.get(url, headers=self.headers, timeout=10)
-        r.raise_for_status()
-        return type("R", (), {"data": r.json()})()
+            params = []
+            if self._select_cols != "*":
+                params.append(f"select={self._select_cols}")
+            else:
+                params.append("select=*")
+            params.extend(self._filters)
+            if self._order_col:
+                direction = "desc" if self._order_desc else "asc"
+                params.append(f"order={self._order_col}.{direction}")
+            if self._limit_n:
+                params.append(f"limit={self._limit_n}")
+            url = f"{self.url}?{'&'.join(params)}"
+            r = _httpx.get(url, headers=self.headers, timeout=10)
+            r.raise_for_status()
+            return type("R", (), {"data": r.json()})()
 
 # Test connection
 try:
@@ -245,7 +251,7 @@ async def session_start(data: SessionStart):
             "email": data.email,
             "first_name": data.first_name,
             "last_activity_at": now_iso(),
-        }).execute()
+        })
 
         session = result.data[0]
         return {
