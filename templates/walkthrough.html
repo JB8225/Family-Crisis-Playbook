@@ -488,7 +488,25 @@ const _origNextS=nextS;nextS=function(){const sectionId=SECTIONS[si].section_id;
 const _origShowSum=showSum;showSum=function(){saveWalkthroughComplete();_origShowSum();};
 const _origStartW=startW;startW=function(){if(!SESSION_ID){startSession().then(()=>{_origStartW();});}else{_origStartW();}};
 
-// SHARE FUNCTIONS
+async function handleCheckout(){
+    const email = prompt("Enter your email — we'll send your Resolved Brief here after purchase:");
+    if(!email || !email.includes('@')){
+        if(email !== null) alert("Please enter a valid email address.");
+        return;
+    }
+    if(SESSION_ID){
+        try {
+            await fetch(API_BASE+'/api/session/'+SESSION_ID+'/answer',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({answers:{'__email__':email}})
+            });
+        } catch(e){}
+        window.open('https://thescamhotline.mysamcart.com/familycrisis?session_id='+SESSION_ID+'&email='+encodeURIComponent(email),'_blank');
+    } else {
+        window.open('https://thescamhotline.mysamcart.com/familycrisis','_blank');
+    }
+}// SHARE FUNCTIONS
 const SHARE_URL = "https://familycrisisplaybook.com/quick-landing/";
 const SHARE_TEXT = "I came across this and realized my family wouldn\'t know what to do if something happened to me. This fixes that. Check it out.";
 
