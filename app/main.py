@@ -575,7 +575,12 @@ async def generate_ai_narratives(answers: dict, name: str) -> dict:
     first_name = name.split()[0] if name else "your loved one"
     prompt = f"""You are writing personalized section introductions for a family crisis document called "The Resolved Brief" prepared by {name}.
 
-CRITICAL: Write these as if speaking directly to the FAMILY MEMBER who is reading this document during a crisis. Use "you" to address the reader (the family) and refer to {name} by first name ({first_name}).
+CRITICAL RULES:
+1. Write these as if speaking directly to the FAMILY MEMBER who is reading this document during a crisis.
+2. ONLY reference information that appears in the answers below. NEVER invent, assume, or embellish any details.
+3. If an answer is empty, blank, or missing, say "this was not documented" — do NOT make up what it might be.
+4. If an answer is vague, keep your narrative vague too. Do not fill in specifics that are not in the data.
+5. This is a legal and personal document. Accuracy is more important than sounding complete. Getting a detail wrong could cause real harm. Use "you" to address the reader (the family) and refer to {name} by first name ({first_name}).
 
 The tone should be warm, calm, and reassuring — like a trusted guide helping someone through a difficult moment. Start each section with a brief human moment before getting into the practical details. Highlight what's in good shape and gently flag what's missing.
 
@@ -590,7 +595,8 @@ Return ONLY a JSON object with these keys, each containing a 3-5 sentence narrat
 - insurance (address the family, explain what's covered)
 - digital (address the family, explain how to access accounts)
 - medical (address the family, explain who makes decisions and what doctors need to know)
-- wishes (address the family gently, explain what {first_name} wanted)
+
+DO NOT generate a "wishes" key. Final wishes and personal directives must never be paraphrased or interpreted by AI. They will be presented exactly as written by {first_name}.
 
 No markdown, no backticks, just the JSON object."""
 
@@ -641,7 +647,7 @@ def generate_fallback_narratives(answers: dict, name: str) -> dict:
         "insurance": f"{first} made sure you would know what insurance coverage is in place and how to access it. The policy details, coverage amounts, and agent contacts are all documented below.",
         "digital": f"This section covers how to access {first}'s accounts, devices, and digital life. Password management and device access information is here so you are not locked out when you need it most.",
         "medical": f"If you are working with doctors or a hospital, this section has everything they will need. {first} documented their medical information, decision makers, and preferences so the people who matter can speak on their behalf.",
-        "wishes": f"This is the most personal section. {first} took the time to write down what they wanted, because they did not want you to have to guess. Read this when you are ready.",
+        "wishes": "",
     }
 
 
