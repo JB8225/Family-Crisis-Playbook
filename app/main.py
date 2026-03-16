@@ -683,11 +683,11 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                             <p><strong>What to do next:</strong></p>
                             <ol>
                                 <li>Print your Resolved Brief and your Family Emergency Card</li>
-                                <li>Fill in the sensitive details — passwords, PINs, account numbers — by hand on the Emergency Card</li>
-                                <li>Seal it in an envelope, put it somewhere safe, and label it</li>
+                                <li>Create your Master File — write down passwords and account numbers on a separate sheet</li>
+                                <li>Put everything in one place — a desk drawer, a safe, wherever your family can find it</li>
                                 <li>Tell one person where it is</li>
                             </ol>
-                            <p>That\'s it. You just did what most families never do.</p>
+                            <p>That's it. You just did what most families never do.</p>
                             <p style="color: #C9A84C; font-style: italic; font-family: Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
                             <p style="color: #8A8578; font-size: 14px;">You earned that.</p>
                         </div>
