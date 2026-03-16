@@ -424,7 +424,98 @@ class ResolvedBriefBuilder:
         self.build_cover(c)
         c.showPage()
         
-        # ═══ PAGE 2: FINANCIAL OVERVIEW ═══
+        # ═══ PAGE 2: INTRODUCTION LETTER ═══
+        self._page_header(c, "Before You Begin")
+        self._page_footer(c, "Introduction")
+        
+        y = H - 110
+        
+        # Opening line
+        c.setFillColor(GOLD)
+        c.setFont("Times-Bold", 16)
+        from reportlab.lib.utils import simpleSplit
+        
+        intro_opening = f"If you are reading this, someone who loves you took the time to make sure you would never have to figure this out alone."
+        lines = simpleSplit(intro_opening, "Times-Bold", 16, W - 100)
+        for line in lines:
+            c.drawString(50, y, line)
+            y -= 22
+        
+        y -= 16
+        
+        # Main body paragraphs
+        c.setFillColor(DARK_GRAY)
+        c.setFont("Helvetica", 11)
+        
+        paragraphs = [
+            f"This is {self.name.split()[0] if self.name else 'your loved one'}'s Resolved Brief \u2014 a complete guide to everything you need to know about their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
+            "",
+            "Here is what to do:",
+            "",
+        ]
+        
+        for para in paragraphs:
+            if para == "":
+                y -= 8
+                continue
+            lines = simpleSplit(para, "Helvetica", 11, W - 100)
+            for line in lines:
+                c.drawString(50, y, line)
+                y -= 17
+            y -= 6
+        
+        # Steps with gold numbers
+        steps = [
+            ("1", "Start with the Family Emergency Card", "It covers the first 24 hours on one page. Who to call, what to access, where everything is."),
+            ("2", "Work through each section as you need it", "You do not have to read it all at once. Each section stands on its own."),
+            ("3", "Check the Follow-Up Checklist", "Some items were flagged to address later. This list tells you what still needs attention."),
+            ("4", "Look for the sealed envelope", "The sensitive information \u2014 passwords, PINs, account numbers \u2014 is written by hand on the Family Emergency Card. It should be sealed separately."),
+        ]
+        
+        for num, title, detail in steps:
+            # Gold number circle
+            c.setFillColor(GOLD)
+            c.circle(68, y - 2, 12, fill=1, stroke=0)
+            c.setFillColor(white)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawCentredString(68, y - 6, num)
+            
+            # Step title
+            c.setFillColor(DARK_NAVY)
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(90, y, title)
+            y -= 18
+            
+            # Step detail
+            c.setFillColor(MID_GRAY)
+            c.setFont("Helvetica", 10.5)
+            detail_lines = simpleSplit(detail, "Helvetica", 10.5, W - 140)
+            for dl in detail_lines:
+                c.drawString(90, y, dl)
+                y -= 15
+            y -= 12
+        
+        # Closing line
+        y -= 10
+        c.setFillColor(GOLD)
+        c.setFont("Times-Bold", 14)
+        closing = "You have got this. They made sure of it."
+        c.drawString(50, y, closing)
+        
+        y -= 30
+        c.setStrokeColor(GOLD)
+        c.setLineWidth(1)
+        c.line(50, y, W - 50, y)
+        
+        y -= 20
+        c.setFillColor(MID_GRAY)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawString(50, y, f"Prepared for the family of {self.name}")
+        c.drawString(50, y - 16, f"{self.date}")
+        
+        c.showPage()
+        
+        # ═══ PAGE 3: FINANCIAL OVERVIEW ═══
         self.build_section_page(c, "Financial Overview",
             "Where the money lives \u2014 banks, investments, and debts", 1, "financial",
             [
@@ -675,10 +766,55 @@ class ResolvedBriefBuilder:
             c.line(col2_x + 4, y - 18, col2_x + col_w - 4, y - 18)
             y -= 28
         
+        # SENSITIVE ACCESS - FILL IN BY HAND
+        y = y - 20
+        c.setFillColor(NAVY)
+        c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.rect(36, y - 6, 3, 32, fill=1, stroke=0)
+        c.setFillColor(white)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(50, y + 4, "SENSITIVE ACCESS — FILL IN BY HAND, SEAL IN ENVELOPE")
+        y -= 32
+        
+        c.setFillColor(MID_GRAY)
+        c.setFont("Helvetica-Oblique", 8.5)
+        c.drawString(46, y, "Write these in by hand. Do not type or store digitally. Seal this page in an envelope.")
+        y -= 18
+        
+        handwrite_fields = [
+            "Phone Passcode:",
+            "Computer Password:",
+            "Email Password:",
+            "Password Manager Master Password:",
+            "Bank PIN:",
+            "Safe / Lockbox Combination:",
+            "Other:",
+            "Other:",
+        ]
+        
+        c.setFont("Helvetica-Bold", 9.5)
+        for field in handwrite_fields:
+            c.setFillColor(DARK_NAVY)
+            c.drawString(46, y, field)
+            # Dotted line for handwriting
+            c.setStrokeColor(LIGHT_GRAY)
+            c.setLineWidth(0.5)
+            c.setDash(2, 2)
+            c.line(250, y - 2, W - 46, y - 2)
+            c.setDash()
+            c.setStrokeColor(LIGHT_GRAY)
+            c.line(42, y - 10, W - 42, y - 10)
+            y -= 22
+
         # Footer note
+        y -= 8
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(W/2, 80, "Keep this card with The Resolved Brief folder. Review and update every 6 months.")
+        c.drawCentredString(W/2, max(y, 40), "Keep this card with The Resolved Brief folder. Review and update every 6 months.")
+        c.setFont("Helvetica-Bold", 8)
+        c.setFillColor(RED_ACCENT)
+        c.drawCentredString(W/2, max(y - 14, 28), "THIS PAGE CONTAINS SENSITIVE INFORMATION — STORE SECURELY")
         
         c.showPage()
         
