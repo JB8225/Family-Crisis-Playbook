@@ -96,7 +96,7 @@ def generate_sample_narratives(data):
 
         "medical": f"Sarah Thompson is designated as the medical decision maker, and she knows she's been chosen. James Thompson (brother) serves as backup. Michael manages high blood pressure and mild asthma with Lisinopril and Albuterol. There is a penicillin allergy the hospital must know about. Dr. Emily Chen at Northwestern Medical is the primary care physician, with Dr. Raj Patel handling cardiology. Health insurance is Blue Cross Blue Shield through the employer. The critical gap: no living will or advance directive exists. Michael's resuscitation preference is full resuscitation, and he is an organ donor.",
 
-        "wishes": f"Michael has chosen cremation, with ashes to be scattered at Lake Michigan. He envisions a celebration of life rather than a traditional funeral - casual, with Louis Armstrong playing. Beyond the inner circle, Dave Brennan and Linda Park should be notified. Specific belongings have been designated: grandfather's watch to Jake, guitar collection to brother James, with remaining clothes donated to Goodwill and the boat sold."
+        "wishes": ""
     }
 
 
@@ -349,7 +349,7 @@ class ResolvedBriefBuilder:
         y = H - 125
         
         # AI Narrative
-        if narrative_key in self.narratives:
+        if narrative_key in self.narratives and self.narratives[narrative_key]:
             narrative = self.narratives[narrative_key]
             # Wrap narrative text
             c.setFillColor(DARK_GRAY)
@@ -630,7 +630,7 @@ class ResolvedBriefBuilder:
         
         # ═══ PAGE 7: FINAL WISHES ═══
         self.build_section_page(c, "Final Wishes", 
-            "The things only you can tell them", 6, "wishes",
+            "These are the exact words and wishes they left for you.", 6, "wishes",
             [
                 ("Arrangements", [
                     ("Burial / Cremation", self._get("Q53")),
