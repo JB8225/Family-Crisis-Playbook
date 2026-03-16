@@ -572,20 +572,25 @@ async def generate_ai_narratives(answers: dict, name: str) -> dict:
         print("WARNING: No ANTHROPIC_API_KEY set, using fallback narratives")
         return generate_fallback_narratives(answers, name)
     
-    prompt = f"""You are writing personalized section summaries for a family crisis preparedness document called "The Resolved Brief" for {name}. 
+    first_name = name.split()[0] if name else "your loved one"
+        prompt = f"""You are writing personalized section introductions for a family crisis document called "The Resolved Brief" prepared by {name}.
 
-Based on their answers below, write a 3-4 sentence professional narrative introduction for each section. Tone: warm but authoritative, like a trusted advisor reviewing their situation. Highlight strengths and flag gaps. Do NOT use the person's last name after the first mention — use "you" or "your" naturally.
+CRITICAL: Write these as if speaking directly to the FAMILY MEMBER who is reading this document during a crisis. Use "you" to address the reader (the family) and refer to {name} by first name ({first_name}).
 
-Their answers:
+The tone should be warm, calm, and reassuring — like a trusted guide helping someone through a difficult moment. Start each section with a brief human moment before getting into the practical details. Highlight what's in good shape and gently flag what's missing.
+
+Example tone: "If you're reading this section, {first_name} wanted you to know exactly where the money is. Here's what they set up..."
+
+{first_name}'s answers:
 {json.dumps(answers, indent=2)}
 
-Return ONLY a JSON object with these keys, each containing a 3-4 sentence narrative string:
-- financial
-- income  
-- insurance
-- digital
-- medical
-- wishes
+Return ONLY a JSON object with these keys, each containing a 3-5 sentence narrative string:
+- financial (address the family, explain where the money is)
+- income (address the family, explain what comes in and goes out)
+- insurance (address the family, explain what's covered)
+- digital (address the family, explain how to access accounts)
+- medical (address the family, explain who makes decisions and what doctors need to know)
+- wishes (address the family gently, explain what {first_name} wanted)
 
 No markdown, no backticks, just the JSON object."""
 
@@ -629,14 +634,14 @@ No markdown, no backticks, just the JSON object."""
 
 def generate_fallback_narratives(answers: dict, name: str) -> dict:
     """Generate basic narratives without AI if API is unavailable."""
-    first = name.split()[0] if name else "The client"
+    first = name.split()[0] if name else "your loved one"
     return {
-        "financial": f"{first}'s financial accounts and banking relationships are documented in this section. Review the details below to understand where accounts are held and who has access.",
-        "income": f"This section maps {first}'s income sources and recurring expenses. Knowing what comes in and goes out each month is critical for maintaining household operations during a crisis.",
-        "insurance": f"{first}'s insurance coverage is outlined below. Review policy details, coverage amounts, and agent contact information to ensure the family can file claims quickly when needed.",
-        "digital": f"Digital access information for {first}'s key accounts and devices is documented here. Password management and device access are critical for the family to maintain control of accounts.",
-        "medical": f"Medical decision-making authority and health information for {first} are outlined in this section. This information is essential for healthcare providers and the designated decision maker.",
-        "wishes": f"{first}'s personal wishes and final instructions are documented here. These reflect deeply personal choices that only {first} can make, and sharing them removes an enormous burden from the family.",
+        "financial": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
+        "income": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out on your own. The details below will help you keep things running smoothly.",
+        "insurance": f"{first} made sure you would know what insurance coverage is in place and how to access it. The policy details, coverage amounts, and agent contacts are all documented below.",
+        "digital": f"This section covers how to access {first}'s accounts, devices, and digital life. Password management and device access information is here so you are not locked out when you need it most.",
+        "medical": f"If you are working with doctors or a hospital, this section has everything they will need. {first} documented their medical information, decision makers, and preferences so the people who matter can speak on their behalf.",
+        "wishes": f"This is the most personal section. {first} took the time to write down what they wanted, because they did not want you to have to guess. Read this when you are ready.",
     }
 
 
@@ -678,11 +683,11 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                             <p><strong>What to do next:</strong></p>
                             <ol>
                                 <li>Print your Resolved Brief and your Family Emergency Card</li>
-                                <li>Create your Master File — write down passwords and account numbers on a separate sheet</li>
-                                <li>Put everything in one place — a desk drawer, a safe, wherever your family can find it</li>
+                                <li>Fill in the sensitive details — passwords, PINs, account numbers — by hand on the Emergency Card</li>
+                                <li>Seal it in an envelope, put it somewhere safe, and label it</li>
                                 <li>Tell one person where it is</li>
                             </ol>
-                            <p>That's it. You just did what most families never do.</p>
+                            <p>That\'s it. You just did what most families never do.</p>
                             <p style="color: #C9A84C; font-style: italic; font-family: Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
                             <p style="color: #8A8578; font-size: 14px;">You earned that.</p>
                         </div>
