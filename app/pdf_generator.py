@@ -288,7 +288,7 @@ class ResolvedBriefBuilder:
         # Subtitle
         c.setFillColor(HexColor("#A0A0A0"))
         c.setFont("Helvetica", 13)
-        c.drawCentredString(W/2, H * 0.50, "Everything your family needs to know. All in one place.")
+        c.drawCentredString(W/2, H * 0.50, "The most important document your family will ever need.")
         
         # PREPARED FOR
         c.setFillColor(NAVY)
@@ -448,7 +448,7 @@ class ResolvedBriefBuilder:
         c.setFont("Helvetica", 11)
         
         paragraphs = [
-            f"This is {self.name.split()[0] if self.name else 'your loved one'}'s Resolved Brief \u2014 a complete guide to everything you need to know about their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
+            f"This is {self.name.split()[0] if self.name else 'your loved one'}'s Resolved Brief \u2014 the most important document your family will ever need. It covers their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
             "",
             "Here is what to do:",
             "",
@@ -689,13 +689,24 @@ class ResolvedBriefBuilder:
         c.drawString(50, y + 4, "FIRST 24 HOURS")
         y -= 30
         
-        steps = [
-            f"1.  Call {self._get('Q1', '(primary emergency contact)')}",
-            "2.  Locate the Resolved Brief folder",
-            f"3.  Call insurance agent: {self._get('Q42', '')}",
-            "4.  Access password manager using Master File instructions",
-            "5.  Contact employer / HR",
-        ]
+        # Build dynamic steps based on actual answers
+        steps = []
+        steps.append(f"1.  Call {self._get('Q1', '(primary emergency contact)')}")
+        steps.append("2.  Locate the Resolved Brief and the sealed envelope")
+        agent = self._get('Q42', '')
+        if agent and agent.strip():
+            steps.append(f"3.  Call insurance agent: {agent}")
+        pwd_mgr = self._get('Q44', self._get('Q43', ''))
+        if pwd_mgr and 'password manager' in pwd_mgr.lower() or self._get('Q44', ''):
+            steps.append(f"{len(steps)+1}.  Access password manager using sealed envelope instructions")
+        income = self._get('Q27', '')
+        if income and 'employer' in income.lower():
+            steps.append(f"{len(steps)+1}.  Contact employer / HR")
+        elif income and 'self' in income.lower():
+            steps.append(f"{len(steps)+1}.  Notify business clients / partners")
+        doctor = self._get('Q7', '')
+        if doctor and doctor.strip():
+            steps.append(f"{len(steps)+1}.  Contact primary doctor: {doctor}")
         c.setFont("Helvetica", 10)
         for step in steps:
             c.setFillColor(DARK_NAVY)
