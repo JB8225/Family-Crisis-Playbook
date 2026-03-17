@@ -3,6 +3,8 @@ The Resolved Brief — PDF Generator
 ===================================
 Generates a personalized, professional Resolved Brief from walkthrough answers.
 Matches the exact brand design: navy/gold/cream, R badge, section headers.
+
+v2: Added action guide rendering — phone numbers, steps, timelines, gotchas.
 """
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -30,10 +32,15 @@ MID_GRAY = HexColor("#8A8578")
 DARK_GRAY = HexColor("#4A4A4A")
 FIELD_DOT = HexColor("#C8C3BA")
 RED_ACCENT = HexColor("#C0392B")
+ACTION_BG = HexColor("#EEF2F7")       # Soft blue-gray for action guide blocks
+ACTION_BORDER = HexColor("#1B2A3D")   # Navy border
+STEP_NUM_BG = HexColor("#C9A84C")     # Gold step numbers
+WATCH_OUT_BG = HexColor("#FFF3CD")    # Warm yellow for watch-out
+WATCH_OUT_BORDER = HexColor("#E6AC00")
 
 W, H = letter  # 612 x 792
 
-# ═══ MOCK DATA (will be replaced by real session data) ═══
+# ═══ MOCK DATA ═══
 MOCK = {
     "name": "Michael Thompson",
     "date": datetime.now().strftime("%B %d, %Y"),
@@ -78,31 +85,70 @@ MOCK = {
         "Q60": "To Sarah - you made every single day better. To Jake and Emma - be kind, work hard, and never stop being curious. I'm proud of who you're becoming."
     },
     "homework": ["S3", "S5", "S7", "S11", "S12", "Q48"],
-    "ai_narratives": {}  # Will be filled by Claude API
+    "ai_narratives": {}
 }
 
-# ═══ AI NARRATIVE PROMPTS (for future Claude API integration) ═══
-# For now, generate sample narratives based on mock data
 def generate_sample_narratives(data):
     A = data["answers"]
     return {
-        "financial": f"Michael's primary banking is consolidated through Chase, with a joint checking account shared with Sarah and a separate savings account at Ally. Retirement planning is well-structured across a Fidelity 401(k) and Vanguard Roth IRA, with additional investments at Schwab. The main debt obligations include a Wells Fargo mortgage and a Toyota Financial car loan. Financial documents are split between a filing cabinet and cloud storage - consolidating these into one system would strengthen the family's ability to locate everything quickly.",
-
-        "income": f"Income flows primarily through Chase checking via employer paycheck. Most recurring bills are on autopay, which is ideal - but the family should know that if something happens, these autopay cards must stay active or bills will start bouncing. The water bill is paid manually on a quarterly basis. Key annual payments to watch for: property tax in June and September, and car registration in October. These are easy to miss if no one knows to look for them.",
-
-        "insurance": f"Michael's insurance coverage is stronger than most families we see. Life insurance totals $750,000 across both an employer plan through MetLife and a private policy with Northwestern Mutual, with Sarah as beneficiary on both. Disability coverage exists through the employer. The gap here is long-term care insurance - worth discussing with the State Farm agent. All policies are filed in the filing cabinet, and agent John Davis at State Farm handles the home, auto, and umbrella coverage.",
-
-        "digital": f"Password management is handled through 1Password, with the master password stored in the sealed envelope - good setup. Michael's primary email is a Gmail account, and family members already know the phone passcode. The main vulnerability is computer access - only Michael can currently get in. This needs to go in the Master File. Financial apps include Venmo and Zelle. Photos are backed up across iCloud and Google Photos, with documents in Google Drive and iCloud.",
-
-        "medical": f"Sarah Thompson is designated as the medical decision maker, and she knows she's been chosen. James Thompson (brother) serves as backup. Michael manages high blood pressure and mild asthma with Lisinopril and Albuterol. There is a penicillin allergy the hospital must know about. Dr. Emily Chen at Northwestern Medical is the primary care physician, with Dr. Raj Patel handling cardiology. Health insurance is Blue Cross Blue Shield through the employer. The critical gap: no living will or advance directive exists. Michael's resuscitation preference is full resuscitation, and he is an organ donor.",
-
-        "wishes": ""
+        "financial": {
+            "narrative": "Michael's primary banking is consolidated through Chase, with a joint checking account shared with Sarah and a separate savings account at Ally. Retirement planning is well-structured across a Fidelity 401(k) and Vanguard Roth IRA, with additional investments at Schwab. Financial documents are split between a filing cabinet and cloud storage.",
+            "action_guide": "INSTITUTION: Chase Bank | PHONE: 1-888-356-0023 | STEP 1: Call the Estate Services line and identify yourself as next of kin or executor | STEP 2: Request information on all accounts held under the deceased's name | STEP 3: Ask about joint account access for Sarah Thompson and next steps for transferring ownership | HAVE READY: Death certificate (certified copy), your photo ID, Social Security number of deceased | TIMELINE: Joint account access is typically immediate. Individual account transfers take 2-4 weeks | WATCH OUT: Do not close joint accounts until you speak with an estate attorney — tax implications vary\n\nINSTITUTION: Fidelity (401k) | PHONE: 1-800-343-3548 | STEP 1: Call Fidelity and report the death — ask for the Beneficiary Services team | STEP 2: Request the beneficiary claim packet — Sarah Thompson is the named beneficiary | STEP 3: Complete and return the packet with a certified death certificate | HAVE READY: Death certificate, beneficiary's ID, beneficiary's Social Security number | TIMELINE: Beneficiary claims typically process in 30-60 days | WATCH OUT: Do not roll over the 401k until you understand the inherited IRA rules — a mistake here can trigger significant taxes\n\nINSTITUTION: Vanguard (Roth IRA) | PHONE: 1-800-662-7447 | STEP 1: Call Vanguard and notify them of the death | STEP 2: Ask for the inherited IRA options for the named beneficiary | STEP 3: Complete the transfer paperwork | HAVE READY: Death certificate, beneficiary ID | TIMELINE: 30-60 days | WATCH OUT: Inherited Roth IRA rules differ from traditional IRA — withdrawals may still be tax-free but timing rules apply",
+        },
+        "income": {
+            "narrative": "Income flows primarily through Chase checking via employer paycheck. Most recurring bills are on autopay, which is ideal — but those autopay cards must stay active or bills will start bouncing. The water bill is paid manually on a quarterly basis. Key annual payments to watch: property tax in June and September, car registration in October.",
+            "action_guide": "INSTITUTION: Employer / HR Department | PHONE: Call HR directly | STEP 1: Notify HR of the death and ask about the final paycheck | STEP 2: Ask about any accrued PTO payout and life insurance through the employer | STEP 3: Request information about pension or 401k continuation | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — go through the autopay list and cancel or transfer each one individually. Do not cancel cards until autopays are moved",
+        },
+        "insurance": {
+            "narrative": "Michael's insurance coverage is stronger than most. Life insurance totals $750,000 across MetLife (employer) and Northwestern Mutual (private), with Sarah as beneficiary on both. Disability coverage exists through the employer. All policies are filed in the filing cabinet, and agent John Davis at State Farm handles home, auto, and umbrella.",
+            "action_guide": "INSTITUTION: MetLife (Life Insurance — Employer Policy) | PHONE: 1-800-638-5433 | STEP 1: Call MetLife and ask for the Life Insurance Claims department | STEP 2: Provide the policy number if available, or identify through the employer | STEP 3: Complete and return the beneficiary claim form | HAVE READY: Death certificate (certified), beneficiary ID, policy number if available | TIMELINE: Life insurance claims typically pay within 30-60 days | WATCH OUT: If the death was within 2 years of the policy start date, the insurer may contest the claim — this is called the contestability period\n\nINSTITUTION: Northwestern Mutual (Private Life Insurance) | PHONE: 1-800-388-8123 | STEP 1: Call Northwestern Mutual and request the Claims department | STEP 2: Provide the policy number (located in the filing cabinet) | STEP 3: Submit the claim with a certified death certificate | HAVE READY: Death certificate, beneficiary ID, policy documents | TIMELINE: 30-60 days | WATCH OUT: Keep the policy in force (premium paid) until the claim is processed — a lapsed policy can complicate the claim\n\nINSTITUTION: State Farm (Home, Auto, Umbrella) | PHONE: 1-800-732-5246 | STEP 1: Call agent John Davis directly at 312-555-0847 | STEP 2: Notify State Farm of the death and discuss policy continuation | STEP 3: Transfer home and auto policies to the surviving spouse if applicable | HAVE READY: Death certificate, policy numbers | TIMELINE: Policy transfers are typically completed within 1-2 weeks | WATCH OUT: Do not let home or auto insurance lapse — coverage gaps can leave you unprotected and affect future rates",
+        },
+        "digital": {
+            "narrative": "Password management is handled through 1Password, with the master password stored in the sealed envelope — good setup. Michael's primary email is a Gmail account. The main gap is computer access — only Michael can currently get in. Financial apps include Venmo and Zelle. Photos are backed up across iCloud and Google Photos.",
+            "action_guide": "INSTITUTION: Gmail / Google Account | PHONE: No direct phone — use google.com/accounts/recovery | STEP 1: Start with the primary email account — it is the key to resetting everything else | STEP 2: Use Google's Inactive Account process or submit a deceased user request at support.google.com | STEP 3: Once in, use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate (digital copy), your own photo ID | TIMELINE: Google's deceased user process takes 4-8 weeks | WATCH OUT: Do not delete the Google account — it may hold 2-factor authentication codes, documents, and photos that you will need\n\nINSTITUTION: 1Password (Password Manager) | PHONE: No phone — use 1password.com/support | STEP 1: Retrieve the master password from the sealed envelope | STEP 2: Log in to 1Password and export the vault or access credentials one by one | STEP 3: Use the stored passwords to access financial accounts, email, and other services | HAVE READY: Master password from sealed envelope | TIMELINE: Immediate once you have the master password | WATCH OUT: The Emergency Kit (account key + master password) is required — without both, the vault is unrecoverable",
+        },
+        "medical": {
+            "narrative": "Sarah Thompson is the medical decision maker and she knows she's been chosen. James Thompson serves as backup. Michael has high blood pressure and mild asthma — Lisinopril and Albuterol. Critical allergy: penicillin. Dr. Emily Chen at Northwestern Medical is primary care, Dr. Raj Patel handles cardiology. The gap: no living will or advance directive exists.",
+            "action_guide": "INSTITUTION: Blue Cross Blue Shield (Health Insurance) | PHONE: Call the member services number on the insurance card | STEP 1: Notify BCBS of the death and ask about any outstanding claims | STEP 2: Ask about COBRA continuation coverage if dependents need continued coverage | STEP 3: Cancel the policy once all claims are settled | HAVE READY: Death certificate, member ID number, insurance card | TIMELINE: Outstanding claims are typically resolved within 60-90 days | WATCH OUT: Do not cancel health insurance until all outstanding medical bills are resolved — some claims arrive months after treatment\n\nINSTITUTION: Dr. Emily Chen — Primary Care (Northwestern Medical) | PHONE: Call the practice directly | STEP 1: Notify the practice of the death | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID | TIMELINE: Medical records requests take up to 30 days under HIPAA | WATCH OUT: Medicare and insurance companies need to be notified separately — the doctor's office does not automatically report the death to either",
+        },
     }
+
+
+def _parse_action_guide(action_guide_text: str) -> list:
+    """
+    Parse the pipe-delimited action guide string into a list of institution dicts.
+    Format: INSTITUTION: name | PHONE: ... | STEP 1: ... | STEP 2: ... | STEP 3: ... | HAVE READY: ... | TIMELINE: ... | WATCH OUT: ...
+    Blocks are separated by blank lines.
+    """
+    if not action_guide_text or not action_guide_text.strip():
+        return []
+
+    blocks = []
+    raw_blocks = [b.strip() for b in action_guide_text.strip().split("\n\n") if b.strip()]
+
+    for raw in raw_blocks:
+        # Flatten any internal newlines within a block
+        flat = " ".join(raw.splitlines())
+        parts = [p.strip() for p in flat.split("|") if p.strip()]
+
+        block = {}
+        for part in parts:
+            for key in ["INSTITUTION", "PHONE", "STEP 1", "STEP 2", "STEP 3",
+                        "HAVE READY", "TIMELINE", "WATCH OUT"]:
+                prefix = key + ":"
+                if part.upper().startswith(prefix):
+                    block[key] = part[len(prefix):].strip()
+                    break
+
+        if block.get("INSTITUTION"):
+            blocks.append(block)
+
+    return blocks
 
 
 class ResolvedBriefBuilder:
     """Builds a Resolved Brief PDF matching the brand design templates."""
-    
+
     def __init__(self, data):
         self.data = data
         self.A = data["answers"]
@@ -110,11 +156,19 @@ class ResolvedBriefBuilder:
         self.date = data["date"]
         self.hw = data.get("homework", [])
         self.narratives = data.get("ai_narratives", {})
+
+        # Support both old format (string values) and new format (dict with narrative + action_guide)
         if not self.narratives:
             self.narratives = generate_sample_narratives(data)
+        else:
+            # If any section is still a plain string (old format), wrap it
+            for k, v in self.narratives.items():
+                if isinstance(v, str):
+                    self.narratives[k] = {"narrative": v, "action_guide": ""}
+
         self.story = []
         self._setup_styles()
-    
+
     def _setup_styles(self):
         self.s = {
             "section_sub": ParagraphStyle("section_sub", fontName="Helvetica", fontSize=11, leading=15, textColor=MID_GRAY, spaceAfter=16),
@@ -125,37 +179,25 @@ class ResolvedBriefBuilder:
             "helper": ParagraphStyle("helper", fontName="Helvetica-Oblique", fontSize=9, leading=13, textColor=MID_GRAY, spaceAfter=4, leftIndent=4),
             "footer": ParagraphStyle("footer", fontName="Helvetica", fontSize=7.5, leading=10, textColor=MID_GRAY),
             "cover_title": ParagraphStyle("cover_title", fontName="Times-Bold", fontSize=42, leading=48, textColor=NAVY, alignment=TA_CENTER),
-            "cover_the": ParagraphStyle("cover_the", fontName="Helvetica", fontSize=12, leading=16, textColor=MID_GRAY, alignment=TA_CENTER, spaceBefore=4),
             "cover_sub": ParagraphStyle("cover_sub", fontName="Helvetica", fontSize=13, leading=18, textColor=MID_GRAY, alignment=TA_CENTER),
             "cover_name": ParagraphStyle("cover_name", fontName="Helvetica-Bold", fontSize=16, leading=22, textColor=NAVY, alignment=TA_CENTER),
-            "cover_section": ParagraphStyle("cover_section", fontName="Helvetica", fontSize=11, leading=20, textColor=NAVY),
-            "checklist_item": ParagraphStyle("cl_item", fontName="Helvetica", fontSize=10.5, leading=18, textColor=DARK_NAVY, leftIndent=8),
-            "checklist_cat": ParagraphStyle("cl_cat", fontName="Times-Bold", fontSize=13, leading=18, textColor=NAVY, spaceBefore=12, spaceAfter=4, borderPadding=0),
-            "break_title": ParagraphStyle("break_title", fontName="Times-Bold", fontSize=36, leading=42, textColor=GOLD, alignment=TA_CENTER),
-            "break_sub": ParagraphStyle("break_sub", fontName="Helvetica", fontSize=12, leading=16, textColor=WARM_WHITE, alignment=TA_CENTER),
-            "break_field_label": ParagraphStyle("bf_label", fontName="Helvetica-Bold", fontSize=9.5, leading=14, textColor=DARK_NAVY),
-            "break_field_value": ParagraphStyle("bf_value", fontName="Helvetica", fontSize=10, leading=14, textColor=DARK_GRAY),
+            "checklist_cat": ParagraphStyle("cl_cat", fontName="Times-Bold", fontSize=13, leading=18, textColor=NAVY, spaceBefore=12, spaceAfter=4),
             "wish_message": ParagraphStyle("wish_msg", fontName="Helvetica-Oblique", fontSize=11.5, leading=18, textColor=DARK_NAVY, leftIndent=12, rightIndent=12, spaceBefore=8, spaceAfter=8),
         }
-    
+
     def _get(self, qid, default=""):
         val = self.A.get(qid, default)
         if val and "," in val and qid in ("Q15","Q17","Q23","Q27","Q44","Q49","Q51","Q52"):
             val = val.replace(",", ", ")
         return val or default
-    
+
     def _page_header(self, c, title, section_num=None, is_break_glass=False):
-        """Draw the navy header bar with R badge and title."""
-        # Navy header bar
         c.setFillColor(NAVY)
         c.rect(0, H - 72, W, 72, fill=1, stroke=0)
-        
-        # Gold line under header
         c.setFillColor(GOLD)
         c.rect(0, H - 74, W, 2, fill=1, stroke=0)
-        
+
         if is_break_glass:
-            # Break glass has centered gold title
             c.setFillColor(GOLD)
             c.setFont("Times-Bold", 32)
             c.drawCentredString(W/2, H - 48, "FAMILY EMERGENCY CARD")
@@ -163,358 +205,393 @@ class ResolvedBriefBuilder:
             c.setFont("Helvetica", 11)
             c.drawCentredString(W/2, H - 64, "Your family's quick-reference in a crisis")
         else:
-            # R badge circle
             cx, cy = 52, H - 36
             c.setFillColor(GOLD)
             c.circle(cx, cy, 18, fill=1, stroke=0)
             c.setFillColor(white)
             c.setFont("Times-Bold", 16)
             c.drawCentredString(cx, cy - 6, "R")
-            
-            # Title
             c.setFillColor(white)
             c.setFont("Times-Bold", 22)
             c.drawString(80, H - 48, title)
-            
-            # CONFIDENTIAL
             c.setFont("Helvetica-Bold", 8)
             c.drawRightString(W - 36, H - 42, "CONFIDENTIAL")
-        
-        # Cream background for body
+
         c.setFillColor(CREAM)
         c.rect(0, 0, W, H - 74, fill=1, stroke=0)
-    
+
     def _page_footer(self, c, section_label):
-        """Draw footer with copyright and section number."""
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 7.5)
         c.drawString(36, 24, "\u00A9 2026 Resolved \u00B7 ResolvedFamily.com \u00B7 Confidential")
         c.drawRightString(W - 36, 24, section_label)
-    
-    def _sub_header(self, title):
-        """Navy sub-section header with gold left border."""
-        data = [[title]]
-        t = Table(data, colWidths=[W - 72])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,-1), NAVY),
-            ("TEXTCOLOR", (0,0), (-1,-1), white),
-            ("FONTNAME", (0,0), (-1,-1), "Times-Bold"),
-            ("FONTSIZE", (0,0), (-1,-1), 14),
-            ("TOPPADDING", (0,0), (-1,-1), 10),
-            ("BOTTOMPADDING", (0,0), (-1,-1), 10),
-            ("LEFTPADDING", (0,0), (-1,-1), 14),
-            ("LINEBELOW", (0,0), (-1,-1), 2, GOLD),
-        ]))
-        return t
-    
-    def _field_row(self, label, value):
-        """A labeled field with dotted line if empty."""
-        items = []
-        items.append(Paragraph(f"<b>{label}:</b>", self.s["field_label"]))
-        if value and str(value).strip():
-            items.append(Paragraph(str(value), self.s["field_value"]))
-        else:
-            items.append(Paragraph("........................................................................................................", self.s["field_empty"]))
-        return items
-    
-    def _field_table(self, fields):
-        """Build a table of label: value fields with alternating background."""
-        data = []
-        for label, value in fields:
-            v = str(value) if value and str(value).strip() else "................................................."
-            data.append([f"  {label}:", v])
-        
-        if not data:
-            return Spacer(1, 1)
-        
-        t = Table(data, colWidths=[2.2*inch, 4.8*inch - 72])
-        styles = [
-            ("FONTNAME", (0,0), (0,-1), "Helvetica-Bold"),
-            ("FONTSIZE", (0,0), (-1,-1), 10),
-            ("TEXTCOLOR", (0,0), (0,-1), DARK_NAVY),
-            ("TEXTCOLOR", (1,0), (1,-1), DARK_GRAY),
-            ("FONTNAME", (1,0), (1,-1), "Helvetica"),
-            ("TOPPADDING", (0,0), (-1,-1), 6),
-            ("BOTTOMPADDING", (0,0), (-1,-1), 6),
-            ("LEFTPADDING", (0,0), (-1,-1), 10),
-            ("VALIGN", (0,0), (-1,-1), "TOP"),
-            ("LINEBELOW", (0,0), (-1,-1), 0.5, LIGHT_GRAY),
-        ]
-        # Alternating row backgrounds
-        for i in range(len(data)):
-            if i % 2 == 1:
-                styles.append(("BACKGROUND", (0,i), (-1,i), HexColor("#F0EDE5")))
-        
-        t.setStyle(TableStyle(styles))
-        return t
-    
+
+    def _draw_action_guide(self, c, blocks, y_start, min_y=50):
+        """
+        Draw the action guide blocks onto the canvas.
+        Returns the y position after drawing.
+        Each block = one institution with phone, steps, have ready, timeline, watch out.
+        """
+        from reportlab.lib.utils import simpleSplit
+        y = y_start
+
+        # Section header for the action guide
+        c.setFillColor(NAVY)
+        c.rect(36, y - 2, W - 72, 24, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.rect(36, y - 2, 3, 26, fill=1, stroke=0)
+        c.setFillColor(white)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(50, y + 5, "ACTION GUIDE  —  What to do next")
+        y -= 30
+
+        for block in blocks:
+            if y < min_y + 100:
+                break
+
+            institution = block.get("INSTITUTION", "")
+            phone = block.get("PHONE", "")
+            steps = [block.get("STEP 1", ""), block.get("STEP 2", ""), block.get("STEP 3", "")]
+            steps = [s for s in steps if s]
+            have_ready = block.get("HAVE READY", "")
+            timeline = block.get("TIMELINE", "")
+            watch_out = block.get("WATCH OUT", "")
+
+            # Institution header bar
+            c.setFillColor(ACTION_BG)
+            c.rect(36, y - 4, W - 72, 22, fill=1, stroke=0)
+            c.setStrokeColor(ACTION_BORDER)
+            c.setLineWidth(1.5)
+            c.rect(36, y - 4, W - 72, 22, fill=0, stroke=1)
+            c.setLineWidth(0.5)
+
+            # Institution name
+            c.setFillColor(DARK_NAVY)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(46, y + 3, institution)
+
+            # Phone — right aligned in same bar
+            if phone:
+                c.setFillColor(GOLD)
+                c.setFont("Helvetica-Bold", 9)
+                phone_label = f"CALL: {phone}"
+                c.drawRightString(W - 46, y + 3, phone_label)
+
+            y -= 26
+
+            # Steps
+            for i, step in enumerate(steps, 1):
+                if y < min_y:
+                    break
+                # Gold step number circle
+                c.setFillColor(GOLD)
+                c.circle(50, y - 1, 7, fill=1, stroke=0)
+                c.setFillColor(white)
+                c.setFont("Helvetica-Bold", 8)
+                c.drawCentredString(50, y - 5, str(i))
+
+                # Step text — wrap if long
+                c.setFillColor(DARK_NAVY)
+                c.setFont("Helvetica", 10)
+                step_lines = simpleSplit(step, "Helvetica", 10, W - 120)
+                for li, sl in enumerate(step_lines[:2]):
+                    c.drawString(66, y - (li * 13), sl)
+                y -= max(18, len(step_lines[:2]) * 13 + 4)
+
+            # Have Ready + Timeline row (two columns)
+            if have_ready or timeline:
+                col_w = (W - 92) / 2
+
+                if have_ready:
+                    c.setFillColor(LIGHT_GRAY)
+                    c.rect(36, y - 4, col_w + 10, 18, fill=1, stroke=0)
+                    c.setFillColor(DARK_NAVY)
+                    c.setFont("Helvetica-Bold", 8.5)
+                    c.drawString(42, y + 1, "HAVE READY:")
+                    c.setFillColor(DARK_GRAY)
+                    c.setFont("Helvetica", 8.5)
+                    ready_lines = simpleSplit(have_ready, "Helvetica", 8.5, col_w - 10)
+                    c.drawString(110, y + 1, ready_lines[0] if ready_lines else "")
+
+                if timeline:
+                    x2 = 36 + col_w + 16
+                    c.setFillColor(LIGHT_GRAY)
+                    c.rect(x2, y - 4, col_w, 18, fill=1, stroke=0)
+                    c.setFillColor(DARK_NAVY)
+                    c.setFont("Helvetica-Bold", 8.5)
+                    c.drawString(x2 + 6, y + 1, "TIMELINE:")
+                    c.setFillColor(DARK_GRAY)
+                    c.setFont("Helvetica", 8.5)
+                    tl_lines = simpleSplit(timeline, "Helvetica", 8.5, col_w - 60)
+                    c.drawString(x2 + 64, y + 1, tl_lines[0] if tl_lines else "")
+
+                y -= 24
+
+            # Watch Out (yellow warning box)
+            if watch_out:
+                c.setFillColor(WATCH_OUT_BG)
+                watch_lines = simpleSplit(watch_out, "Helvetica", 9, W - 120)
+                box_h = max(18, len(watch_lines) * 13 + 8)
+                c.rect(36, y - box_h + 12, W - 72, box_h, fill=1, stroke=0)
+                c.setStrokeColor(WATCH_OUT_BORDER)
+                c.setLineWidth(1)
+                c.rect(36, y - box_h + 12, W - 72, box_h, fill=0, stroke=1)
+                c.setFillColor(WATCH_OUT_BORDER)
+                c.setFont("Helvetica-Bold", 8.5)
+                c.drawString(46, y + 2, "\u26A0  WATCH OUT:")
+                c.setFillColor(HexColor("#5D4B00"))
+                c.setFont("Helvetica", 9)
+                for li, wl in enumerate(watch_lines[:2]):
+                    c.drawString(130, y + 2 - (li * 13), wl)
+                y -= box_h + 4
+                c.setLineWidth(0.5)
+
+            y -= 14  # Space between institution blocks
+
+        return y
+
     def build_cover(self, c):
-        """Page 1: Cover page."""
-        # Navy top half
         c.setFillColor(NAVY)
         c.rect(0, H * 0.45, W, H * 0.55, fill=1, stroke=0)
-        
-        # Gold line
         c.setFillColor(GOLD)
         c.rect(0, H * 0.45 - 2, W, 4, fill=1, stroke=0)
-        
-        # Cream bottom half
         c.setFillColor(CREAM)
         c.rect(0, 0, W, H * 0.45 - 2, fill=1, stroke=0)
-        
-        # R badge
+
         cx, cy = W/2, H * 0.78
         c.setFillColor(GOLD)
         c.circle(cx, cy, 36, fill=1, stroke=0)
         c.setFillColor(white)
         c.setFont("Times-Bold", 32)
         c.drawCentredString(cx, cy - 11, "R")
-        
-        # THE
+
         c.setFillColor(WARM_WHITE)
         c.setFont("Helvetica", 12)
         c.drawCentredString(W/2, H * 0.70, "THE")
-        
-        # RESOLVED BRIEF
         c.setFont("Times-Bold", 44)
         c.drawCentredString(W/2, H * 0.63, "RESOLVED")
         c.drawCentredString(W/2, H * 0.56, "BRIEF")
-        
-        # Gold rule
+
         c.setStrokeColor(GOLD)
         c.setLineWidth(2)
         c.line(W/2 - 60, H * 0.535, W/2 + 60, H * 0.535)
-        
-        # Subtitle
+
         c.setFillColor(HexColor("#A0A0A0"))
         c.setFont("Helvetica", 13)
         c.drawCentredString(W/2, H * 0.50, "The most important document your family will ever need.")
-        
-        # PREPARED FOR
+
         c.setFillColor(NAVY)
         c.setFont("Helvetica-Bold", 10)
         c.drawCentredString(W/2, H * 0.36, "PREPARED FOR")
-        
-        # Gold line under PREPARED FOR
         c.setStrokeColor(GOLD)
         c.setLineWidth(1)
         c.line(W/2 - 100, H * 0.345, W/2 + 100, H * 0.345)
-        
-        # Name
         c.setFont("Helvetica", 14)
         c.setFillColor(DARK_NAVY)
         c.drawCentredString(W/2, H * 0.32, self.name)
-        
-        # Date
         c.setFont("Helvetica", 10)
         c.setFillColor(MID_GRAY)
         c.drawCentredString(W/2, H * 0.295, self.date)
-        
-        # Section list (two columns)
+
         sections_left = ["Financial Overview", "Insurance & Benefits", "Medical & Emergency", "Family Emergency Card"]
         sections_right = ["Income & Bills", "Digital Life & Access", "Final Wishes", "Follow-Up Checklist"]
-        
         y_start = H * 0.22
         c.setFont("Helvetica", 11)
         for i, (left, right) in enumerate(zip(sections_left, sections_right)):
             y = y_start - (i * 24)
-            # Gold bullets
             c.setFillColor(GOLD)
             c.circle(80, y + 4, 4, fill=1, stroke=0)
             c.circle(W/2 + 20, y + 4, 4, fill=1, stroke=0)
-            # Text
             c.setFillColor(NAVY)
             c.drawString(92, y, left)
             c.drawString(W/2 + 32, y, right)
-        
-        # Footer
+
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 7.5)
         c.drawCentredString(W/2, 36, "\u00A9 2026 Resolved \u00B7 ResolvedFamily.com")
         c.setFont("Helvetica", 7)
         c.drawCentredString(W/2, 24, "This document is confidential and intended only for the named individual and their designated contacts.")
-    
-    def build_section_page(self, c, title, subtitle, section_num, narrative_key, fields_by_card):
-        """Build a standard section page with header, narrative, and field cards."""
+
+    def build_section_page(self, c, title, subtitle, section_num, narrative_key, fields_by_card, continuation_page=False):
+        """
+        Build a section page: header → narrative → action guide → field cards.
+        If action guide is long, it may push fields to render lower or on next page.
+        """
+        from reportlab.lib.utils import simpleSplit
+
         self._page_header(c, title, section_num)
         self._page_footer(c, f"Section {section_num} of 7")
-        
-        # Subtitle
+
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 11)
         c.drawString(36, H - 100, subtitle)
-        
-        # We need to use platypus for the body content, but we're drawing on canvas
-        # So we'll calculate positions manually
+
         y = H - 125
-        
-        # AI Narrative
-        if narrative_key in self.narratives and self.narratives[narrative_key]:
-            narrative = self.narratives[narrative_key]
-            # Wrap narrative text
+
+        # Pull narrative and action guide from new format
+        section_data = self.narratives.get(narrative_key, {})
+        if isinstance(section_data, dict):
+            narrative_text = section_data.get("narrative", "")
+            action_guide_text = section_data.get("action_guide", "")
+        else:
+            # Old plain-string format fallback
+            narrative_text = str(section_data)
+            action_guide_text = ""
+
+        # ── PART A: Narrative intro ──
+        if narrative_text:
+            # Light cream box behind narrative
+            narrative_lines = simpleSplit(narrative_text, "Helvetica", 10.5, W - 88)
+            box_h = len(narrative_lines) * 15 + 16
+            c.setFillColor(HexColor("#F0EDE5"))
+            c.rect(36, y - box_h + 10, W - 72, box_h, fill=1, stroke=0)
+            c.setStrokeColor(GOLD)
+            c.setLineWidth(2)
+            c.line(36, y - box_h + 10, 36, y + 10)  # Gold left border
+            c.setLineWidth(0.5)
+
             c.setFillColor(DARK_GRAY)
-            c.setFont("Helvetica", 10)
-            
-            from reportlab.lib.utils import simpleSplit
-            lines = simpleSplit(narrative, "Helvetica", 10, W - 80)
-            for line in lines:
+            c.setFont("Helvetica", 10.5)
+            for line in narrative_lines:
                 if y < 60:
                     break
-                c.drawString(40, y, line)
+                c.drawString(46, y, line)
                 y -= 15
-            y -= 10
-        
-        # Field cards
+            y -= 14
+
+        # ── PART B: Action Guide ──
+        if action_guide_text:
+            action_blocks = _parse_action_guide(action_guide_text)
+            if action_blocks:
+                y -= 6
+                y = self._draw_action_guide(c, action_blocks, y, min_y=60)
+                y -= 10
+
+        # ── PART C: Field Cards ──
         for card_title, fields in fields_by_card:
             if y < 120:
                 break
-            
-            # Card header (navy bar)
+
+            # Card header bar
             c.setFillColor(NAVY)
             c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
-            # Gold left accent
             c.setFillColor(GOLD)
             c.rect(36, y - 6, 3, 32, fill=1, stroke=0)
-            # Title text
             c.setFillColor(white)
             c.setFont("Times-Bold", 13)
             c.drawString(50, y + 4, card_title)
             y -= 32
-            
-            # Fields
+
             for label, value in fields:
                 if y < 50:
                     break
-                # Alternating background
                 c.setFillColor(DARK_NAVY)
                 c.setFont("Helvetica-Bold", 9.5)
                 c.drawString(46, y, f"{label}:")
-                
+
                 val = str(value) if value and str(value).strip() else ""
                 if val:
                     c.setFillColor(DARK_GRAY)
                     c.setFont("Helvetica", 10)
-                    # Handle long values with wrapping
-                    from reportlab.lib.utils import simpleSplit
-                    max_val_width = W - 220
-                    val_lines = simpleSplit(val, "Helvetica", 10, max_val_width)
+                    val_lines = simpleSplit(val, "Helvetica", 10, W - 220)
                     for vl in val_lines[:3]:
                         c.drawString(200, y, vl)
                         y -= 14
                 else:
-                    # Dotted line for empty
                     c.setFillColor(FIELD_DOT)
                     c.setFont("Helvetica", 9)
-                    c.drawString(200, y, ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
+                    c.drawString(200, y, ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .")
                     y -= 14
-                
-                # Separator line
+
                 c.setStrokeColor(LIGHT_GRAY)
                 c.setLineWidth(0.5)
                 c.line(42, y + 6, W - 42, y + 6)
                 y -= 6
-            
-            y -= 12  # Space between cards
-    
+
+            y -= 12
+
     def build(self, output_path):
         """Build the complete Resolved Brief PDF."""
         c = canvas.Canvas(output_path, pagesize=letter)
-        
+
         # ═══ PAGE 1: COVER ═══
         self.build_cover(c)
         c.showPage()
-        
+
         # ═══ PAGE 2: INTRODUCTION LETTER ═══
+        from reportlab.lib.utils import simpleSplit
         self._page_header(c, "Before You Begin")
         self._page_footer(c, "Introduction")
-        
+
         y = H - 110
-        
-        # Opening line
+        first = self.name.split()[0] if self.name else "your loved one"
+
         c.setFillColor(GOLD)
         c.setFont("Times-Bold", 16)
-        from reportlab.lib.utils import simpleSplit
-        
-        intro_opening = f"If you are reading this, someone who loves you took the time to make sure you would never have to figure this out alone."
-        lines = simpleSplit(intro_opening, "Times-Bold", 16, W - 100)
-        for line in lines:
+        intro = "If you are reading this, someone who loves you took the time to make sure you would never have to figure this out alone."
+        for line in simpleSplit(intro, "Times-Bold", 16, W - 100):
             c.drawString(50, y, line)
             y -= 22
-        
         y -= 16
-        
-        # Main body paragraphs
+
         c.setFillColor(DARK_GRAY)
         c.setFont("Helvetica", 11)
-        
-        paragraphs = [
-            f"This is {self.name.split()[0] if self.name else 'your loved one'}'s Resolved Brief \u2014 the most important document your family will ever need. It covers their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
+        paras = [
+            f"This is {first}'s Resolved Brief \u2014 the most important document your family will ever need. It covers their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
             "",
             "Here is what to do:",
             "",
         ]
-        
-        for para in paragraphs:
+        for para in paras:
             if para == "":
                 y -= 8
                 continue
-            lines = simpleSplit(para, "Helvetica", 11, W - 100)
-            for line in lines:
+            for line in simpleSplit(para, "Helvetica", 11, W - 100):
                 c.drawString(50, y, line)
                 y -= 17
             y -= 6
-        
-        # Steps with gold numbers
+
         steps = [
             ("1", "Start with the Family Emergency Card", "It covers the first 24 hours on one page. Who to call, what to access, where everything is."),
             ("2", "Work through each section as you need it", "You do not have to read it all at once. Each section stands on its own."),
-            ("3", "Check the Follow-Up Checklist", "Some items were flagged to address later. This list tells you what still needs attention."),
-            ("4", "Look for the sealed envelope", "The sensitive information \u2014 passwords, PINs, account numbers \u2014 is written by hand on the Family Emergency Card. It should be sealed separately."),
+            ("3", "Use the Action Guide in each section", "Every section includes step-by-step instructions, phone numbers, and what to have ready before you call."),
+            ("4", "Check the Follow-Up Checklist", "Some items were flagged to address later. This list tells you what still needs attention."),
+            ("5", "Look for the sealed envelope", "Passwords, PINs, and account numbers are written by hand on the Emergency Card and sealed separately."),
         ]
-        
+
         for num, title, detail in steps:
-            # Gold number circle
             c.setFillColor(GOLD)
             c.circle(68, y - 2, 12, fill=1, stroke=0)
             c.setFillColor(white)
             c.setFont("Helvetica-Bold", 11)
             c.drawCentredString(68, y - 6, num)
-            
-            # Step title
             c.setFillColor(DARK_NAVY)
             c.setFont("Helvetica-Bold", 12)
             c.drawString(90, y, title)
             y -= 18
-            
-            # Step detail
             c.setFillColor(MID_GRAY)
             c.setFont("Helvetica", 10.5)
-            detail_lines = simpleSplit(detail, "Helvetica", 10.5, W - 140)
-            for dl in detail_lines:
+            for dl in simpleSplit(detail, "Helvetica", 10.5, W - 140):
                 c.drawString(90, y, dl)
                 y -= 15
             y -= 12
-        
-        # Closing line
+
         y -= 10
         c.setFillColor(GOLD)
         c.setFont("Times-Bold", 14)
-        closing = "You have got this. They made sure of it."
-        c.drawString(50, y, closing)
-        
+        c.drawString(50, y, "You have got this. They made sure of it.")
         y -= 30
         c.setStrokeColor(GOLD)
         c.setLineWidth(1)
         c.line(50, y, W - 50, y)
-        
         y -= 20
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 10)
         c.drawString(50, y, f"Prepared for the family of {self.name}")
         c.drawString(50, y - 16, f"{self.date}")
-        
+
         c.showPage()
-        
+
         # ═══ PAGE 3: FINANCIAL OVERVIEW ═══
         self.build_section_page(c, "Financial Overview",
             "Where the money lives \u2014 banks, investments, and debts", 1, "financial",
@@ -538,8 +615,8 @@ class ResolvedBriefBuilder:
                 ]),
             ])
         c.showPage()
-        
-        # ═══ PAGE 3: INCOME & BILLS ═══
+
+        # ═══ PAGE 4: INCOME & BILLS ═══
         self.build_section_page(c, "Income & Bills",
             "What comes in, what goes out \u2014 so nothing gets missed", 2, "income",
             [
@@ -558,8 +635,8 @@ class ResolvedBriefBuilder:
                 ]),
             ])
         c.showPage()
-        
-        # ═══ PAGE 4: INSURANCE & BENEFITS ═══
+
+        # ═══ PAGE 5: INSURANCE & BENEFITS ═══
         self.build_section_page(c, "Insurance & Benefits",
             "Your safety net \u2014 what's covered and where the policies are", 3, "insurance",
             [
@@ -582,8 +659,8 @@ class ResolvedBriefBuilder:
                 ]),
             ])
         c.showPage()
-        
-        # ═══ PAGE 5: DIGITAL LIFE & ACCESS ═══
+
+        # ═══ PAGE 6: DIGITAL LIFE & ACCESS ═══
         self.build_section_page(c, "Digital Life & Access",
             "How your family gets into your accounts when they need to", 4, "digital",
             [
@@ -604,8 +681,8 @@ class ResolvedBriefBuilder:
                 ]),
             ])
         c.showPage()
-        
-        # ═══ PAGE 6: MEDICAL & EMERGENCY ═══
+
+        # ═══ PAGE 7: MEDICAL & EMERGENCY ═══
         self.build_section_page(c, "Medical & Emergency",
             "Who makes decisions and what they need to know", 5, "medical",
             [
@@ -627,9 +704,9 @@ class ResolvedBriefBuilder:
                 ]),
             ])
         c.showPage()
-        
-        # ═══ PAGE 7: FINAL WISHES ═══
-        self.build_section_page(c, "Final Wishes", 
+
+        # ═══ PAGE 8: FINAL WISHES ═══
+        self.build_section_page(c, "Final Wishes",
             "These are the exact words and wishes they left for you.", 6, "wishes",
             [
                 ("Arrangements", [
@@ -646,8 +723,7 @@ class ResolvedBriefBuilder:
                     ("Donate / Sell / Destroy", self._get("Q59")),
                 ]),
             ])
-        
-        # Personal message - draw below if space allows
+
         msg = self._get("Q60")
         if msg:
             c.setFillColor(GOLD)
@@ -656,30 +732,27 @@ class ResolvedBriefBuilder:
             c.setStrokeColor(GOLD)
             c.setLineWidth(0.5)
             c.line(42, 175, W - 42, 175)
-            
             c.setFillColor(DARK_NAVY)
             c.setFont("Helvetica-Oblique", 11)
-            from reportlab.lib.utils import simpleSplit
             lines = simpleSplit(msg, "Helvetica-Oblique", 11, W - 100)
             y = 158
             for line in lines[:8]:
                 c.drawString(50, y, line)
                 y -= 16
-        
+
         c.showPage()
-        
-        # ═══ PAGE 8: FAMILY EMERGENCY CARD ═══
+
+        # ═══ PAGE 9: FAMILY EMERGENCY CARD ═══
         self._page_header(c, "", is_break_glass=True)
         self._page_footer(c, "Family Emergency Card")
-        
-        # "If something happens, start here."
+
         c.setFillColor(DARK_NAVY)
         c.setFont("Helvetica-Bold", 14)
         c.drawString(36, H - 100, "If something happens, start here.")
-        
+
         y = H - 130
-        
-        # FIRST 24 HOURS box
+
+        # First 24 Hours header
         c.setFillColor(NAVY)
         c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
         c.setFillColor(GOLD)
@@ -688,65 +761,58 @@ class ResolvedBriefBuilder:
         c.setFont("Helvetica-Bold", 13)
         c.drawString(50, y + 4, "FIRST 24 HOURS")
         y -= 30
-        
-        # Build dynamic steps based on actual answers
-        steps = []
-        steps.append(f"1.  Call {self._get('Q1', '(primary emergency contact)')}")
-        steps.append("2.  Locate the Resolved Brief and the sealed envelope")
-        agent = self._get('Q42', '')
-        if agent and agent.strip():
-            steps.append(f"3.  Call insurance agent: {agent}")
-        pwd_mgr = self._get('Q44', self._get('Q43', ''))
-        if pwd_mgr and 'password manager' in pwd_mgr.lower() or self._get('Q44', ''):
-            steps.append(f"{len(steps)+1}.  Access password manager using sealed envelope instructions")
-        income = self._get('Q27', '')
-        if income and 'employer' in income.lower():
-            steps.append(f"{len(steps)+1}.  Contact employer / HR")
-        elif income and 'self' in income.lower():
-            steps.append(f"{len(steps)+1}.  Notify business clients / partners")
-        doctor = self._get('Q7', '')
-        if doctor and doctor.strip():
-            steps.append(f"{len(steps)+1}.  Contact primary doctor: {doctor}")
+
+        steps_24 = []
+        steps_24.append(f"1.  Call {self._get('Q1', '(primary emergency contact)')}")
+        steps_24.append("2.  Locate the Resolved Brief and the sealed envelope")
+        agent = self._get("Q42", "")
+        if agent:
+            steps_24.append(f"3.  Call insurance agent: {agent}")
+        if self._get("Q44", self._get("Q43", "")):
+            steps_24.append(f"{len(steps_24)+1}.  Access password manager using sealed envelope instructions")
+        income = self._get("Q27", "")
+        if "employer" in income.lower():
+            steps_24.append(f"{len(steps_24)+1}.  Contact employer / HR")
+        elif "self" in income.lower():
+            steps_24.append(f"{len(steps_24)+1}.  Notify business clients / partners")
+        doctor = self._get("Q7", "")
+        if doctor:
+            steps_24.append(f"{len(steps_24)+1}.  Contact primary doctor: {doctor}")
+
         c.setFont("Helvetica", 10)
-        for step in steps:
+        for step in steps_24:
             c.setFillColor(DARK_NAVY)
             c.drawString(46, y, step)
             c.setStrokeColor(LIGHT_GRAY)
             c.line(42, y - 6, W - 42, y - 6)
             y -= 20
-        
+
         y -= 16
-        
-        # Two-column: Key Contacts + Critical Access
+
         col1_x, col2_x = 36, W/2 + 10
         col_w = W/2 - 46
-        
-        # Key Contacts header
+
         c.setFillColor(NAVY)
         c.rect(col1_x, y - 4, col_w, 24, fill=1, stroke=0)
+        c.rect(col2_x, y - 4, col_w, 24, fill=1, stroke=0)
         c.setFillColor(white)
         c.setFont("Helvetica-Bold", 11)
         c.drawString(col1_x + 10, y + 2, "Key Contacts")
-        
-        # Critical Access header
-        c.rect(col2_x, y - 4, col_w, 24, fill=1, stroke=0)
         c.drawString(col2_x + 10, y + 2, "Critical Access")
         y -= 28
-        
+
         contacts = [
             ("Healthcare Proxy:", self._get("Q1")),
             ("Insurance Agent:", self._get("Q42")),
             ("Primary Doctor:", self._get("Q7")),
         ]
-        
         access = [
             ("Phone Passcode:", self._get("Q47")),
             ("Computer Password:", self._get("Q48")),
             ("Email Access:", self._get("Q46")),
             ("Password Manager:", self._get("Q44", self._get("Q43"))),
         ]
-        
-        c.setFont("Helvetica-Bold", 9)
+
         for i, ((cl, cv), (al, av)) in enumerate(zip(contacts, access)):
             c.setFillColor(DARK_NAVY)
             c.setFont("Helvetica-Bold", 9)
@@ -754,31 +820,25 @@ class ResolvedBriefBuilder:
             c.drawString(col2_x + 8, y, al)
             c.setFillColor(DARK_GRAY)
             c.setFont("Helvetica", 9)
-            # Truncate long values
-            cv_short = cv[:35] + "..." if len(cv) > 38 else cv
-            av_short = av[:35] + "..." if len(av) > 38 else av
-            c.drawString(col1_x + 8, y - 12, cv_short)
-            c.drawString(col2_x + 8, y - 12, av_short)
+            c.drawString(col1_x + 8, y - 12, cv[:35] + "..." if len(cv) > 38 else cv)
+            c.drawString(col2_x + 8, y - 12, av[:35] + "..." if len(av) > 38 else av)
             c.setStrokeColor(LIGHT_GRAY)
             c.line(col1_x + 4, y - 18, col1_x + col_w - 4, y - 18)
             c.line(col2_x + 4, y - 18, col2_x + col_w - 4, y - 18)
             y -= 28
-        
-        # Remaining access items
+
         for al, av in access[len(contacts):]:
             c.setFillColor(DARK_NAVY)
             c.setFont("Helvetica-Bold", 9)
             c.drawString(col2_x + 8, y, al)
             c.setFillColor(DARK_GRAY)
             c.setFont("Helvetica", 9)
-            av_short = av[:35] + "..." if len(av) > 38 else av
-            c.drawString(col2_x + 8, y - 12, av_short)
+            c.drawString(col2_x + 8, y - 12, av[:35] + "..." if len(av) > 38 else av)
             c.setStrokeColor(LIGHT_GRAY)
             c.line(col2_x + 4, y - 18, col2_x + col_w - 4, y - 18)
             y -= 28
-        
-        # SENSITIVE ACCESS - FILL IN BY HAND
-        y = y - 20
+
+        y -= 20
         c.setFillColor(NAVY)
         c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
         c.setFillColor(GOLD)
@@ -787,38 +847,29 @@ class ResolvedBriefBuilder:
         c.setFont("Helvetica-Bold", 11)
         c.drawString(50, y + 4, "SENSITIVE ACCESS — FILL IN BY HAND, SEAL IN ENVELOPE")
         y -= 32
-        
+
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 8.5)
         c.drawString(46, y, "Write these in by hand. Do not type or store digitally. Seal this page in an envelope.")
         y -= 18
-        
+
         handwrite_fields = [
-            "Phone Passcode:",
-            "Computer Password:",
-            "Email Password:",
-            "Password Manager Master Password:",
-            "Bank PIN:",
-            "Safe / Lockbox Combination:",
-            "Other:",
-            "Other:",
+            "Phone Passcode:", "Computer Password:", "Email Password:",
+            "Password Manager Master Password:", "Bank PIN:",
+            "Safe / Lockbox Combination:", "Other:", "Other:",
         ]
-        
         c.setFont("Helvetica-Bold", 9.5)
         for field in handwrite_fields:
             c.setFillColor(DARK_NAVY)
             c.drawString(46, y, field)
-            # Dotted line for handwriting
             c.setStrokeColor(LIGHT_GRAY)
             c.setLineWidth(0.5)
             c.setDash(2, 2)
             c.line(250, y - 2, W - 46, y - 2)
             c.setDash()
-            c.setStrokeColor(LIGHT_GRAY)
             c.line(42, y - 10, W - 42, y - 10)
             y -= 22
 
-        # Footer note
         y -= 8
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 9)
@@ -826,23 +877,22 @@ class ResolvedBriefBuilder:
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(RED_ACCENT)
         c.drawCentredString(W/2, max(y - 14, 28), "THIS PAGE CONTAINS SENSITIVE INFORMATION — STORE SECURELY")
-        
+
         c.showPage()
-        
-        # ═══ PAGE 9: FOLLOW-UP CHECKLIST ═══
+
+        # ═══ PAGE 10: FOLLOW-UP CHECKLIST ═══
         self._page_header(c, "Follow-Up Checklist")
         self._page_footer(c, "Checklist")
-        
+
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 10)
         c.drawString(36, H - 96, "Items to address \u2014 you don't have to be perfect, just keep going")
-        
         c.setFillColor(DARK_NAVY)
         c.setFont("Helvetica", 10)
-        c.drawString(36, H - 114, "These are the items you flagged during your session. Check them off as you go.")
-        
+        c.drawString(36, H - 114, "These are the items flagged during your session. Check them off as you go.")
+
         y = H - 145
-        
+
         categories = {
             "Legal Documents": [
                 "Create or update your will",
@@ -867,41 +917,37 @@ class ResolvedBriefBuilder:
                 "Share The Resolved Brief with family members",
             ],
         }
-        
+
         for cat, items in categories.items():
             if y < 100:
                 break
-            # Category header
             c.setFillColor(CREAM)
             c.rect(42, y - 6, W - 84, 22, fill=1, stroke=0)
             c.setStrokeColor(GOLD)
             c.setLineWidth(1)
-            c.line(42, y - 6, 42, y + 16)  # Gold left border
+            c.line(42, y - 6, 42, y + 16)
             c.setFillColor(NAVY)
             c.setFont("Times-Bold", 12)
             c.drawString(52, y, cat)
             y -= 26
-            
+
             for item in items:
                 if y < 50:
                     break
-                # Checkbox
                 c.setStrokeColor(MID_GRAY)
                 c.setLineWidth(0.75)
                 c.rect(52, y - 2, 12, 12, fill=0, stroke=1)
-                # Item text
                 c.setFillColor(DARK_NAVY)
                 c.setFont("Helvetica", 10)
                 c.drawString(72, y, item)
                 y -= 22
-            
+
             y -= 8
-        
-        # Bottom encouragement
+
         c.setFillColor(NAVY)
         c.setFont("Times-Bold", 12)
-        c.drawCentredString(W/2, 58, "You don't have to do it all today. You already did the hard part.")
-        
+        c.drawCentredString(W/2, 58, "You don\u2019t have to do it all today. You already did the hard part.")
+
         c.showPage()
         c.save()
         print(f"Resolved Brief generated: {output_path}")
