@@ -279,72 +279,110 @@ class ResolvedBriefBuilder:
 
             y -= 26
 
-            # Steps
+            # Steps — circle vertically centered with first line of text
+            STEP_TEXT_X = 68        # text starts here
+            STEP_TEXT_W = W - 112   # text wraps within this width (leaving right margin)
+            CIRCLE_X    = 50        # center of gold circle
+            LINE_H      = 14        # line height for wrapped step text
+
             for i, step in enumerate(steps, 1):
                 if y < min_y:
                     break
-                # Gold step number circle
+                step_lines = simpleSplit(step, "Helvetica", 10, STEP_TEXT_W)[:3]
+                block_h = len(step_lines) * LINE_H
+
+                # Gold circle — vertically centered on the text block
+                circle_cy = y - (block_h / 2) + LINE_H / 2
                 c.setFillColor(GOLD)
-                c.circle(50, y - 1, 7, fill=1, stroke=0)
+                c.circle(CIRCLE_X, circle_cy, 7, fill=1, stroke=0)
                 c.setFillColor(white)
                 c.setFont("Helvetica-Bold", 8)
-                c.drawCentredString(50, y - 5, str(i))
+                c.drawCentredString(CIRCLE_X, circle_cy - 3, str(i))
 
-                # Step text — wrap if long
+                # Step text lines
                 c.setFillColor(DARK_NAVY)
                 c.setFont("Helvetica", 10)
-                step_lines = simpleSplit(step, "Helvetica", 10, W - 120)
-                for li, sl in enumerate(step_lines[:2]):
-                    c.drawString(66, y - (li * 13), sl)
-                y -= max(18, len(step_lines[:2]) * 13 + 4)
+                for li, sl in enumerate(step_lines):
+                    c.drawString(STEP_TEXT_X, y - (li * LINE_H), sl)
 
-            # Have Ready + Timeline row (two columns)
+                y -= block_h + 6  # gap between steps
+
+            y -= 4  # small gap before HAVE READY row
+
+            # Have Ready + Timeline — fixed column widths, text clipped to column
             if have_ready or timeline:
-                col_w = (W - 92) / 2
+                # Column layout: left col takes ~55%, right col takes ~45%
+                LEFT_LABEL_X  = 42
+                LEFT_VALUE_X  = 112
+                LEFT_COL_END  = 36 + int((W - 72) * 0.54)   # where left col ends
+                RIGHT_START   = LEFT_COL_END + 6
+                RIGHT_LABEL_X = RIGHT_START + 6
+                RIGHT_VALUE_X = RIGHT_START + 68
+                RIGHT_COL_END = W - 42
 
+                left_value_w  = LEFT_COL_END - LEFT_VALUE_X - 6
+                right_value_w = RIGHT_COL_END - RIGHT_VALUE_X - 6
+
+                row_h = 18
+                c.setFillColor(LIGHT_GRAY)
+                c.rect(36, y - 4, W - 72, row_h, fill=1, stroke=0)
+
+                # Left: HAVE READY
                 if have_ready:
-                    c.setFillColor(LIGHT_GRAY)
-                    c.rect(36, y - 4, col_w + 10, 18, fill=1, stroke=0)
                     c.setFillColor(DARK_NAVY)
                     c.setFont("Helvetica-Bold", 8.5)
-                    c.drawString(42, y + 1, "HAVE READY:")
+                    c.drawString(LEFT_LABEL_X, y + 2, "HAVE READY:")
                     c.setFillColor(DARK_GRAY)
                     c.setFont("Helvetica", 8.5)
-                    ready_lines = simpleSplit(have_ready, "Helvetica", 8.5, col_w - 10)
-                    c.drawString(110, y + 1, ready_lines[0] if ready_lines else "")
+                    ready_lines = simpleSplit(have_ready, "Helvetica", 8.5, left_value_w)
+                    c.drawString(LEFT_VALUE_X, y + 2, ready_lines[0] if ready_lines else "")
 
+                # Right: TIMELINE
                 if timeline:
-                    x2 = 36 + col_w + 16
-                    c.setFillColor(LIGHT_GRAY)
-                    c.rect(x2, y - 4, col_w, 18, fill=1, stroke=0)
+                    # Divider line between columns
+                    c.setStrokeColor(MID_GRAY)
+                    c.setLineWidth(0.5)
+                    c.line(RIGHT_START, y - 4, RIGHT_START, y + row_h - 4)
+
                     c.setFillColor(DARK_NAVY)
                     c.setFont("Helvetica-Bold", 8.5)
-                    c.drawString(x2 + 6, y + 1, "TIMELINE:")
+                    c.drawString(RIGHT_LABEL_X, y + 2, "TIMELINE:")
                     c.setFillColor(DARK_GRAY)
                     c.setFont("Helvetica", 8.5)
-                    tl_lines = simpleSplit(timeline, "Helvetica", 8.5, col_w - 60)
-                    c.drawString(x2 + 64, y + 1, tl_lines[0] if tl_lines else "")
+                    tl_lines = simpleSplit(timeline, "Helvetica", 8.5, right_value_w)
+                    c.drawString(RIGHT_VALUE_X, y + 2, tl_lines[0] if tl_lines else "")
 
-                y -= 24
+                y -= row_h + 4
 
-            # Watch Out (yellow warning box)
+            # Watch Out — yellow box, text fully contained within box margins
             if watch_out:
+                WATCH_LABEL_X = 46
+                WATCH_TEXT_X  = 132
+                WATCH_TEXT_W  = W - 72 - (WATCH_TEXT_X - 36) - 10  # stay inside right edge
+                LINE_H_W      = 13
+
+                watch_lines = simpleSplit(watch_out, "Helvetica", 9, WATCH_TEXT_W)
+                # Cap at 3 lines to avoid runaway boxes
+                watch_lines = watch_lines[:3]
+                box_h = max(20, len(watch_lines) * LINE_H_W + 10)
+
                 c.setFillColor(WATCH_OUT_BG)
-                watch_lines = simpleSplit(watch_out, "Helvetica", 9, W - 120)
-                box_h = max(18, len(watch_lines) * 13 + 8)
-                c.rect(36, y - box_h + 12, W - 72, box_h, fill=1, stroke=0)
+                c.rect(36, y - box_h + 14, W - 72, box_h, fill=1, stroke=0)
                 c.setStrokeColor(WATCH_OUT_BORDER)
                 c.setLineWidth(1)
-                c.rect(36, y - box_h + 12, W - 72, box_h, fill=0, stroke=1)
+                c.rect(36, y - box_h + 14, W - 72, box_h, fill=0, stroke=1)
+                c.setLineWidth(0.5)
+
                 c.setFillColor(WATCH_OUT_BORDER)
                 c.setFont("Helvetica-Bold", 8.5)
-                c.drawString(46, y + 2, "\u26A0  WATCH OUT:")
+                c.drawString(WATCH_LABEL_X, y + 2, "\u26A0  WATCH OUT:")
+
                 c.setFillColor(HexColor("#5D4B00"))
                 c.setFont("Helvetica", 9)
-                for li, wl in enumerate(watch_lines[:2]):
-                    c.drawString(130, y + 2 - (li * 13), wl)
+                for li, wl in enumerate(watch_lines):
+                    c.drawString(WATCH_TEXT_X, y + 2 - (li * LINE_H_W), wl)
+
                 y -= box_h + 4
-                c.setLineWidth(0.5)
 
             y -= 14  # Space between institution blocks
 
@@ -576,10 +614,29 @@ class ResolvedBriefBuilder:
                 y -= 15
             y -= 12
 
+        # Emergency Card note — navy callout box
         y -= 10
+        note_text = "The Family Emergency Card is the last page of this document. Print it separately, fill in the sensitive details by hand, seal it in an envelope, and keep it with this Brief — or store it somewhere your family knows to look."
+        note_lines = simpleSplit(note_text, "Helvetica", 10, W - 130)
+        note_h = len(note_lines) * 14 + 16
+        c.setFillColor(NAVY)
+        c.rect(50, y - note_h + 10, W - 100, note_h, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.rect(50, y - note_h + 10, 3, note_h, fill=1, stroke=0)
+        c.setFillColor(GOLD)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(62, y, "ℹ  FAMILY EMERGENCY CARD")
+        y -= 14
+        c.setFillColor(white)
+        c.setFont("Helvetica", 10)
+        for line in note_lines:
+            c.drawString(62, y, line)
+            y -= 14
+        y -= 10
+
         c.setFillColor(GOLD)
         c.setFont("Times-Bold", 14)
-        c.drawString(50, y, "You have got this. They made sure of it.")
+        c.drawString(50, y, "They took care of this so you wouldn't have to figure it out alone.")
         y -= 30
         c.setStrokeColor(GOLD)
         c.setLineWidth(1)
