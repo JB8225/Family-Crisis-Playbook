@@ -47,6 +47,28 @@
               "follow_up_tip": "If yes, your will may not reflect your current wishes. Updating is usually quick and inexpensive."
             },
             {
+  "id": "S1C",
+  "type": "text_input",
+  "prompt": "Where is your will physically located?",
+  "placeholder": "e.g. Filing cabinet in home office / Safety deposit box at Chase Bank / Attorney's office",
+  "helper_text": "Be specific enough that someone could find it without asking you.",
+  "condition": {
+    "question_id": "S1",
+    "show_if": ["Yes"]
+  }
+},
+{
+  "id": "S1D",
+  "type": "text_input",
+  "prompt": "Who is your estate attorney? (Name + phone number)",
+  "placeholder": "e.g. John Smith, Smith & Associates — 214-555-0100",
+  "helper_text": "Leave blank if you don't have one.",
+  "condition": {
+    "question_id": "S1",
+    "show_if": ["Yes"]
+  }
+}
+            {
               "id": "S2",
               "type": "yes_no",
               "prompt": "Do you have life insurance?",
