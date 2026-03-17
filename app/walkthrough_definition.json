@@ -46,7 +46,7 @@
               },
               "follow_up_tip": "If yes, your will may not reflect your current wishes. Updating is usually quick and inexpensive."
             },
-           {
+            {
               "id": "S1C",
               "type": "text_input",
               "prompt": "Where is your will physically located?",
