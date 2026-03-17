@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ═══ SUPABASE REST CLIENT (bypasses library API key format check) ═══
+# ═══ SUPABASE REST CLIENT ═══
 import httpx as _httpx
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -32,7 +32,6 @@ print(f"SUPABASE_URL = {SUPABASE_URL}")
 print(f"SUPABASE_KEY length = {len(SUPABASE_KEY)}, starts with = {SUPABASE_KEY[:15]}...")
 
 class SupabaseREST:
-    """Direct REST client that works with both old JWT and new sb_secret_ keys."""
     def __init__(self, url, key):
         self.base = url.rstrip("/") + "/rest/v1"
         self.headers = {
@@ -41,7 +40,6 @@ class SupabaseREST:
             "Content-Type": "application/json",
             "Prefer": "return=representation",
         }
-    
     def table(self, name):
         return TableRef(self.base, self.headers, name)
 
@@ -55,33 +53,33 @@ class TableRef:
         self._order_desc = False
         self._limit_n = None
         self._pending_update = None
-    
+
     def select(self, cols="*"):
         self._select_cols = cols
         return self
-    
+
     def eq(self, col, val):
         self._filters.append(f"{col}=eq.{val}")
         return self
-    
+
     def order(self, col, desc=False):
         self._order_col = col
         self._order_desc = desc
         return self
-    
+
     def limit(self, n):
         self._limit_n = n
         return self
-    
+
     def insert(self, data):
         r = _httpx.post(self.url, headers=self.headers, json=data, timeout=10)
         r.raise_for_status()
         return type("R", (), {"data": r.json()})()
-    
+
     def update(self, data):
         self._pending_update = data
         return self
-    
+
     def execute(self):
         if self._pending_update is not None:
             params = "&".join(self._filters)
@@ -126,7 +124,6 @@ except Exception as _e:
 supabase = SupabaseREST(SUPABASE_URL, SUPABASE_KEY)
 
 # ═══ WALKTHROUGH DEFINITION ═══
-# Load the question structure (source of truth)
 WALKTHROUGH_PATH = os.path.join(os.path.dirname(__file__), "walkthrough_definition.json")
 with open(WALKTHROUGH_PATH, "r") as f:
     WALKTHROUGH = json.load(f)
@@ -146,14 +143,11 @@ class SessionStart(BaseModel):
     email: Optional[str] = None
     first_name: Optional[str] = None
 
-
 class AnswerSubmit(BaseModel):
-    answers: dict  # { "Q1": "Yes", "Q2": "some text" }
-
+    answers: dict
 
 class HomeworkToggle(BaseModel):
     question_id: str
-
 
 class SectionComplete(BaseModel):
     section_id: str
@@ -161,7 +155,6 @@ class SectionComplete(BaseModel):
 
 # ═══ HELPERS ═══
 def calculate_progress(answers: dict, homework: list) -> int:
-    """Calculate progress percentage from answers + homework items."""
     done = 0
     for qid in ALL_QUESTION_IDS:
         if qid in answers and answers[qid] and str(answers[qid]).strip():
@@ -170,7 +163,6 @@ def calculate_progress(answers: dict, homework: list) -> int:
             done += 1
     return min(100, round((done / TOTAL_QUESTIONS) * 100)) if TOTAL_QUESTIONS > 0 else 0
 
-
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
@@ -178,16 +170,13 @@ def now_iso():
 # ═══ APP ═══
 app = FastAPI(title="Family Crisis Playbook", version="3.0")
 
-# Serve static files (CSS, JS if needed)
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.exists(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Find template directory
 import glob as _glob
 print(f"CWD: {os.getcwd()}")
 print(f"__file__: {os.path.abspath(__file__)}")
-# List all walkthrough.html files on the system
 _found = _glob.glob("/app/**/walkthrough.html", recursive=True)
 print(f"All walkthrough.html files found: {_found}")
 
@@ -207,7 +196,6 @@ for _d in _template_dirs:
         _template_dir = _d
         print(f"  USING: {os.path.abspath(_d)}")
 if not _template_dir:
-    # Last resort: use the first found file
     if _found:
         _template_dir = os.path.dirname(_found[0])
         print(f"  FALLBACK to: {_template_dir}")
@@ -221,7 +209,6 @@ templates = Jinja2Templates(directory=_template_dir)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    """Redirect to walkthrough."""
     return templates.TemplateResponse("walkthrough.html", {
         "request": request,
         "walkthrough": json.dumps(WALKTHROUGH),
@@ -229,10 +216,8 @@ async def home(request: Request):
         "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
     })
 
-
 @app.get("/walkthrough", response_class=HTMLResponse)
 async def walkthrough(request: Request):
-    """Serve the walkthrough frontend."""
     return templates.TemplateResponse("walkthrough.html", {
         "request": request,
         "walkthrough": json.dumps(WALKTHROUGH),
@@ -245,34 +230,24 @@ async def walkthrough(request: Request):
 
 @app.post("/api/session/start")
 async def session_start(data: SessionStart):
-    """Create a new walkthrough session."""
     try:
         result = supabase.table("sessions").insert({
             "email": data.email,
             "first_name": data.first_name,
             "last_activity_at": now_iso(),
         })
-
         session = result.data[0]
-        return {
-            "session_id": session["session_id"],
-            "status": "created",
-        }
+        return {"session_id": session["session_id"], "status": "created"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
 
 
 @app.get("/api/session/{session_id}")
 async def session_get(session_id: str):
-    """Get full session state (for resuming)."""
     try:
-        result = supabase.table("sessions").select("*").eq(
-            "session_id", session_id
-        ).execute()
-
+        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
         if not result.data:
             raise HTTPException(status_code=404, detail="Session not found")
-
         session = result.data[0]
         return {
             "session_id": session["session_id"],
@@ -297,9 +272,7 @@ async def session_get(session_id: str):
 
 @app.post("/api/session/{session_id}/answer")
 async def session_answer(session_id: str, data: AnswerSubmit):
-    """Save answers for one or more questions."""
     try:
-        # Get current session
         result = supabase.table("sessions").select(
             "answers_json, homework_items"
         ).eq("session_id", session_id).execute()
@@ -311,30 +284,28 @@ async def session_answer(session_id: str, data: AnswerSubmit):
         answers = current["answers_json"] or {}
         homework = current["homework_items"] or []
 
-        # Merge new answers
         for qid, value in data.answers.items():
             answers[qid] = value
-            # If they answered it, remove from homework
             if qid in homework and value and str(value).strip():
                 homework.remove(qid)
 
-        # Extract snapshot results (S1-S12)
-        snapshot = {}
-        for qid, value in answers.items():
-            if qid.startswith("S"):
-                snapshot[qid] = value
-
+        snapshot = {qid: value for qid, value in answers.items() if qid.startswith("S")}
         progress = calculate_progress(answers, homework)
 
-        # Update session
-        supabase.table("sessions").update({
+        # ─── FIX 1: Sync Q46 (primary email) to the email column ───
+        update_payload = {
             "answers_json": answers,
             "homework_items": homework,
             "homework_count": len(homework),
             "snapshot_results": snapshot,
             "progress_percent": progress,
             "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
+        }
+        if "Q46" in data.answers and data.answers["Q46"] and str(data.answers["Q46"]).strip():
+            update_payload["email"] = data.answers["Q46"].strip()
+            print(f"Synced Q46 email to session column: {data.answers['Q46'].strip()}")
+
+        supabase.table("sessions").update(update_payload).eq("session_id", session_id).execute()
 
         return {
             "status": "saved",
@@ -349,7 +320,6 @@ async def session_answer(session_id: str, data: AnswerSubmit):
 
 @app.post("/api/session/{session_id}/homework")
 async def session_homework(session_id: str, data: HomeworkToggle):
-    """Toggle a question as homework (deferred)."""
     try:
         result = supabase.table("sessions").select(
             "answers_json, homework_items"
@@ -367,7 +337,6 @@ async def session_homework(session_id: str, data: HomeworkToggle):
             homework.remove(qid)
         else:
             homework.append(qid)
-            # Clear the answer if deferring
             answers[qid] = ""
 
         progress = calculate_progress(answers, homework)
@@ -395,7 +364,6 @@ async def session_homework(session_id: str, data: HomeworkToggle):
 
 @app.post("/api/session/{session_id}/section-complete")
 async def section_complete(session_id: str, data: SectionComplete):
-    """Mark a section as completed."""
     try:
         result = supabase.table("sessions").select(
             "answers_json, homework_items"
@@ -415,9 +383,6 @@ async def section_complete(session_id: str, data: SectionComplete):
             "last_activity_at": now_iso(),
         }).eq("session_id", session_id).execute()
 
-        # Phase 2: Send webhook to GHL here
-        # await send_ghl_webhook("section_complete", session_id)
-
         return {
             "status": "section_completed",
             "section_id": data.section_id,
@@ -431,7 +396,6 @@ async def section_complete(session_id: str, data: SectionComplete):
 
 @app.post("/api/session/{session_id}/complete")
 async def walkthrough_complete(session_id: str):
-    """Mark the entire walkthrough as completed."""
     try:
         result = supabase.table("sessions").select(
             "answers_json, homework_items"
@@ -451,9 +415,6 @@ async def walkthrough_complete(session_id: str):
             "last_activity_at": now_iso(),
         }).eq("session_id", session_id).execute()
 
-        # Phase 2: Send webhook to GHL here
-        # await send_ghl_webhook("walkthrough_complete", session_id)
-
         return {
             "status": "walkthrough_completed",
             "progress_percent": progress,
@@ -467,12 +428,8 @@ async def walkthrough_complete(session_id: str):
 
 @app.get("/api/session/{session_id}/summary")
 async def session_summary(session_id: str):
-    """Get completion stats for the summary screen."""
     try:
-        result = supabase.table("sessions").select("*").eq(
-            "session_id", session_id
-        ).execute()
-
+        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
         if not result.data:
             raise HTTPException(status_code=404, detail="Session not found")
 
@@ -480,19 +437,13 @@ async def session_summary(session_id: str):
         answers = session["answers_json"] or {}
         homework = session["homework_items"] or []
 
-        # Calculate per-section completion
         section_stats = []
         for section in SECTIONS:
-            section_qids = []
-            for card in section["cards"]:
-                for q in card["questions"]:
-                    section_qids.append(q["id"])
-
-            done = 0
-            for qid in section_qids:
-                if (qid in answers and answers[qid] and str(answers[qid]).strip()) or qid in homework:
-                    done += 1
-
+            section_qids = [q["id"] for card in section["cards"] for q in card["questions"]]
+            done = sum(
+                1 for qid in section_qids
+                if (qid in answers and answers[qid] and str(answers[qid]).strip()) or qid in homework
+            )
             pct = round((done / len(section_qids)) * 100) if section_qids else 0
             section_stats.append({
                 "section_id": section["section_id"],
@@ -501,7 +452,6 @@ async def session_summary(session_id: str):
                 "percent": pct,
             })
 
-        # Build homework detail list
         hw_details = []
         for qid in homework:
             for section in SECTIONS:
@@ -542,7 +492,6 @@ async def session_summary(session_id: str):
 
 @app.get("/health")
 async def health():
-    """Health check for Railway."""
     return {"status": "ok", "version": "3.0", "product": "Family Crisis Playbook"}
 
 
@@ -562,46 +511,104 @@ import httpx
 import tempfile
 import base64
 
-# ═══ CLAUDE API — NARRATIVE GENERATION ═══
+# ═══ CLAUDE API — ENHANCED NARRATIVE + ACTION GUIDE GENERATION ═══
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
+# Known bereavement/estate department numbers (verified)
+KNOWN_BEREAVEMENT_NUMBERS = {
+    "chase": "1-888-356-0023",
+    "bank of america": "1-800-432-1000 (ask for Estate Services)",
+    "wells fargo": "1-800-869-3557 (ask for Estate Services)",
+    "fidelity": "1-800-343-3548",
+    "vanguard": "1-800-662-7447",
+    "charles schwab": "1-800-435-4000 (ask for Estate Services)",
+    "schwab": "1-800-435-4000 (ask for Estate Services)",
+    "social security": "1-800-772-1213",
+    "ssa": "1-800-772-1213",
+    "medicare": "1-800-633-4227",
+    "metlife": "1-800-638-5433",
+    "northwestern mutual": "1-800-388-8123",
+    "state farm": "1-800-732-5246",
+    "allstate": "1-800-255-7828",
+    "tiaa": "1-800-842-2252",
+    "nationwide": "1-877-669-6877",
+    "prudential": "1-800-778-2255",
+    "irs": "1-800-829-1040",
+}
+
+ENHANCED_AI_PROMPT = """You are writing the personalized content for "The Resolved Brief" — a printed family crisis document prepared by {name}.
+
+A grieving family member will open this document, possibly at a hospital, possibly overwhelmed, possibly with a lawyer on the phone. Every section must be immediately actionable — not just informative. Warm tone, plain English, zero jargon.
+
+CRITICAL RULES:
+1. Address the FAMILY MEMBER reading this. Refer to {first_name} by first name.
+2. ONLY reference institutions and details that appear in {first_name}'s answers below. Never invent.
+3. If an answer is empty, say "this was not documented."
+4. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
+5. This is a legal document. Accuracy matters more than completeness.
+
+VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually named):
+- Chase Bank: 1-888-356-0023
+- Bank of America: 1-800-432-1000 (ask for Estate Services)
+- Wells Fargo: 1-800-869-3557 (ask for Estate Services)
+- Fidelity: 1-800-343-3548
+- Vanguard: 1-800-662-7447
+- Charles Schwab: 1-800-435-4000 (ask for Estate Services)
+- Social Security Administration: 1-800-772-1213
+- Medicare: 1-800-633-4227
+- MetLife (life insurance): 1-800-638-5433
+- Northwestern Mutual: 1-800-388-8123
+- State Farm: 1-800-732-5246
+- Allstate: 1-800-255-7828
+- TIAA: 1-800-842-2252
+- Nationwide: 1-877-669-6877
+- Prudential: 1-800-778-2255
+- IRS (deceased taxpayer line): 1-800-829-1040
+
+{first_name}'s answers:
+{answers_json}
+
+For each section, produce TWO parts:
+
+PART A — NARRATIVE (3-4 sentences):
+Warm, calm. Summarize what {first_name} set up. Gently flag anything missing.
+
+PART B — ACTION GUIDE:
+For each institution or account {first_name} named, produce one action block formatted EXACTLY like this — use the pipe character | as a field separator:
+
+INSTITUTION: [name] | PHONE: [number or "Call main line, ask for Estate Services"] | STEP 1: [first action] | STEP 2: [second action] | STEP 3: [third action] | HAVE READY: [documents/info needed] | TIMELINE: [realistic timeframe] | WATCH OUT: [one common pitfall]
+
+Separate multiple institution blocks with a blank line.
+
+Return ONLY a JSON object with these exact keys:
+{{
+  "financial": {{"narrative": "...", "action_guide": "..."}},
+  "income": {{"narrative": "...", "action_guide": "..."}},
+  "insurance": {{"narrative": "...", "action_guide": "..."}},
+  "digital": {{"narrative": "...", "action_guide": "..."}},
+  "medical": {{"narrative": "...", "action_guide": "..."}}
+}}
+
+DO NOT generate a "wishes" key. Wishes are presented verbatim.
+No markdown, no backticks, just the JSON object."""
+
+
 async def generate_ai_narratives(answers: dict, name: str) -> dict:
-    """Call Claude API to generate personalized narrative sections."""
+    """Call Claude API to generate personalized narratives + action guides."""
     if not ANTHROPIC_API_KEY:
         print("WARNING: No ANTHROPIC_API_KEY set, using fallback narratives")
         return generate_fallback_narratives(answers, name)
-    
+
     first_name = name.split()[0] if name else "your loved one"
-    prompt = f"""You are writing personalized section introductions for a family crisis document called "The Resolved Brief" prepared by {name}.
-
-CRITICAL RULES:
-1. Write these as if speaking directly to the FAMILY MEMBER who is reading this document during a crisis.
-2. ONLY reference information that appears in the answers below. NEVER invent, assume, or embellish any details.
-3. If an answer is empty, blank, or missing, say "this was not documented" — do NOT make up what it might be.
-4. If an answer is vague, keep your narrative vague too. Do not fill in specifics that are not in the data.
-5. This is a legal and personal document. Accuracy is more important than sounding complete. Getting a detail wrong could cause real harm. Use "you" to address the reader (the family) and refer to {name} by first name ({first_name}).
-
-The tone should be warm, calm, and reassuring — like a trusted guide helping someone through a difficult moment. Start each section with a brief human moment before getting into the practical details. Highlight what's in good shape and gently flag what's missing.
-
-Example tone: "If you're reading this section, {first_name} wanted you to know exactly where the money is. Here's what they set up..."
-
-{first_name}'s answers:
-{json.dumps(answers, indent=2)}
-
-Return ONLY a JSON object with these keys, each containing a 3-5 sentence narrative string:
-- financial (address the family, explain where the money is)
-- income (address the family, explain what comes in and goes out)
-- insurance (address the family, explain what's covered)
-- digital (address the family, explain how to access accounts)
-- medical (address the family, explain who makes decisions and what doctors need to know)
-
-DO NOT generate a "wishes" key. Final wishes and personal directives must never be paraphrased or interpreted by AI. They will be presented exactly as written by {first_name}.
-
-No markdown, no backticks, just the JSON object."""
+    prompt = ENHANCED_AI_PROMPT.format(
+        name=name,
+        first_name=first_name,
+        answers_json=json.dumps(answers, indent=2),
+    )
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -611,43 +618,57 @@ No markdown, no backticks, just the JSON object."""
                 },
                 json={
                     "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 2000,
+                    "max_tokens": 4000,
                     "messages": [{"role": "user", "content": prompt}],
                 },
             )
-            
+
             if response.status_code != 200:
                 print(f"Claude API error: {response.status_code} {response.text}")
                 return generate_fallback_narratives(answers, name)
-            
+
             data = response.json()
-            text = data["content"][0]["text"]
-            
-            # Parse JSON from response (strip any accidental markdown)
-            text = text.strip()
+            text = data["content"][0]["text"].strip()
+
+            # Strip any accidental markdown fences
             if text.startswith("```"):
                 text = text.split("\n", 1)[1]
                 text = text.rsplit("```", 1)[0]
-            
+
             narratives = json.loads(text)
-            print(f"AI narratives generated for {name}")
+            print(f"Enhanced AI narratives generated for {name}")
             return narratives
-            
+
     except Exception as e:
         print(f"Claude API failed: {e}, using fallback")
         return generate_fallback_narratives(answers, name)
 
 
 def generate_fallback_narratives(answers: dict, name: str) -> dict:
-    """Generate basic narratives without AI if API is unavailable."""
+    """Basic narratives when AI is unavailable."""
     first = name.split()[0] if name else "your loved one"
+    guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
     return {
-        "financial": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
-        "income": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out on your own. The details below will help you keep things running smoothly.",
-        "insurance": f"{first} made sure you would know what insurance coverage is in place and how to access it. The policy details, coverage amounts, and agent contacts are all documented below.",
-        "digital": f"This section covers how to access {first}'s accounts, devices, and digital life. Password management and device access information is here so you are not locked out when you need it most.",
-        "medical": f"If you are working with doctors or a hospital, this section has everything they will need. {first} documented their medical information, decision makers, and preferences so the people who matter can speak on their behalf.",
-        "wishes": "",
+        "financial": {
+            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
+            "action_guide": guide,
+        },
+        "income": {
+            "narrative": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out alone. Review the details below to keep things running and cancel what's no longer needed.",
+            "action_guide": "INSTITUTION: Employer/Payroll | PHONE: Call HR department directly | STEP 1: Notify HR of the death and ask about final paycheck and any accrued benefits | STEP 2: Ask about life insurance through the employer | STEP 3: Request information about pension or 401k if applicable | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — freeze or cancel each one individually",
+        },
+        "insurance": {
+            "narrative": f"{first} made sure you would know what coverage is in place and how to access it. The policy details and contact information are documented below so you can file claims without searching.",
+            "action_guide": guide,
+        },
+        "digital": {
+            "narrative": f"This section covers how to access {first}'s accounts, devices, and digital life. Start with the primary email — it is the key to resetting everything else.",
+            "action_guide": "INSTITUTION: Primary Email Provider | PHONE: Use online support — Google: support.google.com/accounts, Apple: 1-800-275-2273 | STEP 1: Gain access to the primary email account first — all other resets flow through it | STEP 2: Use the email to reset passwords for financial accounts one at a time | STEP 3: Document each account as you go | HAVE READY: Death certificate for accounts that require it, your own ID | TIMELINE: Email access: immediate if you have password. Account-by-account resets: 1-2 weeks | WATCH OUT: Do not delete the email account — it may be needed to verify identity for other services",
+        },
+        "medical": {
+            "narrative": f"If you are working with doctors or a hospital, this section has what they need. {first} documented their medical information and preferences so the right people can speak on their behalf.",
+            "action_guide": "INSTITUTION: Primary Care Physician | PHONE: Call the office directly | STEP 1: Notify the practice of the death and request any outstanding referrals or prescriptions be closed | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID or insurance card | TIMELINE: Medical records requests: 30 days under HIPAA | WATCH OUT: Medicare and insurance may need separate notification — do not assume the doctor's office handles this",
+        },
     }
 
 
@@ -661,10 +682,10 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
     if not RESEND_API_KEY:
         print(f"WARNING: No RESEND_API_KEY set, cannot send email to {to_email}")
         return False
-    
+
     first = name.split()[0] if name else "there"
     pdf_b64 = base64.b64encode(pdf_bytes).decode()
-    
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
@@ -689,11 +710,11 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                             <p><strong>What to do next:</strong></p>
                             <ol>
                                 <li>Print your Resolved Brief and your Family Emergency Card</li>
-                                <li>Fill in the sensitive details — passwords, PINs, account numbers — by hand on the Emergency Card</li>
+                                <li>Fill in sensitive details — passwords, PINs, account numbers — by hand on the Emergency Card</li>
                                 <li>Seal it in an envelope, put it somewhere safe, and label it</li>
                                 <li>Tell one person where it is</li>
                             </ol>
-                            <p>That\'s it. You just did what most families never do.</p>
+                            <p>That's it. You just did what most families never do.</p>
                             <p style="color: #C9A84C; font-style: italic; font-family: Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
                             <p style="color: #8A8578; font-size: 14px;">You earned that.</p>
                         </div>
@@ -708,14 +729,14 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                     }],
                 },
             )
-            
+
             if response.status_code in (200, 201):
                 print(f"Email sent to {to_email}")
                 return True
             else:
                 print(f"Email failed: {response.status_code} {response.text}")
                 return False
-                
+
     except Exception as e:
         print(f"Email send error: {e}")
         return False
@@ -728,23 +749,19 @@ from app.pdf_generator import ResolvedBriefBuilder
 async def generate_resolved_brief(session_id: str, email: str, name: str) -> Optional[str]:
     """Generate the Resolved Brief PDF for a paid customer."""
     try:
-        # Get session data
-        result = supabase.table("sessions").select("*").eq(
-            "session_id", session_id
-        ).execute()
-        
+        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
+
         if not result.data:
             print(f"Session not found: {session_id}")
             return None
-        
+
         session = result.data[0]
         answers = session["answers_json"] or {}
         homework = session["homework_items"] or []
-        
-        # Generate AI narratives
+
+        # Generate enhanced AI narratives + action guides
         narratives = await generate_ai_narratives(answers, name)
-        
-        # Build PDF data
+
         pdf_data = {
             "name": name,
             "date": datetime.now().strftime("%B %d, %Y"),
@@ -752,22 +769,18 @@ async def generate_resolved_brief(session_id: str, email: str, name: str) -> Opt
             "homework": homework,
             "ai_narratives": narratives,
         }
-        
-        # Generate PDF to temp file
+
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             tmp_path = tmp.name
-        
+
         builder = ResolvedBriefBuilder(pdf_data)
         builder.build(tmp_path)
-        
-        # Read the PDF bytes
+
         with open(tmp_path, "rb") as f:
             pdf_bytes = f.read()
-        
-        # Send email
+
         email_sent = await send_brief_email(email, name, pdf_bytes)
-        
-        # Update session
+
         try:
             supabase.table("sessions").update({
                 "purchase_status": "paid",
@@ -777,13 +790,12 @@ async def generate_resolved_brief(session_id: str, email: str, name: str) -> Opt
             }).eq("session_id", session_id).execute()
         except Exception as _ue:
             print(f"Session update note (non-critical): {_ue}")
-        
-        # Cleanup temp file
+
         os.unlink(tmp_path)
-        
+
         print(f"Resolved Brief generated and sent for session {session_id}")
         return "sent" if email_sent else "generated_not_sent"
-        
+
     except Exception as e:
         print(f"Brief generation error: {e}")
         import traceback
@@ -794,7 +806,6 @@ async def generate_resolved_brief(session_id: str, email: str, name: str) -> Opt
 # ═══ SAMCART WEBHOOK ENDPOINT ═══
 
 class SamCartWebhook(BaseModel):
-    """Flexible model — SamCart sends various fields."""
     class Config:
         extra = "allow"
 
@@ -807,57 +818,55 @@ async def samcart_webhook(request: Request):
     try:
         body = await request.json()
         print(f"SamCart webhook received: {json.dumps(body, indent=2)[:500]}")
-        
-        # Extract customer info from SamCart payload
-        # SamCart sends different fields depending on configuration
+
         email = (
             body.get("customer", {}).get("email") or
             body.get("buyer_email") or
             body.get("email") or
             ""
         )
-        
+
         name = (
-            body.get("customer", {}).get("first_name", "") + " " +
-            body.get("customer", {}).get("last_name", "") or
+            (
+                body.get("customer", {}).get("first_name", "") + " " +
+                body.get("customer", {}).get("last_name", "")
+            ).strip() or
             body.get("buyer_name") or
             body.get("name") or
             "Valued Customer"
-        ).strip()
-        
-        # Get session_id from custom field or URL parameter
+        )
+
         session_id = (
             body.get("custom_fields", {}).get("session_id") or
             body.get("session_id") or
             body.get("custom", {}).get("session_id") or
             ""
         )
-        
+
         if not email:
             print("WARNING: No email in webhook payload")
             return JSONResponse(
                 status_code=200,
                 content={"status": "error", "message": "No email found in payload"}
             )
-        
+
         if not session_id:
-            # Try to find session by email
             print(f"No session_id in webhook, searching by email: {email}")
+            # ─── FIX 1 BENEFIT: Q46 now synced to email column, so this works ───
             result = supabase.table("sessions").select("session_id").eq(
                 "email", email
             ).order("created_at", desc=True).limit(1).execute()
-            
+
             if result.data:
                 session_id = result.data[0]["session_id"]
                 print(f"Found session by email: {session_id}")
             else:
-                # Try most recent completed session without email
                 result = supabase.table("sessions").select("session_id").eq(
                     "walkthrough_completed", True
                 ).eq("purchase_status", "unpaid").order(
                     "last_activity_at", desc=True
                 ).limit(1).execute()
-                
+
                 if result.data:
                     session_id = result.data[0]["session_id"]
                     print(f"Found most recent unpaid session: {session_id}")
@@ -867,10 +876,9 @@ async def samcart_webhook(request: Request):
                         status_code=200,
                         content={"status": "error", "message": "No matching session"}
                     )
-        
-        # Generate and send the Resolved Brief
+
         result = await generate_resolved_brief(session_id, email, name)
-        
+
         return JSONResponse(
             status_code=200,
             content={
@@ -880,12 +888,11 @@ async def samcart_webhook(request: Request):
                 "pdf_status": result or "failed",
             }
         )
-        
+
     except Exception as e:
         print(f"Webhook error: {e}")
         import traceback
         traceback.print_exc()
-        # Always return 200 to SamCart so it doesn't retry forever
         return JSONResponse(
             status_code=200,
             content={"status": "error", "message": str(e)}
@@ -905,16 +912,16 @@ async def manual_generate_brief(session_id: str, data: ManualBriefRequest = Manu
         result = supabase.table("sessions").select("email, first_name").eq(
             "session_id", session_id
         ).execute()
-        
+
         if not result.data:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         session = result.data[0]
         email = data.email or session.get("email") or "test@example.com"
         name = data.name or session.get("first_name") or "Test User"
-        
+
         status = await generate_resolved_brief(session_id, email, name)
-        
+
         return {
             "status": "success" if status else "error",
             "pdf_status": status or "failed",
