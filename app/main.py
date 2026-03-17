@@ -931,3 +931,194 @@ async def manual_generate_brief(session_id: str, data: ManualBriefRequest = Manu
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+# ═══════════════════════════════════════════════════
+# SCORECARD REPORT EMAIL — Add to bottom of main.py
+# ═══════════════════════════════════════════════════
+
+# ═══ PYDANTIC MODEL ═══
+
+class ScorecardReportRequest(BaseModel):
+    first_name: str
+    email: str
+    score: int
+    max_score: int
+    grade_letter: str
+    grade_label: str
+    gaps: list  # List of {id, text, gapTip, sectionTitle, sectionIcon}
+    section_scores: list  # List of {id, title, icon, pct, documented, partials, gaps}
+
+
+# ═══ EMAIL BUILDER ═══
+
+def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
+    """Build the personalized scorecard report HTML email."""
+    first = data.first_name
+    score = data.score
+    max_score = data.max_score
+    grade = data.grade_letter
+    label = data.grade_label
+    gaps = data.gaps
+    sections = data.section_scores
+
+    # Grade color
+    if label in ("Excellent", "Strong"):
+        grade_color = "#10B981"
+    elif label in ("Fair", "Good"):
+        grade_color = "#F59E0B"
+    else:
+        grade_color = "#EF4444"
+
+    # Build gap items HTML
+    gap_items_html = ""
+    for i, gap in enumerate(gaps):
+        gap_items_html += f"""
+        <div style="margin-bottom: 24px; padding: 20px 24px; background: #fff; border: 1.5px solid #E8E5DE; border-left: 4px solid #EF4444; border-radius: 8px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
+                <span style="font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: #D4913B; min-width: 24px;">{i+1}.</span>
+                <p style="font-size: 16px; font-weight: 700; color: #1B3A5C; margin: 0; line-height: 1.4;">{gap.get('text', '')}</p>
+            </div>
+            <div style="margin-left: 36px; padding: 12px 16px; background: #FEF9F0; border-radius: 6px; border: 1px solid rgba(212,145,59,0.2);">
+                <p style="font-size: 13px; font-weight: 700; color: #D4913B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">⚠ Why This Matters</p>
+                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('gapTip', '')}</p>
+            </div>
+            <p style="font-size: 13px; color: #9CA3AF; margin: 8px 0 0 36px;">{gap.get('sectionIcon', '')} {gap.get('sectionTitle', '')}</p>
+        </div>
+        """
+
+    # Build section scores HTML
+    section_html = ""
+    for sec in sections:
+        pct = round(sec.get('pct', 0))
+        bar_color = "#10B981" if pct >= 75 else "#F59E0B" if pct >= 45 else "#EF4444"
+        section_html += f"""
+        <div style="margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 15px; font-weight: 600; color: #1B3A5C;">{sec.get('icon', '')} {sec.get('title', '')}</span>
+                <span style="font-size: 15px; font-weight: 700; color: {bar_color};">{pct}%</span>
+            </div>
+            <div style="height: 6px; background: #E8E5DE; border-radius: 6px; overflow: hidden;">
+                <div style="height: 100%; width: {pct}%; background: {bar_color}; border-radius: 6px;"></div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 4px;">
+                <span style="font-size: 13px; color: #10B981;">✅ {sec.get('documented', 0)}</span>
+                <span style="font-size: 13px; color: #F59E0B;">⚠️ {sec.get('partials', 0)}</span>
+                <span style="font-size: 13px; color: #EF4444;">🔴 {sec.get('gaps', 0)}</span>
+            </div>
+        </div>
+        """
+
+    # Bridge copy — dynamic based on gap count
+    gap_count = len(gaps)
+    if gap_count == 0:
+        bridge_headline = "Your family is well covered — but can anyone else find it?"
+        bridge_body = f"You scored well, {first}. But here's the question most high scorers miss: if something happened to both you and your spouse, could your kids, your parents, or your sister find everything within an hour? The Resolved Brief puts it all in one document anyone can follow."
+    elif gap_count <= 3:
+        bridge_headline = "A few gaps — but they're the ones that matter most."
+        bridge_body = f"You've got a solid foundation, {first}. But those {gap_count} gap{'s' if gap_count > 1 else ''} above? Each one is a specific moment where your family would be stuck, guessing, or fighting. The Resolved Brief closes all of them in one sitting."
+    else:
+        bridge_headline = f"That's {gap_count} moments where your family would be lost."
+        bridge_body = f"Each gap above isn't just a checkbox, {first} — it's a real scenario. Your family on the phone with a bank that won't talk to them. Standing in a funeral home making permanent decisions nobody agreed on. Searching for a life insurance policy nobody knew existed. The Resolved Brief closes every single one of these in about 30 minutes."
+
+    return f"""
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; background: #FAFAF7;">
+
+        <!-- HEADER -->
+        <div style="background: #1B3A5C; padding: 32px; text-align: center;">
+            <p style="font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin: 0 0 8px;">RESOLVED FAMILY</p>
+            <h1 style="font-family: Georgia, serif; font-size: 24px; font-weight: 700; color: #D4913B; margin: 0;">Your Family Readiness Report</h1>
+        </div>
+
+        <!-- SCORE BLOCK -->
+        <div style="background: #F0EDE5; padding: 32px; text-align: center; border-bottom: 2px solid #E8E5DE;">
+            <p style="font-size: 15px; color: #6B7280; margin: 0 0 8px;">Hi {first} — here's your full breakdown.</p>
+            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; border: 3px solid {grade_color}; line-height: 80px; text-align: center; margin: 0 auto 12px;">
+                <span style="font-family: Georgia, serif; font-size: 36px; font-weight: 700; color: {grade_color};">{grade}</span>
+            </div>
+            <p style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1B3A5C; margin: 0 0 4px;">{score} / {max_score}</p>
+            <p style="font-size: 14px; font-weight: 700; color: {grade_color}; text-transform: uppercase; letter-spacing: 2px; margin: 0;">{label}</p>
+        </div>
+
+        <div style="padding: 32px;">
+
+            <!-- SECTION BREAKDOWN -->
+            <h2 style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; margin: 0 0 20px;">Section Breakdown</h2>
+            {section_html}
+
+            <!-- GAP LIST -->
+            {'<h2 style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; margin: 32px 0 8px;">🎯 What Your Family Would Face</h2><p style="font-size: 15px; color: #6B7280; margin: 0 0 20px; line-height: 1.6;">These are the specific moments where your family would be stuck, guessing, or fighting. Each one is real.</p>' + gap_items_html if gap_count > 0 else '<div style="padding: 24px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; text-align: center; margin: 24px 0;"><p style="font-size: 16px; color: #10B981; font-weight: 600; margin: 0;">🎉 No critical gaps detected — your family has the essentials covered.</p></div>'}
+
+            <!-- BRIDGE -->
+            <div style="margin: 32px 0; padding: 28px 24px; background: #1B3A5C; border-radius: 12px; text-align: center;">
+                <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
+                <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
+                <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
+                <a href="https://familycrisisplaybook.com/session/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — $49 →</a>
+                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">30 minutes. One document. Done.</p>
+            </div>
+
+            <!-- SHARE COUPON -->
+            <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
+                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 12px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
+                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px;">
+                    <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; letter-spacing: 1px;">SHARE50</span>
+                </div>
+            </div>
+
+            <!-- CLOSING -->
+            <p style="font-size: 15px; color: #6B7280; line-height: 1.7;">You took the scorecard. You saw where you stand. Most people never get this far.<br/><br/>Now finish it.</p>
+            <p style="font-size: 15px; color: #4B5563; margin-top: 16px;">— JB</p>
+            <p style="font-family: Georgia, serif; font-size: 18px; font-style: italic; color: #D4913B; margin-top: 24px;">"There's an envelope in my desk."</p>
+            <p style="font-size: 13px; color: #9CA3AF;">Be the person who can say that.</p>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div style="padding: 20px 32px; border-top: 1px solid #E8E5DE; text-align: center;">
+            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">© 2026 Resolved Family · ResolvedFamily.com</p>
+            <p style="font-size: 12px; color: #9CA3AF; margin: 4px 0 0;">Educational material. Not legal, financial, or medical advice.</p>
+        </div>
+
+    </div>
+    """
+
+
+# ═══ NEW ENDPOINT ═══
+
+@app.post("/api/scorecard/send-report")
+async def send_scorecard_report(data: ScorecardReportRequest):
+    """
+    Receives scorecard results after email gate submission.
+    Sends personalized gap report email via Resend.
+    """
+    if not RESEND_API_KEY:
+        print(f"WARNING: No RESEND_API_KEY — cannot send scorecard report to {data.email}")
+        return JSONResponse(status_code=200, content={"status": "no_key"})
+
+    try:
+        html_content = build_scorecard_report_email(data)
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "jb@resolvedfamily.com",
+                    "to": [data.email],
+                    "subject": f"{data.first_name}, here's your Family Readiness Report",
+                    "html": html_content,
+                },
+            )
+
+            if response.status_code in (200, 201):
+                print(f"Scorecard report sent to {data.email}")
+                return JSONResponse(status_code=200, content={"status": "sent"})
+            else:
+                print(f"Scorecard report email failed: {response.status_code} {response.text}")
+                return JSONResponse(status_code=200, content={"status": "failed", "detail": response.text})
+
+    except Exception as e:
+        print(f"Scorecard report error: {e}")
+        return JSONResponse(status_code=200, content={"status": "error", "message": str(e)})
