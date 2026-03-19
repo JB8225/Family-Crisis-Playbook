@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -169,6 +170,21 @@ def now_iso():
 
 # ═══ APP ═══
 app = FastAPI(title="Resolved Family", version="3.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://familycrisisplaybook.com",
+        "https://www.familycrisisplaybook.com",
+        "https://resolvedfamily.com",
+        "https://www.resolvedfamily.com",
+        "http://localhost:3000",
+        "http://localhost:8080",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.exists(static_dir):
