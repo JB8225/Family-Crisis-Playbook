@@ -1,6 +1,6 @@
 {
   "title": "The Resolved Brief",
-  "subtitle": "The 30-Minute System That Organizes Your Entire Life For The People You Love.",
+  "subtitle": "The 20-Minute System That Organizes Your Entire Life For The People You Love.",
   "version": "3.0",
   "sections": [
     {
@@ -517,11 +517,25 @@
               "follow_up_tip": "Email is the skeleton key — password resets for everything go here."
             },
             {
+              "id": "Q46A",
+              "type": "multiple_choice",
+              "prompt": "How would your family access this email account?",
+              "options": ["Password is in my password manager", "They already know the password", "I'll write it on the sealed envelope sheet", "I need to figure this out"],
+              "follow_up_tip": "Without email access, your family can't reset passwords for any other account. This is the single most important access item to document. Add it to your sealed envelope."
+            },
+            {
               "id": "Q47",
               "type": "multiple_choice",
               "prompt": "Could your family get into your phone if needed?",
               "options": ["Yes — they know the passcode", "Yes — biometrics (face/fingerprint)", "No — only I can unlock it", "Not sure"],
               "follow_up_tip": "Phone access unlocks 2FA codes, banking apps, and more."
+            },
+            {
+              "id": "Q47A",
+              "type": "multiple_choice",
+              "prompt": "Will you add your phone passcode to your sealed envelope?",
+              "options": ["Yes — I'll add it", "Already written down elsewhere", "I use biometrics only (no passcode)"],
+              "follow_up_tip": "Your phone is the key to everything — banking apps, 2FA codes, photos, and account recovery. Add your passcode to the fillable sheet and seal it in your envelope."
             },
             {
               "id": "Q48",
