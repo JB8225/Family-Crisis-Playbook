@@ -1074,9 +1074,13 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
 
             <!-- SHARE COUPON -->
             <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 12px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
-                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px;">
+                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
+                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px; margin-bottom: 16px;">
                     <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; letter-spacing: 1px;">SHARE50</span>
+                </div>
+                <div style="margin-top: 8px;">
+                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
+                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
                 </div>
             </div>
 
