@@ -1,5 +1,5 @@
 """
-Family Crisis Playbook — FastAPI Backend
+Resolved Family — FastAPI Backend
 =========================================
 Phase 1: Walkthrough + Supabase session persistence
 """
@@ -168,7 +168,7 @@ def now_iso():
 
 
 # ═══ APP ═══
-app = FastAPI(title="Family Crisis Playbook", version="3.0")
+app = FastAPI(title="Resolved Family", version="3.0")
 
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
 if os.path.exists(static_dir):
@@ -492,7 +492,7 @@ async def session_summary(session_id: str):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "3.0", "product": "Family Crisis Playbook"}
+    return {"status": "ok", "version": "3.0", "product": "Resolved Family"}
 
 
 # ═══ RUN ═══
@@ -1017,7 +1017,7 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
         bridge_body = f"You've got a solid foundation, {first}. But those {gap_count} gap{'s' if gap_count > 1 else ''} above? Each one is a specific moment where your family would be stuck, guessing, or fighting. The Resolved Brief closes all of them in one sitting."
     else:
         bridge_headline = f"That's {gap_count} moments where your family would be lost."
-        bridge_body = f"Each gap above isn't just a checkbox, {first} — it's a real scenario. Your family on the phone with a bank that won't talk to them. Standing in a funeral home making permanent decisions nobody agreed on. Searching for a life insurance policy nobody knew existed. The Resolved Brief closes every single one of these in about 30 minutes."
+        bridge_body = f"Each gap above isn't just a checkbox, {first} — it's a real scenario. Your family on the phone with a bank that won't talk to them. Standing in a funeral home making permanent decisions nobody agreed on. Searching for a life insurance policy nobody knew existed. The Resolved Brief closes every single one of these in about 20 minutes."
 
     return f"""
     <div style="font-family: Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; background: #FAFAF7;">
@@ -1053,7 +1053,7 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
                 <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
                 <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
                 <a href="https://familycrisisplaybook.com/session/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — $49 →</a>
-                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">30 minutes. One document. Done.</p>
+                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">20 minutes. One document. Done.</p>
             </div>
 
             <!-- SHARE COUPON -->
