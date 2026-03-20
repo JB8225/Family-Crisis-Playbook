@@ -1046,7 +1046,8 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
 
         <!-- SCORE BLOCK -->
         <div style="background: #F0EDE5; padding: 32px; text-align: center; border-bottom: 2px solid #E8E5DE;">
-            <p style="font-size: 15px; color: #6B7280; margin: 0 0 8px;">Hi {first} — here's your full breakdown.</p>
+            <p style="font-size: 15px; color: #6B7280; margin: 0 0 4px;">Hi {first} — here's your full breakdown.</p>
+            <p style="font-size: 13px; color: #9CA3AF; margin: 0 0 12px;">💡 Save this report: On iPhone, tap the share icon → Print → Save as PDF. On desktop, File → Print → Save as PDF.</p>
             <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; border: 3px solid {grade_color}; line-height: 80px; text-align: center; margin: 0 auto 12px;">
                 <span style="font-family: Georgia, serif; font-size: 36px; font-weight: 700; color: {grade_color};">{grade}</span>
             </div>
