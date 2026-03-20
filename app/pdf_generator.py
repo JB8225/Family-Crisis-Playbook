@@ -616,7 +616,7 @@ class ResolvedBriefBuilder:
 
         # Emergency Card note — navy callout box
         y -= 10
-        note_text = "The Family Emergency Card is the last page of this document. Print it separately, fill in the sensitive details by hand, seal it in an envelope, and keep it with this Brief — or store it somewhere your family knows to look."
+        note_text = "The Vault Page is included at the end of this document. Print it separately, fill in the sensitive details by hand, seal it in an envelope, and keep it with this Brief — or store it somewhere your family knows to look."
         note_lines = simpleSplit(note_text, "Helvetica", 10, W - 130)
         note_h = len(note_lines) * 14 + 16
         c.setFillColor(NAVY)
@@ -625,7 +625,7 @@ class ResolvedBriefBuilder:
         c.rect(50, y - note_h + 10, 3, note_h, fill=1, stroke=0)
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 8.5)
-        c.drawString(62, y, "ℹ  FAMILY EMERGENCY CARD")
+        c.drawString(62, y, "ℹ  THE VAULT PAGE")
         y -= 14
         c.setFillColor(white)
         c.setFont("Helvetica", 10)
@@ -902,7 +902,7 @@ class ResolvedBriefBuilder:
         c.rect(36, y - 6, 3, 32, fill=1, stroke=0)
         c.setFillColor(white)
         c.setFont("Helvetica-Bold", 11)
-        c.drawString(50, y + 4, "SENSITIVE ACCESS — FILL IN BY HAND, SEAL IN ENVELOPE")
+        c.drawString(50, y + 4, "THE VAULT PAGE — FILL IN BY HAND, SEAL IN ENVELOPE")
         y -= 32
 
         c.setFillColor(MID_GRAY)
@@ -930,7 +930,7 @@ class ResolvedBriefBuilder:
         y -= 8
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(W/2, max(y, 40), "Keep this card with The Resolved Brief folder. Review and update every 6 months.")
+        c.drawCentredString(W/2, max(y, 40), "Keep The Vault Page with The Resolved Brief folder. Review and update every 6 months.")
         c.setFont("Helvetica-Bold", 8)
         c.setFillColor(RED_ACCENT)
         c.drawCentredString(W/2, max(y - 14, 28), "THIS PAGE CONTAINS SENSITIVE INFORMATION — STORE SECURELY")
