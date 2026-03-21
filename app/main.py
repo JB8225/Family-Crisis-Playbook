@@ -984,9 +984,111 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
     else:
         grade_color = "#EF4444"
 
+    # Enhanced action steps — detailed to-do checklists by question ID
+    ENHANCED_ACTIONS = {
+        1: [
+            "Decide who you want making medical decisions if you’re incapacitated — your spouse, a parent, a sibling, a close friend.",
+            "Have a direct conversation with that person. Tell them what you’d want in worst-case scenarios — life support, resuscitation, long-term care.",
+            "Write their full legal name, phone number, and relationship to you on a document your family can find.",
+            "Consider filing a Healthcare Power of Attorney to make it legally binding (your state may have a free form online).",
+            "Tell at least one other family member who your chosen person is, so there’s no confusion at the hospital.",
+        ],
+        2: [
+            "Write down your wishes for life support, resuscitation, ventilators, feeding tubes, and organ donation.",
+            "Include preferences for long-term care if you were in a coma or persistent vegetative state.",
+            "Print it out and put it somewhere accessible — not buried in a filing cabinet or saved only on your computer.",
+            "Give a copy to your healthcare proxy, your spouse or partner, and your primary care doctor.",
+            "Consider completing an Advance Directive or Living Will form for your state to make it legally recognized.",
+        ],
+        3: [
+            "List every bank and credit union you have an account with — checking, savings, CDs, money market.",
+            "Include the name of the institution, the type of account, and the approximate purpose (e.g., ‘main checking for bills’).",
+            "Write down the customer service phone number for each institution.",
+            "Note whether each account is individual, joint, or has a payable-on-death beneficiary listed.",
+            "Check if your accounts have beneficiary designations — without them, your family may need probate court just to access funds.",
+            "Store this list in a sealed envelope or secure location and tell one person where it is.",
+        ],
+        4: [
+            "List every retirement account you have — 401(k), 403(b), IRA, Roth IRA, pension, deferred comp.",
+            "Include the provider or custodian for each (e.g., Fidelity, Vanguard, your employer’s plan administrator).",
+            "Write down how to access each account — website, phone number, or HR contact.",
+            "Verify that each account has a current beneficiary listed — an outdated or missing beneficiary can override your will.",
+            "If you’ve changed jobs, check whether you have orphaned 401(k) accounts at former employers that need to be rolled over or documented.",
+            "Note any pensions or annuities that require a specific filing process for survivor benefits.",
+        ],
+        5: [
+            "Confirm you have life insurance and identify the provider — employer group plan, private policy, or both.",
+            "Write down the insurance company name, policy number, the death benefit amount, and the type (term vs. whole).",
+            "Verify your beneficiary is current — divorce, remarriage, and new children can make your existing designation outdated.",
+            "Locate the actual policy documents or download them from your provider’s website.",
+            "Note the claims phone number — your family will need to call this number to file. Life insurance doesn’t pay automatically.",
+            "If you have employer-provided coverage, confirm whether it ends when you leave or retire.",
+        ],
+        6: [
+            "Gather policy numbers and provider names for every insurance policy you hold — health, dental, vision, auto, home/renters, umbrella, disability.",
+            "For each policy, write down the type of coverage, the monthly/annual premium, and the claims phone number.",
+            "Locate the actual policy documents — digital copies in a folder or physical copies in one place.",
+            "Note any auto-pay or auto-renewal details so your family knows which accounts are being charged.",
+            "Check whether your policies have named beneficiaries and whether those designations are current.",
+            "Include your insurance agent’s name and contact info if you use a broker.",
+        ],
+        7: [
+            "Decide where your master password list lives — a password manager (like 1Password, Bitwarden, LastPass), a physical notebook, or an encrypted file.",
+            "If you use a password manager, write down the master password and store it in a sealed envelope separate from your devices.",
+            "If you use a notebook, make sure it’s clearly labeled and someone knows where to find it.",
+            "Include recovery codes, backup emails, and security question answers for your most critical accounts.",
+            "Tell one trusted person exactly where this information is stored — not the passwords themselves, just the location.",
+            "Test it: could someone who’s never used your system actually get in? If not, add clearer instructions.",
+        ],
+        8: [
+            "Write down your phone’s passcode (PIN, pattern, or password) and store it in your sealed envelope.",
+            "If you use Face ID or fingerprint, note that a passcode still exists as a backup — write that down too.",
+            "Consider adding a trusted family member’s fingerprint or face to your phone’s biometric settings.",
+            "Document which authenticator app you use (Google Authenticator, Authy, etc.) — your family will need this for two-factor codes on banking and email.",
+            "Note your phone’s carrier (Verizon, AT&T, T-Mobile) and account PIN — your family may need to manage your account or port your number.",
+            "If your phone auto-locks after too many wrong attempts or wipes itself, make sure someone knows the correct code before that happens.",
+        ],
+        9: [
+            "Write down the email address, provider (Gmail, Outlook, Yahoo, etc.), and how to log in for every email account you use.",
+            "Include the password or note where it’s stored in your password manager.",
+            "If two-factor authentication is enabled, document how to get past it — authenticator app, backup codes, or recovery phone number.",
+            "Set up a recovery email or trusted contact within your email provider’s security settings.",
+            "Consider Google’s Inactive Account Manager or Apple’s Legacy Contact feature, which can grant access to a designated person after a period of inactivity.",
+            "Your email is the master key — almost every other account can be reset through it. If your family can’t get into your email, they likely can’t get into anything.",
+        ],
+        10: [
+            "Write down whether you want burial or cremation. Be specific.",
+            "If burial — do you have a cemetery plot? Where? Is it paid for? Who has the deed?",
+            "If cremation — what should happen with the ashes? Scattered, kept, divided among family?",
+            "Note any preferences for your memorial — religious service, celebration of life, private family only, specific music or readings.",
+            "If you have cultural or religious traditions that matter to you, write them down so no one has to guess.",
+            "Include whether you want to be an organ donor and whether you’ve registered (your family may override your driver’s license designation if they don’t know your wishes).",
+            "Tell at least one person about these wishes. Documents in a safe don’t help if nobody opens the safe until after the funeral.",
+        ],
+    }
+
     # Build gap items HTML
     gap_items_html = ""
     for i, gap in enumerate(gaps):
+        gap_id = gap.get('id')
+        enhanced = ENHANCED_ACTIONS.get(gap_id)
+
+        if enhanced:
+            checklist_html = ""
+            for step in enhanced:
+                checklist_html += f'<li style="font-size: 14px; color: #4B5563; line-height: 1.6; margin-bottom: 6px; padding-left: 4px;">{step}</li>'
+            action_block = f"""
+            <div style="margin-left: 36px; margin-top: 8px; padding: 16px 20px; background: rgba(16,185,129,0.06); border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">
+                <p style="font-size: 13px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px;">✅ Your To-Do List</p>
+                <ol style="margin: 0; padding-left: 20px;">{checklist_html}</ol>
+            </div>"""
+        else:
+            action_block = f"""
+            <div style="margin-left: 36px; margin-top: 8px; padding: 12px 16px; background: rgba(16,185,129,0.06); border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">
+                <p style="font-size: 13px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">✅ What To Do</p>
+                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('actionStep', '')}</p>
+            </div>"""
+
         gap_items_html += f"""
         <div style="margin-bottom: 24px; padding: 20px 24px; background: #fff; border: 1.5px solid #E8E5DE; border-left: 4px solid #EF4444; border-radius: 8px;">
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
@@ -996,7 +1098,7 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
             <div style="margin-left: 36px; padding: 12px 16px; background: #FEF9F0; border-radius: 6px; border: 1px solid rgba(212,145,59,0.2);">
                 <p style="font-size: 13px; font-weight: 700; color: #D4913B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">⚠ Why This Matters</p>
                 <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('gapTip', '')}</p>
-            </div>
+            </div>{action_block}
             <p style="font-size: 13px; color: #9CA3AF; margin: 8px 0 0 36px;">{gap.get('sectionIcon', '')} {gap.get('sectionTitle', '')}</p>
         </div>
         """
