@@ -1198,7 +1198,7 @@ textarea.qi {
 const _RAW_WALKTHROUGH = {{ walkthrough | safe }};
 
 // Initialize app state
-let currentSection = 0;
+let currentSection = -1; // -1 = welcome screen
 let currentCard = 0;
 let answers = {};
 let beforeScore = 0;
@@ -1553,10 +1553,10 @@ function prevCard() {
 }
 
 function nextSection() {
-  if (currentSection === 0) {
+  if (currentSection === -1) {
     // Moving from welcome to first section
     currentSection = 0;
-    currentCard = -1; // Start at intro
+    currentCard = -1; // -1 means show section intro
     renderSectionIntro();
   } else if (currentCard === -1) {
     // Moving from section intro to first card
