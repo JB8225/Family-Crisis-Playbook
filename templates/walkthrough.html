@@ -64,7 +64,7 @@ body::after {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
 }
@@ -86,13 +86,165 @@ body > * {
   z-index: 1;
 }
 
-/* Glassmorphism base mixin for cards/panels */
-.glassmorphic {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+/* Glassmorphism base styles */
+.glassmorphic,
+.card-w,
+.grouped,
+.welcome,
+.sintro,
+.sdone,
+.encourage,
+.emo,
+.sum,
+.unlock {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
   border-radius: 12px;
+  position: relative;
+}
+
+/* Animated border glow effect */
+.card-w::before,
+.grouped::before,
+.welcome::before,
+.sintro::before,
+.sdone::before,
+.encourage::before,
+.emo::before,
+.sum::before,
+.unlock::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  padding: 2px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(139, 92, 246, 0.6) 0deg,
+    rgba(6, 182, 212, 0.6) 90deg,
+    rgba(139, 92, 246, 0.6) 180deg,
+    rgba(6, 182, 212, 0.6) 270deg,
+    rgba(139, 92, 246, 0.6) 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: borderSpin 4s linear infinite;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes borderSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hover activation for border glow */
+.card-w:hover::before,
+.grouped:hover::before,
+.welcome:hover::before,
+.sintro:hover::before,
+.sdone:hover::before,
+.encourage:hover::before,
+.emo:hover::before,
+.sum:hover::before,
+.unlock:hover::before {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Enhanced hover state */
+.card-w:hover,
+.grouped:hover,
+.welcome:hover,
+.sintro:hover,
+.sdone:hover,
+.encourage:hover,
+.emo:hover,
+.sum:hover,
+.unlock:hover {
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 8px 32px rgba(6, 182, 212, 0.1);
+}
+
+/* Desktop 3D tilt on hover */
+@media (hover: hover) and (pointer: fine) {
+  .card-w:hover,
+  .grouped:hover {
+    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* STATUS DOCK - Floating progress at bottom */
+.status-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 14px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dock-nodes {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dock-node {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.dock-node.active {
+  background: rgba(6, 182, 212, 0.3);
+  border-color: rgba(6, 182, 212, 0.8);
+  color: #06b6d4;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.4), inset 0 0 8px rgba(6, 182, 212, 0.2);
+  animation: nodePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes nodePulse {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.4), inset 0 0 8px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(6, 182, 212, 0.6), inset 0 0 12px rgba(6, 182, 212, 0.3);
+  }
+}
+
+.dock-node.completed {
+  background: #06b6d4;
+  border-color: #06b6d4;
+  color: #0f172a;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
 }
 
 /* PROGRESS BAR */
@@ -215,7 +367,11 @@ body > * {
 }
 
 .w-step {
-  @extend .glassmorphic;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -311,7 +467,11 @@ body > * {
   gap: 8px;
   align-items: center;
   padding: 10px 18px;
-  @extend .glassmorphic;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   font-size: 15px;
   color: rgba(255, 255, 255, 0.4);
   margin-bottom: 32px;
@@ -467,7 +627,6 @@ body > * {
 
 /* GROUPED */
 .grouped {
-  @extend .glassmorphic;
   padding: 20px 18px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -512,6 +671,8 @@ body > * {
   outline: none;
   transition: all 0.3s ease;
   backdrop-filter: blur(6px);
+  position: relative;
+  z-index: 2;
 }
 
 .qi:focus {
@@ -541,16 +702,19 @@ textarea.qi {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-size: 19px;
   line-height: 1.4;
   color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 2;
 }
 
 .mc-o:hover {
   border-color: rgba(212, 168, 83, 0.3);
   background: rgba(212, 168, 83, 0.06);
   box-shadow: 0 0 20px rgba(212, 168, 83, 0.12);
+  transform: scale(0.98);
 }
 
 .mc-o.sel {
@@ -573,14 +737,17 @@ textarea.qi {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-size: 18px;
   color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 2;
 }
 
 .ms-o:hover {
   border-color: rgba(212, 168, 83, 0.3);
   box-shadow: 0 0 15px rgba(212, 168, 83, 0.1);
+  transform: scale(0.98);
 }
 
 .ms-o.sel {
@@ -603,16 +770,19 @@ textarea.qi {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-size: 19px;
   text-align: center;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 2;
 }
 
 .yn-o:hover {
   border-color: rgba(212, 168, 83, 0.3);
   box-shadow: 0 0 20px rgba(212, 168, 83, 0.12);
+  transform: scale(0.96);
 }
 
 .yn-o.sel {
@@ -678,6 +848,8 @@ textarea.qi {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   letter-spacing: 0.3px;
+  position: relative;
+  z-index: 2;
 }
 
 .nb-back {
@@ -723,6 +895,7 @@ textarea.qi {
   letter-spacing: 0.5px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(212, 168, 83, 0.2);
+  z-index: 2;
 }
 
 .cta:hover {
@@ -1042,8 +1215,20 @@ textarea.qi {
 
 /* ANIMATIONS */
 .fade {
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.4s ease forwards;
 }
+
+.stagger-in > * {
+  animation: fadeIn 0.4s ease forwards;
+  opacity: 0;
+}
+
+.stagger-in > :nth-child(1) { animation-delay: 0s; }
+.stagger-in > :nth-child(2) { animation-delay: 0.08s; }
+.stagger-in > :nth-child(3) { animation-delay: 0.16s; }
+.stagger-in > :nth-child(4) { animation-delay: 0.24s; }
+.stagger-in > :nth-child(5) { animation-delay: 0.32s; }
+.stagger-in > :nth-child(n+6) { animation-delay: 0.4s; }
 
 @keyframes fadeIn {
   from {
@@ -1088,6 +1273,24 @@ textarea.qi {
   will-change: transform;
 }
 
+/* SPOTLIGHT OVERLAY */
+#spotlight-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  z-index: 98;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+#spotlight-overlay.active {
+  opacity: 1;
+}
+
 /* RESPONSIVE */
 @media (max-width: 480px) {
   .stats {
@@ -1106,61 +1309,254 @@ textarea.qi {
   .nb-back {
     order: 2;
   }
+
+  .status-dock {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+  }
 }
 
-/* Touch device detection - disable 3D tilt */
+/* Touch device detection - disable 3D tilt and magnetic effects */
 @media (hover: none) and (pointer: coarse) {
   .tilt-card:hover {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-w:hover,
+  .grouped:hover {
+    transform: none;
+  }
+
+  .card-w::before,
+  .grouped::before,
+  .welcome::before,
+  .sintro::before,
+  .sdone::before,
+  .encourage::before,
+  .emo::before,
+  .sum::before,
+  .unlock::before {
+    display: none;
   }
 }
 </style>
 
 <script id="interactive-effects">
-// 3D Tilt Effect for .tilt-card elements
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
   const isTouchDevice = () => {
     return (('ontouchstart' in window) ||
             (navigator.maxTouchPoints > 0) ||
             (navigator.msMaxTouchPoints > 0));
   };
 
-  if (!isTouchDevice()) {
-    document.querySelectorAll('.tilt-card').forEach(card => {
-      card.addEventListener('mousemove', function(e) {
-        const rect = this.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
+  // Initialize spotlight overlay
+  function initSpotlight() {
+    let overlay = document.getElementById('spotlight-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'spotlight-overlay';
+      document.body.appendChild(overlay);
+    }
 
-        const rotateX = ((e.clientY - centerY) / rect.height) * 8;
-        const rotateY = ((centerX - e.clientX) / rect.width) * 8;
+    document.addEventListener('focus', function(e) {
+      const isFocusableInput = e.target.matches('.qi, .mc-o, .yn-o, .ms-o');
+      if (isFocusableInput) {
+        overlay.classList.add('active');
+        e.target.style.position = 'relative';
+        e.target.style.zIndex = '99';
+      }
+    }, true);
 
-        this.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    document.addEventListener('blur', function(e) {
+      const isFocusableInput = e.target.matches('.qi, .mc-o, .yn-o, .ms-o');
+      if (isFocusableInput) {
+        overlay.classList.remove('active');
+        e.target.style.position = '';
+        e.target.style.zIndex = '';
+      }
+    }, true);
+  }
+
+  // 3D Tilt Effect for cards on desktop only
+  function initTilt() {
+    if (isTouchDevice()) return;
+
+    document.addEventListener('mousemove', function(e) {
+      document.querySelectorAll('.card-w, .grouped').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const isWithinBounds = e.clientX >= rect.left && e.clientX <= rect.right &&
+                              e.clientY >= rect.top && e.clientY <= rect.bottom;
+
+        if (isWithinBounds) {
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const rotateX = ((e.clientY - centerY) / rect.height) * 4;
+          const rotateY = ((centerX - e.clientX) / rect.width) * 4;
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
+        }
       });
+    });
 
-      card.addEventListener('mouseleave', function() {
-        this.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+    document.addEventListener('mouseleave', function() {
+      document.querySelectorAll('.card-w, .grouped').forEach(card => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
       });
     });
   }
-});
 
-// Cursor-tracking radial gradient for CTA and Next buttons
-document.addEventListener('DOMContentLoaded', function() {
-  const magneticButtons = document.querySelectorAll('.cta, .nb-next');
+  // Magnetic button effects on desktop
+  function initMagneticButtons() {
+    if (isTouchDevice()) return;
 
-  magneticButtons.forEach(btn => {
-    btn.addEventListener('mousemove', function(e) {
-      const rect = this.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    document.addEventListener('mousemove', function(e) {
+      document.querySelectorAll('.cta, .nb-next').forEach(btn => {
+        const rect = btn.getBoundingClientRect();
+        const btnCenterX = rect.left + rect.width / 2;
+        const btnCenterY = rect.top + rect.height / 2;
 
-      // Update the pseudo-element position via CSS variable
-      this.style.setProperty('--mouse-x', x + 'px');
-      this.style.setProperty('--mouse-y', y + 'px');
+        const distX = e.clientX - btnCenterX;
+        const distY = e.clientY - btnCenterY;
+        const distance = Math.sqrt(distX * distX + distY * distY);
+
+        if (distance < 100) {
+          const moveX = (distX / distance) * 4;
+          const moveY = (distY / distance) * 4;
+          btn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        } else {
+          btn.style.transform = 'translate(0, 0)';
+        }
+      });
     });
-  });
-});
+
+    document.addEventListener('mouseleave', function() {
+      document.querySelectorAll('.cta, .nb-next').forEach(btn => {
+        btn.style.transform = 'translate(0, 0)';
+      });
+    });
+  }
+
+  // Haptic click feedback
+  function initHapticFeedback() {
+    document.addEventListener('click', function(e) {
+      const target = e.target.closest('.mc-o, .yn-o, .ms-o, .nb-next');
+      if (target) {
+        target.style.transform = 'scale(0.96)';
+        setTimeout(() => {
+          target.style.transform = '';
+        }, 150);
+
+        if (target.matches('.nb-next')) {
+          target.style.animation = 'none';
+          setTimeout(() => {
+            target.style.animation = 'pulseGlow 0.5s ease-out';
+          }, 10);
+        }
+      }
+    });
+  }
+
+  // Status dock for progress tracking
+  function initStatusDock() {
+    let dock = document.querySelector('.status-dock');
+    if (!dock) {
+      dock = document.createElement('div');
+      dock.className = 'status-dock';
+      dock.innerHTML = '<div class="dock-nodes"></div>';
+      document.body.appendChild(dock);
+    }
+
+    function updateDock() {
+      const nodesContainer = dock.querySelector('.dock-nodes');
+      const sections = window.SECTIONS ? window.SECTIONS.length : 7;
+
+      if (nodesContainer.children.length === 0) {
+        for (let i = 0; i < sections; i++) {
+          const node = document.createElement('div');
+          node.className = 'dock-node';
+          node.textContent = i + 1;
+          nodesContainer.appendChild(node);
+        }
+      }
+
+      const currentSection = window.si || 0;
+      nodesContainer.querySelectorAll('.dock-node').forEach((node, idx) => {
+        node.classList.remove('active', 'completed');
+        if (idx < currentSection) {
+          node.classList.add('completed');
+        } else if (idx === currentSection) {
+          node.classList.add('active');
+        }
+      });
+    }
+
+    updateDock();
+
+    // Watch for si changes via MutationObserver
+    const observer = new MutationObserver(() => {
+      updateDock();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: false
+    });
+  }
+
+  // Stagger animation on content change
+  function initStaggerAnimation() {
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('.card-w > *:first-child, .welcome > *:first-child').forEach(parent => {
+        if (parent && !parent.classList.contains('stagger-in')) {
+          parent.classList.add('stagger-in');
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Pulse glow animation for buttons
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 6px 25px rgba(212, 168, 83, 0.35), 0 0 50px rgba(212, 168, 83, 0.12);
+      }
+      50% {
+        box-shadow: 0 6px 25px rgba(212, 168, 83, 0.5), 0 0 80px rgba(212, 168, 83, 0.25);
+      }
+      100% {
+        box-shadow: 0 6px 25px rgba(212, 168, 83, 0.35), 0 0 50px rgba(212, 168, 83, 0.12);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      initSpotlight();
+      initTilt();
+      initMagneticButtons();
+      initHapticFeedback();
+      initStatusDock();
+      initStaggerAnimation();
+    });
+  } else {
+    initSpotlight();
+    initTilt();
+    initMagneticButtons();
+    initHapticFeedback();
+    initStatusDock();
+    initStaggerAnimation();
+  }
+})();
 </script>
 </head>
 <body>
