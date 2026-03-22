@@ -44,20 +44,20 @@
             {
               "id": "Q1",
               "type": "multiple_choice",
-              "prompt": "If something happened tomorrow, would your wishes be followed \u2014 or decided by the state?",
+              "prompt": "How confident are you that your family would know what to do if something happened to you tomorrow?",
               "primary": true,
               "options": [
-                "My wishes are clearly documented and legally binding",
-                "I have some things written down, but it's incomplete",
-                "Nothing is documented \u2014 the state would decide"
+                "Very confident \u2014 I've got things in order",
+                "Somewhat \u2014 there are gaps I haven't addressed",
+                "Not confident \u2014 they'd be figuring it out on their own"
               ],
               "points": [
                 2,
                 1,
                 0
               ],
-              "solution_tip": "Your brief will document exactly where your legal directives are and who to contact. That's half the battle.",
-              "gap_tip": "That's exactly why you're here. By the end of this walkthrough, your family will have a clear starting point \u2014 even before legal docs are finalized."
+              "solution_tip": "That's a great place to start. Your brief will pull everything together so your family has one clear reference.",
+              "gap_tip": "That's exactly why you're here. By the end of this walkthrough, your family will have a clear starting point \u2014 even before everything is finalized."
             },
             {
               "id": "Q2",
