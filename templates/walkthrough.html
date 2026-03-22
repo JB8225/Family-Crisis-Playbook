@@ -1290,6 +1290,7 @@ function renderWelcome() {
 
 // Render section intro
 function renderSectionIntro() {
+  window.scrollTo(0, 0);
   const section = _RAW_WALKTHROUGH.sections[currentSection];
   const iconMap = {
     compass: '🧭',
@@ -1331,6 +1332,7 @@ function renderSectionComplete() {
 
 // Render card with questions
 function renderCard() {
+  window.scrollTo(0, 0);
   const section = _RAW_WALKTHROUGH.sections[currentSection];
   const card = section.cards[currentCard];
 
@@ -1583,6 +1585,7 @@ function nextSection() {
 
 // Render emotional close screen
 function renderEmotionalClose() {
+  window.scrollTo(0, 0);
   calculateScores();
   const ec = _RAW_WALKTHROUGH.emotional_close;
 
