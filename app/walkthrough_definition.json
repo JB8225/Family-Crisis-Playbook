@@ -1,343 +1,523 @@
 {
   "title": "The Resolved Brief",
   "subtitle": "The 20-Minute System That Organizes Your Entire Life For The People You Love.",
-  "version": "3.0",
+  "version": "4.0",
   "sections": [
     {
-      "section_id": "snapshot",
-      "icon": "clipboard",
-      "title": "Quick Snapshot",
-      "subtitle": "Let's see where you stand — just tap through these. No typing needed.",
-      "intro_message": "We'll start with a quick pulse check. These yes/no questions take about 60 seconds and show us exactly where your gaps are.",
+      "section_id": "foundation",
+      "icon": "compass",
+      "title": "Foundation & Legal",
+      "subtitle": "If something happened tomorrow, would your wishes be followed — or would the state decide for you?",
+      "intro_message": "Let's start with the foundation. These questions determine whether your family would follow your wishes — or be left guessing.",
       "cards": [
         {
-          "card_title": "The Basics",
+          "card_title": "Your Wishes",
           "questions": [
             {
-              "id": "S1",
-              "type": "yes_no",
-              "prompt": "Do you have a will?",
-              "follow_up_tip": "A basic will can be created online in about 30 minutes."
-            },
-            {
-              "id": "S1A",
+              "id": "Q1",
               "type": "multiple_choice",
-              "prompt": "When was your will last updated?",
+              "prompt": "If something happened tomorrow, would your wishes be followed — or decided by the state?",
+              "primary": true,
               "options": [
-                "Within the past year",
-                "1-3 years ago",
-                "3-5 years ago",
-                "5+ years ago",
-                "Not sure"
+                "My wishes are clearly documented and legally binding",
+                "I have some things written down, but it's incomplete",
+                "Nothing is documented — the state would decide"
               ],
-              "condition": {
-                "question_id": "S1",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Wills should be reviewed every 3-5 years or after any major life change."
+              "points": [2, 1, 0]
             },
             {
-              "id": "S1B",
-              "type": "yes_no",
-              "prompt": "Have there been major life changes since then — marriage, divorce, children, property, inheritance?",
-              "condition": {
-                "question_id": "S1",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "If yes, your will may not reflect your current wishes. Updating is usually quick and inexpensive."
+              "id": "Q2",
+              "type": "multiple_choice",
+              "prompt": "Do you have a will or trust in place?",
+              "primary": false,
+              "options": [
+                "Yes — current and reviewed recently",
+                "Yes — but it may be outdated",
+                "No"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "S1C",
-              "type": "text_input",
-              "prompt": "Where is your will physically located?",
-              "placeholder": "e.g. Filing cabinet in home office / Safety deposit box at Chase Bank / Attorney's office",
-              "helper_text": "Be specific enough that someone could find it without asking you.",
-              "condition": {
-                "question_id": "S1",
-                "show_if": ["Yes"]
-              }
+              "id": "Q3",
+              "type": "multiple_choice",
+              "prompt": "Does your plan reflect your life today — your current family, assets, and relationships?",
+              "primary": true,
+              "options": [
+                "Fully up to date",
+                "Some things have changed since I last updated it",
+                "Outdated or never created"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "S1D",
-              "type": "text_input",
-              "prompt": "Who is your estate attorney? (Name + phone number)",
-              "placeholder": "e.g. John Smith, Smith & Associates — 214-555-0100",
-              "helper_text": "Leave blank if you don't have one.",
-              "condition": {
-                "question_id": "S1",
-                "show_if": ["Yes"]
-              }
-            },
-            {
-              "id": "S2",
-              "type": "yes_no",
-              "prompt": "Do you have life insurance?",
-              "maps_to": "Q32",
-              "follow_up_tip": "Even a basic term policy provides critical protection."
-            },
-            {
-              "id": "S3",
-              "type": "yes_no",
-              "prompt": "Do you have a health care proxy or power of attorney?",
-              "follow_up_tip": "This is the document that lets someone make medical decisions for you."
-            },
-            {
-              "id": "S4",
-              "type": "yes_no",
-              "prompt": "Do you use a password manager?",
-              "maps_to": "Q43",
-              "follow_up_tip": "A password manager is the single easiest way to protect your digital life."
+              "id": "Q4",
+              "type": "multiple_choice",
+              "prompt": "If someone needed your will tonight, would they know where to find it?",
+              "primary": false,
+              "options": [
+                "Yes — it's in a known, accessible location",
+                "It exists, but they'd have to search for it",
+                "No one would know where to look"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         },
         {
-          "card_title": "Your Safety Net",
+          "card_title": "Authority & Access",
           "questions": [
             {
-              "id": "S5",
-              "type": "yes_no",
-              "prompt": "Do you have a living will or advance directive?",
-              "maps_to": "Q11",
-              "follow_up_tip": "This tells doctors what you want if you can't speak for yourself."
-            },
-            {
-              "id": "S6",
+              "id": "Q5",
               "type": "multiple_choice",
-              "prompt": "How many bank accounts do you have?",
-              "options": ["1", "2–3", "4+", "Not sure"],
-              "follow_up_tip": "Knowing exactly where your money sits is step one."
+              "prompt": "Have you formally assigned someone to handle your affairs — power of attorney, executor, trustee?",
+              "primary": true,
+              "options": [
+                "Yes — legally documented",
+                "Informally — I've mentioned it but nothing is filed",
+                "No one has been assigned"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "S7",
-              "type": "yes_no",
-              "prompt": "Are your important documents organized in one place?",
-              "follow_up_tip": "One folder or safe with everything = peace of mind."
-            },
-            {
-              "id": "S8",
+              "id": "Q6",
               "type": "multiple_choice",
-              "prompt": "Could your family find your insurance policies if they needed to?",
-              "options": ["Easily", "With some digging", "Probably not", "Not sure"],
-              "follow_up_tip": "If the answer isn't 'easily,' we'll fix that today."
-            }
-          ]
-        },
-        {
-          "card_title": "The Gaps",
-          "questions": [
+              "prompt": "Would that person actually know what to do first?",
+              "primary": true,
+              "options": [
+                "Yes — we've discussed it",
+                "They'd figure it out eventually",
+                "They'd have no idea where to start"
+              ],
+              "points": [2, 1, 0]
+            },
             {
-              "id": "S9",
+              "id": "Q7",
               "type": "multiple_choice",
-              "prompt": "Are most of your bills on autopay?",
-              "options": ["Most of them", "Some", "None", "Not sure"],
-              "follow_up_tip": "Autopay keeps the lights on if you're incapacitated."
+              "prompt": "Are your important documents stored in one known location — or scattered?",
+              "primary": false,
+              "options": [
+                "One secure, known location",
+                "A few different places",
+                "Scattered or I'm not sure where everything is"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "S10",
-              "type": "yes_no",
-              "prompt": "Do you have any retirement accounts?",
-              "maps_to": "Q17",
-              "follow_up_tip": "401k, IRA, Roth — your family needs to know these exist."
+              "id": "Q8",
+              "type": "multiple_choice",
+              "prompt": "Who is your estate attorney — and could your family reach them?",
+              "primary": false,
+              "options": [
+                "I have one and my family knows how to reach them",
+                "I have one but my family doesn't know who it is",
+                "I don't have one"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "S11",
-              "type": "yes_no",
-              "prompt": "Have you told anyone your final wishes?",
-              "follow_up_tip": "Even a simple conversation removes a huge burden from your family."
-            },
-            {
-              "id": "S12",
-              "type": "yes_no",
-              "prompt": "Does anyone besides you know where your passwords are?",
-              "maps_to": "Q45",
-              "follow_up_tip": "One person needs to know — or everything gets locked out."
+              "id": "Q9",
+              "type": "multiple_choice",
+              "prompt": "If your family had to prove what you wanted — in court — could they?",
+              "primary": true,
+              "options": [
+                "Yes — everything is legally documented",
+                "Some things, but not everything",
+                "No — nothing would hold up"
+              ],
+              "points": [2, 1, 0],
+              "callout": "This is the question most people get wrong. Verbal agreements mean nothing in probate court."
             }
           ]
         }
       ]
     },
     {
-      "section_id": "financial",
-      "icon": "money",
-      "title": "Money & Accounts",
-      "subtitle": "Where your money lives. Just names and account types — no account numbers.",
-      "intro_message": "This section is all about the basics: which banks, what types of accounts, and where the paperwork is. We never ask for account numbers.",
+      "section_id": "people",
+      "icon": "users",
+      "title": "Key People & Decision Makers",
+      "subtitle": "Someone will have to step in. The question is whether they'll be ready — or drowning.",
+      "intro_message": "Now let's figure out who your people are — and whether they're actually prepared to step in.",
       "cards": [
         {
-          "card_title": "Bank Accounts",
+          "card_title": "Who Steps In",
+          "questions": [
+            {
+              "id": "Q10",
+              "type": "multiple_choice",
+              "prompt": "If something happened to you tonight, who would actually step in to handle everything?",
+              "primary": true,
+              "options": [
+                "One person — clearly defined and they know it",
+                "I have someone in mind, but we've never discussed it",
+                "No one — it would be chaos"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q11",
+              "type": "multiple_choice",
+              "prompt": "Would that person know where to start in the first 24 hours?",
+              "primary": true,
+              "options": [
+                "Yes — they have a clear starting point",
+                "They'd figure it out, but it would take time",
+                "They'd be completely lost"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q12",
+              "type": "multiple_choice",
+              "prompt": "If both you and your partner were gone at the same time, who steps in next?",
+              "primary": true,
+              "options": [
+                "Clearly defined backup",
+                "Someone would probably step up",
+                "No one — it would be a crisis on top of a crisis"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q13",
+              "type": "multiple_choice",
+              "prompt": "Have you actually told these people they're the ones?",
+              "primary": true,
+              "options": [
+                "Yes — we've had the conversation",
+                "I assumed they'd figure it out",
+                "No — I've never said it out loud"
+              ],
+              "points": [2, 1, 0]
+            }
+          ]
+        },
+        {
+          "card_title": "Coordination & Clarity",
           "questions": [
             {
               "id": "Q14",
-              "type": "textarea",
-              "prompt": "Which banks or credit unions do you use?",
-              "placeholder": "e.g., Chase, Bank of America, local credit union...",
-              "follow_up_tip": "Just the names — your family needs to know where to go."
+              "type": "multiple_choice",
+              "prompt": "Would your family know who to call for help — your attorney, CPA, financial advisor, insurance agent?",
+              "primary": false,
+              "options": [
+                "Yes — names and numbers are documented",
+                "They'd know some, but not all",
+                "They wouldn't know who any of these people are"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q15",
-              "type": "multi_select",
-              "prompt": "Types of accounts you have?",
-              "options": ["Checking", "Savings", "Money Market", "CD", "Joint Account", "Business Account"],
-              "follow_up_tip": "Each type may have different rules for family access."
+              "type": "multiple_choice",
+              "prompt": "Would the roles between your key people be clear — or would everyone step on each other?",
+              "primary": false,
+              "options": [
+                "Clear — everyone knows their role",
+                "Some overlap, but manageable",
+                "It would be confusing and likely cause conflict"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q16",
-              "type": "text",
-              "prompt": "Anyone else listed on these accounts?",
-              "placeholder": "e.g., spouse, business partner...",
-              "follow_up_tip": "Joint account holders can access funds immediately."
-            }
-          ]
-        },
-        {
-          "card_title": "Investments & Retirement",
-          "questions": [
+              "type": "multiple_choice",
+              "prompt": "Does your family know your wishes well enough to speak for you confidently?",
+              "primary": false,
+              "options": [
+                "Yes — they could represent my wishes clearly",
+                "On some things, but not all",
+                "They'd be guessing"
+              ],
+              "points": [2, 1, 0]
+            },
             {
               "id": "Q17",
-              "type": "multi_select",
-              "prompt": "What retirement accounts do you have?",
-              "options": ["401(k)", "403(b)", "Traditional IRA", "Roth IRA", "Pension", "SEP IRA", "None"],
-              "condition": {
-                "question_id": "S10",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Each has different rules for beneficiary payouts."
+              "type": "multiple_choice",
+              "prompt": "If a disagreement broke out between family members, is there a clear tiebreaker?",
+              "primary": true,
+              "options": [
+                "Yes — one person has final authority, documented",
+                "Informally understood",
+                "No — it would turn into a fight"
+              ],
+              "points": [2, 1, 0],
+              "callout": "Family conflict after a crisis is more common than people think. This one question prevents it."
             },
             {
               "id": "Q18",
-              "type": "text",
-              "prompt": "Where are they held?",
-              "placeholder": "e.g., Fidelity, Vanguard, through employer...",
-              "condition": {
-                "question_id": "S10",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "The institution name is all your family needs to start the process."
-            },
-            {
-              "id": "Q19",
-              "type": "text",
-              "prompt": "Any investment or brokerage accounts outside retirement?",
-              "placeholder": "e.g., Schwab brokerage, Robinhood, real estate holdings...",
-              "follow_up_tip": "Include anything that holds value your family should know about."
-            }
-          ]
-        },
-        {
-          "card_title": "Debts & Documents",
-          "questions": [
-            {
-              "id": "Q20",
-              "type": "text",
-              "prompt": "Mortgage or rent — who do you pay?",
-              "placeholder": "e.g., Wells Fargo mortgage, Greystar property mgmt...",
-              "follow_up_tip": "If something happens, this is the first bill that matters."
-            },
-            {
-              "id": "Q21",
-              "type": "textarea",
-              "prompt": "Any loans? (car, student, personal, business)",
-              "placeholder": "e.g., Toyota Financial, Navient student loans...",
-              "follow_up_tip": "Some loans have life insurance or death discharge provisions."
-            },
-            {
-              "id": "Q22",
-              "type": "text",
-              "prompt": "Credit cards you use?",
-              "placeholder": "e.g., Chase Sapphire, Amex, Discover...",
-              "follow_up_tip": "Just the card names — they'll need to be closed or transferred."
-            },
-            {
-              "id": "Q23",
-              "type": "multi_select",
-              "prompt": "Where are your financial documents kept?",
-              "options": ["Home safe", "Filing cabinet", "Bank safe deposit box", "Digital/cloud", "With attorney", "Scattered/not organized"],
-              "follow_up_tip": "One central location saves your family hours of searching."
-            },
-            {
-              "id": "Q24",
-              "type": "yes_no",
-              "prompt": "Do you have a safe deposit box?",
-              "follow_up_tip": "Someone needs to know it exists and have the key."
-            },
-            {
-              "id": "Q24A",
-              "type": "text",
-              "prompt": "Which bank, and who has the key?",
-              "placeholder": "e.g., Chase Main St branch, spare key in desk drawer",
-              "condition": {
-                "question_id": "Q24",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Without the key, getting into a safe deposit box requires a court order."
+              "type": "multiple_choice",
+              "prompt": "Could your key people access what they need — accounts, documents, contacts — within 48 hours?",
+              "primary": false,
+              "options": [
+                "Yes — everything is organized and accessible",
+                "Some things, but they'd have to dig",
+                "No — they'd be locked out of almost everything"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         }
       ]
     },
     {
-      "section_id": "income",
-      "icon": "document",
-      "title": "Income & Bills",
-      "subtitle": "Where money comes in and where it goes out.",
-      "intro_message": "If something happened tomorrow, your family needs to know what's coming in and what's going out. This section maps that.",
+      "section_id": "children",
+      "icon": "baby",
+      "title": "Children & Dependents",
+      "subtitle": "If you weren't here tomorrow, would your children's world keep turning — or fall apart?",
+      "intro_message": "This section is for parents and caregivers. Skip it if it doesn't apply to you.",
+      "skippable": true,
       "cards": [
         {
-          "card_title": "Income Sources",
+          "card_title": "Guardianship",
           "questions": [
             {
-              "id": "Q25",
-              "type": "text",
-              "prompt": "What is your primary bank account — the one most of your money flows through?",
-              "placeholder": "e.g., Chase checking ending in 4521",
-              "follow_up_tip": "This is ground zero for your family's financial continuity."
+              "id": "Q19",
+              "type": "multiple_choice",
+              "prompt": "Is there a clear, documented plan for who would care for your children?",
+              "primary": true,
+              "options": [
+                "Yes — legal guardianship is designated",
+                "I've thought about it but nothing is official",
+                "No plan exists"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "Q26",
-              "type": "text",
-              "prompt": "Any other accounts your family should know about?",
-              "placeholder": "e.g., separate savings, business account, HSA...",
-              "follow_up_tip": "Hidden accounts are one of the biggest surprises families face."
+              "id": "Q20",
+              "type": "multiple_choice",
+              "prompt": "Is there a backup guardian if your first choice can't do it?",
+              "primary": false,
+              "options": [
+                "Yes — identified and documented",
+                "I have someone in mind",
+                "No backup"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "Q27",
-              "type": "multi_select",
-              "prompt": "Where does your income come from?",
-              "options": ["W-2 Employment", "Self-employment", "Rental income", "Social Security", "Pension", "Investments/dividends", "Side business", "Disability"],
-              "follow_up_tip": "Each source may need different steps to continue or claim."
+              "id": "Q21",
+              "type": "multiple_choice",
+              "prompt": "Have you told the guardian they've been chosen — and do they understand what it means?",
+              "primary": false,
+              "options": [
+                "Yes — we've had a real conversation about it",
+                "I've mentioned it casually",
+                "No — they don't know"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         },
         {
-          "card_title": "Bills & Subscriptions",
+          "card_title": "Their World",
           "questions": [
             {
+              "id": "Q22",
+              "type": "multiple_choice",
+              "prompt": "Could someone continue your children's daily routines — school, activities, medical, meals?",
+              "primary": true,
+              "options": [
+                "Yes — it's all documented or well-known",
+                "Some of it, but there are gaps",
+                "They'd be starting from scratch"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q23",
+              "type": "multiple_choice",
+              "prompt": "Are your children's critical details easy to find — doctors, allergies, medications, school contacts?",
+              "primary": false,
+              "options": [
+                "Yes — organized and accessible",
+                "Scattered across different places",
+                "Only in my head"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q24",
+              "type": "multiple_choice",
+              "prompt": "Would someone know how to emotionally support your children through this — therapist contacts, special needs, comfort routines?",
+              "primary": false,
+              "options": [
+                "Yes — documented or well-communicated",
+                "Partially",
+                "No — no one would know what they need"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q25",
+              "type": "multiple_choice",
+              "prompt": "Would your children's future — education, values, traditions — be guided by your wishes or guessed at?",
+              "primary": true,
+              "options": [
+                "Guided by my clearly stated wishes",
+                "Somewhat — people close to me would try",
+                "Mostly guessed"
+              ],
+              "points": [2, 1, 0],
+              "callout": "This is the one that keeps parents up at night. If you haven't written it down, you're leaving your children's future to interpretation."
+            },
+            {
+              "id": "Q26",
+              "type": "multiple_choice",
+              "prompt": "Are there financial provisions specifically for your children — education funds, trusts, designated accounts?",
+              "primary": false,
+              "options": [
+                "Yes — clearly set up and documented",
+                "Some, but incomplete",
+                "Nothing specific"
+              ],
+              "points": [2, 1, 0]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "money",
+      "icon": "dollar-sign",
+      "title": "Money, Assets & Obligations",
+      "subtitle": "Bills don't stop. Mortgages don't pause. Could your family keep the lights on?",
+      "intro_message": "Now let's look at the money. Not the numbers — just whether your family could find it and manage it without you.",
+      "cards": [
+        {
+          "card_title": "Access & Accounts",
+          "questions": [
+            {
+              "id": "Q27",
+              "type": "multiple_choice",
+              "prompt": "If your family needed money within 7 days, would they know exactly where to get it?",
+              "primary": true,
+              "options": [
+                "Yes — clear access to accounts",
+                "They'd eventually figure it out",
+                "They'd have no idea where to start"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
               "id": "Q28",
-              "type": "textarea",
-              "prompt": "Bills on autopay?",
-              "placeholder": "e.g., mortgage, electric, internet, car insurance...",
-              "follow_up_tip": "Autopay keeps things running, but the card it's on needs to stay active."
+              "type": "multiple_choice",
+              "prompt": "How easy would it be for someone to find ALL of your accounts — banking, retirement, investments, crypto?",
+              "primary": true,
+              "options": [
+                "Everything documented in one place",
+                "Some are documented, others aren't",
+                "It would be a scavenger hunt"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q29",
-              "type": "text",
-              "prompt": "Bills you pay manually?",
-              "placeholder": "e.g., water bill, property taxes...",
-              "follow_up_tip": "These are the ones that get missed first."
-            },
+              "type": "multiple_choice",
+              "prompt": "Are there accounts your family doesn't even know exist?",
+              "primary": true,
+              "options": [
+                "No — they know about everything",
+                "Possibly one or two",
+                "Yes — definitely accounts they'd never find"
+              ],
+              "points": [2, 1, 0],
+              "callout": "Billions in retirement funds, life insurance, and bank accounts go unclaimed every year. This is why."
+            }
+          ]
+        },
+        {
+          "card_title": "Bills & Debts",
+          "questions": [
             {
               "id": "Q30",
-              "type": "textarea",
-              "prompt": "Subscriptions and memberships?",
-              "placeholder": "e.g., Netflix, gym, Amazon Prime, software...",
-              "follow_up_tip": "Subscriptions add up fast — your family needs to cancel what's not needed."
+              "type": "multiple_choice",
+              "prompt": "Could someone keep your bills running — mortgage, utilities, insurance premiums, subscriptions?",
+              "primary": true,
+              "options": [
+                "Yes — everything is documented with autopay details",
+                "They'd figure out most of it",
+                "Bills would start failing within weeks"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q31",
-              "type": "text",
-              "prompt": "Annual payments that could be missed?",
-              "placeholder": "e.g., property tax, HOA, life insurance premium, car registration...",
-              "follow_up_tip": "These sneak up. Missing one can trigger penalties or coverage lapses."
+              "type": "multiple_choice",
+              "prompt": "Are your debts and obligations clearly outlined — mortgage, car loans, student loans, credit cards?",
+              "primary": true,
+              "options": [
+                "Yes — all documented",
+                "Some are known, others aren't",
+                "My family would discover debts they didn't know about"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q32",
+              "type": "multiple_choice",
+              "prompt": "Would someone know what you own — property, vehicles, investments, business interests?",
+              "primary": false,
+              "options": [
+                "Yes — a clear inventory exists",
+                "They'd know the big things but miss others",
+                "They'd have no idea what I own"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q33",
+              "type": "multiple_choice",
+              "prompt": "If you have business interests or side income, could someone manage or wind them down?",
+              "primary": false,
+              "options": [
+                "Yes — documented with instructions",
+                "Partially — some knowledge exists",
+                "No — it would collapse or be abandoned",
+                "N/A"
+              ],
+              "points": [2, 1, 0, null]
+            }
+          ]
+        },
+        {
+          "card_title": "Contacts & Beneficiaries",
+          "questions": [
+            {
+              "id": "Q34",
+              "type": "multiple_choice",
+              "prompt": "Would someone know who to contact for financial help — your banker, advisor, accountant?",
+              "primary": false,
+              "options": [
+                "Yes — names and contacts documented",
+                "They'd know one or two",
+                "They wouldn't know who to call"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q35",
+              "type": "multiple_choice",
+              "prompt": "Do beneficiary designations on your accounts match your current wishes?",
+              "primary": true,
+              "options": [
+                "Yes — recently reviewed and current",
+                "I'm not sure — haven't checked in a while",
+                "I don't know what's listed"
+              ],
+              "points": [2, 1, 0],
+              "callout": "Beneficiary designations override your will. An ex-spouse on a 401k gets the money — even if your will says otherwise."
+            },
+            {
+              "id": "Q36",
+              "type": "multiple_choice",
+              "prompt": "Could your family handle your full financial picture — income, expenses, debts, assets — without major confusion?",
+              "primary": false,
+              "options": [
+                "Yes — it's organized and accessible",
+                "With effort and time",
+                "It would be overwhelming"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         }
@@ -346,56 +526,48 @@
     {
       "section_id": "insurance",
       "icon": "shield",
-      "title": "Insurance & Benefits",
-      "subtitle": "Your safety net — what's covered and where the policies are.",
-      "intro_message": "Insurance is the first thing your family will need to access. Let's make sure they know what exists.",
+      "title": "Insurance & Protection",
+      "subtitle": "Insurance only works if someone files a claim. If they don't know it exists, it's worthless.",
+      "intro_message": "Let's look at your safety net. Not just what you have — but whether your family could actually use it.",
       "cards": [
         {
           "card_title": "Life Insurance",
           "questions": [
             {
-              "id": "Q32",
+              "id": "Q37",
               "type": "multiple_choice",
               "prompt": "Do you have life insurance?",
-              "options": ["Yes — through work", "Yes — private policy", "Yes — both", "No", "Not sure"],
-              "condition": {
-                "question_id": "S2",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Life insurance is often the first financial lifeline for your family."
+              "primary": true,
+              "options": [
+                "Yes — through work, private policy, or both",
+                "I think so, but I'm not sure of the details",
+                "No"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "Q33",
-              "type": "text",
-              "prompt": "Provider(s)?",
-              "placeholder": "e.g., MetLife through employer, Northwestern Mutual private...",
-              "condition": {
-                "question_id": "S2",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "The provider name is all they need to start a claim."
+              "id": "Q38",
+              "type": "multiple_choice",
+              "prompt": "If a life insurance claim needed to be filed, would someone know how?",
+              "primary": true,
+              "options": [
+                "Yes — provider, policy number, and claims process documented",
+                "They'd know I have it but would have to figure out the rest",
+                "No one would know where to start"
+              ],
+              "points": [2, 1, 0]
             },
             {
-              "id": "Q34",
-              "type": "text",
-              "prompt": "Approximate coverage amount?",
-              "placeholder": "e.g., $500K through work + $250K private",
-              "condition": {
-                "question_id": "S2",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Even a rough number helps your family plan ahead."
-            },
-            {
-              "id": "Q35",
-              "type": "text",
-              "prompt": "Who is the beneficiary?",
-              "placeholder": "e.g., spouse, children, trust...",
-              "condition": {
-                "question_id": "S2",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Check this annually — life changes, beneficiaries should too."
+              "id": "Q39",
+              "type": "multiple_choice",
+              "prompt": "Do you know your actual coverage amount — and would it cover your family for at least 2 years?",
+              "primary": true,
+              "options": [
+                "Yes — I know the amount and it's adequate",
+                "I know the amount but it might not be enough",
+                "I have no idea what my coverage is"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         },
@@ -403,58 +575,65 @@
           "card_title": "Other Coverage",
           "questions": [
             {
-              "id": "Q36",
-              "type": "multiple_choice",
-              "prompt": "Disability insurance?",
-              "options": ["Yes — through work", "Yes — private", "No", "Not sure"],
-              "follow_up_tip": "Disability is more likely than death before 65. This matters."
-            },
-            {
-              "id": "Q37",
-              "type": "multiple_choice",
-              "prompt": "Long-term care insurance?",
-              "options": ["Yes", "No", "Not sure"],
-              "follow_up_tip": "Long-term care costs can drain a family's savings in months."
-            },
-            {
-              "id": "Q38",
-              "type": "text",
-              "prompt": "Home or renter's insurance?",
-              "placeholder": "e.g., State Farm, policy # in filing cabinet...",
-              "follow_up_tip": "Needed for any property claims."
-            },
-            {
-              "id": "Q39",
-              "type": "text",
-              "prompt": "Auto insurance?",
-              "placeholder": "e.g., Geico, Progressive...",
-              "follow_up_tip": "Needs to stay active on all vehicles."
-            }
-          ]
-        },
-        {
-          "card_title": "Policy Locations",
-          "questions": [
-            {
               "id": "Q40",
-              "type": "text",
-              "prompt": "Any other policies? (umbrella, business, liability)",
-              "placeholder": "e.g., $1M umbrella through State Farm...",
-              "follow_up_tip": "Business policies especially can be hard to find after the fact."
+              "type": "multiple_choice",
+              "prompt": "Are your other insurance policies documented — health, home, auto, disability, umbrella?",
+              "primary": false,
+              "options": [
+                "Yes — all policies organized in one place",
+                "Some are, some aren't",
+                "My family would have to call around to find them"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q41",
               "type": "multiple_choice",
-              "prompt": "Where are your insurance documents?",
-              "options": ["Home safe/filing cabinet", "Digital/email", "With insurance agent", "Not sure where they are"],
-              "follow_up_tip": "If the answer is 'not sure,' this is a great homework item."
+              "prompt": "Do you have disability insurance — and do you know what it covers?",
+              "primary": false,
+              "options": [
+                "Yes — through work or privately, and I understand the coverage",
+                "I think I have it through work, but I'm not sure",
+                "No / I don't know"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q42",
-              "type": "text",
-              "prompt": "Insurance agent or broker?",
-              "placeholder": "e.g., John Smith, State Farm, 555-0123...",
-              "follow_up_tip": "An agent can help your family navigate ALL your policies at once."
+              "type": "multiple_choice",
+              "prompt": "If you were incapacitated for 6 months, would your income be replaced?",
+              "primary": true,
+              "options": [
+                "Yes — disability coverage would kick in",
+                "Partially — some coverage but gaps exist",
+                "No — my family would be on their own financially"
+              ],
+              "points": [2, 1, 0],
+              "callout": "Most people insure their car but not their income. Your ability to earn is your most valuable asset."
+            },
+            {
+              "id": "Q43",
+              "type": "multiple_choice",
+              "prompt": "Could someone locate your insurance agent or broker?",
+              "primary": false,
+              "options": [
+                "Yes — contact info is documented",
+                "My family might be able to find them",
+                "No one knows who they are"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q44",
+              "type": "multiple_choice",
+              "prompt": "Are beneficiaries on your insurance policies current — not an ex-spouse, deceased parent, or outdated name?",
+              "primary": false,
+              "options": [
+                "Yes — recently verified",
+                "I'm not sure — haven't checked",
+                "Likely outdated"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         }
@@ -462,130 +641,127 @@
     },
     {
       "section_id": "digital",
-      "icon": "phone",
+      "icon": "lock",
       "title": "Digital Life & Access",
-      "subtitle": "How your family gets into your accounts when they need to.",
-      "intro_message": "In 2026, your digital life IS your life. If your family can't get into your phone or email, they can't do anything else.",
+      "subtitle": "Your entire life is behind a passcode. If no one can get in, everything is lost.",
+      "intro_message": "Your phone, email, and passwords control everything. Let's see if your family could get in.",
       "cards": [
         {
-          "card_title": "Passwords & Access",
+          "card_title": "Keys to the Kingdom",
           "questions": [
-            {
-              "id": "Q43",
-              "type": "multiple_choice",
-              "prompt": "How do you manage your passwords?",
-              "options": ["Password manager app", "Written in a notebook", "Saved in browser", "I remember them all", "Combination of methods"],
-              "condition": {
-                "question_id": "S4",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "However you do it, one person needs to know the system."
-            },
-            {
-              "id": "Q44",
-              "type": "multi_select",
-              "prompt": "Which password manager do you use?",
-              "options": ["1Password", "LastPass", "Dashlane", "Bitwarden", "Apple Keychain", "Google Passwords", "Other"],
-              "condition": {
-                "question_id": "S4",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "Most password managers have emergency access features — set them up."
-            },
             {
               "id": "Q45",
               "type": "multiple_choice",
-              "prompt": "Where will the master password or access method be stored for your family?",
+              "prompt": "Could someone you trust unlock your phone today?",
+              "primary": true,
               "options": [
-                "In my will/estate documents",
-                "Written in The Resolved Brief envelope",
-                "Trusted family member knows it",
-                "Haven't figured this out yet"
+                "Yes — they know the passcode",
+                "Maybe — I use biometrics and haven't shared the backup PIN",
+                "No — only I can get in"
               ],
-              "follow_up_tip": "The Resolved Brief envelope method is simple and effective — everything in one place."
-            }
-          ]
-        },
-        {
-          "card_title": "Devices & Accounts",
-          "questions": [
-            {
-              "id": "Q46",
-              "type": "text",
-              "prompt": "Primary email account?",
-              "placeholder": "e.g., yourname@gmail.com",
-              "follow_up_tip": "Email is the skeleton key — password resets for everything go here."
+              "points": [2, 1, 0]
             },
             {
-              "id": "Q46A",
+              "id": "Q46",
               "type": "multiple_choice",
-              "prompt": "How would your family access this email account?",
-              "options": ["Password is in my password manager", "They already know the password", "I'll write it on the sealed envelope sheet", "I need to figure this out"],
-              "follow_up_tip": "Without email access, your family can't reset passwords for any other account. This is the single most important access item to document. Add it to your sealed envelope."
+              "prompt": "If your email is the key to everything — password resets, bank statements, account recovery — could anyone get into it?",
+              "primary": true,
+              "options": [
+                "Yes — access is documented",
+                "They might be able to figure it out",
+                "No — it's completely locked"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q47",
               "type": "multiple_choice",
-              "prompt": "Could your family get into your phone if needed?",
-              "options": ["Yes — they know the passcode", "Yes — biometrics (face/fingerprint)", "No — only I can unlock it", "Not sure"],
-              "follow_up_tip": "Phone access unlocks 2FA codes, banking apps, and more."
-            },
-            {
-              "id": "Q47A",
-              "type": "multiple_choice",
-              "prompt": "Will you add your phone passcode to your sealed envelope?",
-              "options": ["Yes — I'll add it", "Already written down elsewhere", "I use biometrics only (no passcode)"],
-              "follow_up_tip": "Your phone is the key to everything — banking apps, 2FA codes, photos, and account recovery. Add your passcode to the fillable sheet and seal it in your envelope."
+              "prompt": "Where are your passwords stored?",
+              "primary": true,
+              "options": [
+                "Password manager — and someone knows the master password",
+                "Scattered — some saved in browser, some on paper, some in my head",
+                "Only in my head"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q48",
               "type": "multiple_choice",
               "prompt": "Could your family get into your computer?",
-              "options": ["Yes — they know the password", "Yes — it's usually unlocked", "No — only I can access it", "Not sure"],
-              "follow_up_tip": "Tax documents, financial software, and saved files often live here."
-            },
-            {
-              "id": "Q49",
-              "type": "multi_select",
-              "prompt": "Financial apps on your phone?",
-              "options": ["Bank app", "Venmo/Zelle/CashApp", "Investment app", "Crypto app", "PayPal", "Other"],
-              "follow_up_tip": "Each app may have its own login and 2FA."
-            },
-            {
-              "id": "Q50",
-              "type": "yes_no",
-              "prompt": "Do you have any cryptocurrency?",
-              "follow_up_tip": "Crypto without a recovery phrase is gone forever."
-            },
-            {
-              "id": "Q50A",
-              "type": "text",
-              "prompt": "Which platform, and where is the recovery phrase stored?",
-              "placeholder": "e.g., Coinbase, seed phrase in The Resolved Brief envelope...",
-              "condition": {
-                "question_id": "Q50",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "This is arguably the most important single item in your entire Resolved Brief."
+              "primary": false,
+              "options": [
+                "Yes — they know the password",
+                "Maybe — it's usually unlocked",
+                "No — it's locked and no one has the password"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         },
         {
-          "card_title": "Digital Assets",
+          "card_title": "Digital Assets & Memories",
           "questions": [
             {
+              "id": "Q49",
+              "type": "multiple_choice",
+              "prompt": "Would your family be able to access your photos, videos, and irreplaceable digital memories?",
+              "primary": true,
+              "options": [
+                "Yes — they know how to access my cloud storage",
+                "Some things, but not everything",
+                "No — decades of memories would be gone"
+              ],
+              "points": [2, 1, 0],
+              "callout": "Photos can't be recovered. If they're locked in iCloud or Google Photos behind a password no one has, they're gone forever."
+            },
+            {
+              "id": "Q50",
+              "type": "multiple_choice",
+              "prompt": "Are important documents stored in the cloud — and could your family access them?",
+              "primary": false,
+              "options": [
+                "Yes — Google Drive, Dropbox, iCloud — and access is documented",
+                "Some are in the cloud, but access isn't clear",
+                "I don't store things in the cloud / no one could get in"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
               "id": "Q51",
-              "type": "multi_select",
-              "prompt": "Where are your photos stored?",
-              "options": ["iPhone/iCloud", "Google Photos", "External hard drive", "Computer only", "Social media", "Printed albums"],
-              "follow_up_tip": "Photos are irreplaceable. Make sure at least one backup exists."
+              "type": "multiple_choice",
+              "prompt": "Do you have cryptocurrency, NFTs, or digital assets that require a private key or recovery phrase?",
+              "primary": false,
+              "options": [
+                "Yes — and recovery info is securely stored where someone could find it",
+                "Yes — but the recovery phrase is only known to me",
+                "No digital assets like this"
+              ],
+              "points": [2, 1, null]
             },
             {
               "id": "Q52",
-              "type": "multi_select",
-              "prompt": "Important documents in cloud storage?",
-              "options": ["Google Drive", "iCloud", "Dropbox", "OneDrive", "None in cloud", "Not sure"],
-              "follow_up_tip": "Tax returns, contracts, and legal docs — your family will need these."
+              "type": "multiple_choice",
+              "prompt": "What financial apps are on your phone — and could someone access them?",
+              "primary": false,
+              "options": [
+                "Documented — banking, Venmo, PayPal, investment apps are all known",
+                "They'd find some but miss others",
+                "No one would know what apps I use for money"
+              ],
+              "points": [2, 1, 0]
+            },
+            {
+              "id": "Q53",
+              "type": "multiple_choice",
+              "prompt": "If every digital account you have was locked tomorrow, how much of your life would be inaccessible?",
+              "primary": false,
+              "options": [
+                "Very little — most things are documented offline too",
+                "A significant amount",
+                "Almost everything — my entire life is digital"
+              ],
+              "points": [2, 1, 0]
             }
           ]
         }
@@ -593,207 +769,104 @@
     },
     {
       "section_id": "medical",
-      "icon": "hospital",
-      "title": "Medical & Emergency",
-      "subtitle": "Who makes decisions and what they need to know.",
-      "intro_message": "This section covers the hard but important stuff — who speaks for you if you can't, and what doctors need to know.",
-      "cards": [
-        {
-          "card_title": "Decision Makers",
-          "questions": [
-            {
-              "id": "Q1",
-              "type": "text",
-              "prompt": "Who should make medical decisions if you can't?",
-              "placeholder": "e.g., spouse, parent, sibling, friend...",
-              "follow_up_tip": "This should match your health care proxy document."
-            },
-            {
-              "id": "Q2",
-              "type": "yes_no",
-              "prompt": "Does this person know they've been chosen?",
-              "follow_up_tip": "Don't surprise someone with this responsibility. Have the conversation."
-            },
-            {
-              "id": "Q3",
-              "type": "text",
-              "prompt": "Backup person if they're unavailable?",
-              "placeholder": "e.g., sibling, close friend...",
-              "follow_up_tip": "Always have a backup — your first choice might be traveling or unreachable."
-            }
-          ]
-        },
-        {
-          "card_title": "Medical Information",
-          "questions": [
-            {
-              "id": "Q4",
-              "type": "text",
-              "prompt": "Current medical conditions?",
-              "placeholder": "e.g., high blood pressure, diabetes, asthma...",
-              "follow_up_tip": "ER doctors need this information fast."
-            },
-            {
-              "id": "Q5",
-              "type": "text",
-              "prompt": "Current medications?",
-              "placeholder": "e.g., Lisinopril 10mg, Metformin 500mg...",
-              "follow_up_tip": "Include dosages if you know them."
-            },
-            {
-              "id": "Q6",
-              "type": "text",
-              "prompt": "Allergies (medications, foods, other)?",
-              "placeholder": "e.g., penicillin, shellfish, latex...",
-              "follow_up_tip": "Allergies can be life-threatening — this info saves lives."
-            }
-          ]
-        },
-        {
-          "card_title": "Doctors & Insurance",
-          "questions": [
-            {
-              "id": "Q7",
-              "type": "text",
-              "prompt": "Primary care doctor?",
-              "placeholder": "e.g., Dr. Smith, Northwestern Medical...",
-              "follow_up_tip": "Your PCP has your complete medical history."
-            },
-            {
-              "id": "Q8",
-              "type": "text",
-              "prompt": "Specialists you see regularly?",
-              "placeholder": "e.g., cardiologist Dr. Jones, therapist Dr. Lee...",
-              "follow_up_tip": "Include any regular appointments your family should know about."
-            },
-            {
-              "id": "Q9",
-              "type": "text",
-              "prompt": "Health insurance provider?",
-              "placeholder": "e.g., Blue Cross Blue Shield through employer...",
-              "follow_up_tip": "Hospital billing needs this immediately."
-            },
-            {
-              "id": "Q10",
-              "type": "multiple_choice",
-              "prompt": "Where is your insurance card?",
-              "options": ["In my wallet", "Photo on my phone", "Filed at home", "Digital app", "Not sure"],
-              "follow_up_tip": "A photo on a shared cloud folder is the safest backup."
-            }
-          ]
-        },
-        {
-          "card_title": "End-of-Life Preferences",
-          "questions": [
-            {
-              "id": "Q11",
-              "type": "multiple_choice",
-              "prompt": "Do you have a living will or advance directive?",
-              "options": ["Yes", "No — but I want one", "No — haven't thought about it", "Not sure what this is"],
-              "condition": {
-                "question_id": "S5",
-                "show_if": ["Yes"]
-              },
-              "follow_up_tip": "This document tells doctors what you want when you can't tell them yourself."
-            },
-            {
-              "id": "Q12",
-              "type": "multiple_choice",
-              "prompt": "Resuscitation preference?",
-              "options": ["Full resuscitation (do everything)", "DNR (do not resuscitate)", "Limited intervention", "Haven't decided", "Want to discuss with doctor first"],
-              "follow_up_tip": "There's no wrong answer — but having an answer prevents family conflict."
-            },
-            {
-              "id": "Q13",
-              "type": "multiple_choice",
-              "prompt": "Organ donor?",
-              "options": ["Yes", "No", "Undecided"],
-              "follow_up_tip": "Make sure this matches what's on your driver's license."
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "section_id": "wishes",
       "icon": "heart",
-      "title": "Wishes & Final Instructions",
-      "subtitle": "The things only you can tell them.",
-      "intro_message": "This is the most personal section. Take your time. Skip anything that feels too heavy — you can always come back.",
+      "title": "Medical & Final Wishes",
+      "subtitle": "When you can't speak for yourself, someone else will. Have you told them what to say?",
+      "intro_message": "Last section. This is where logistics meets legacy. Take your time.",
       "cards": [
         {
-          "card_title": "Arrangements",
+          "card_title": "Medical Decisions",
           "questions": [
-            {
-              "id": "Q53",
-              "type": "multiple_choice",
-              "prompt": "Do you prefer burial or cremation?",
-              "options": ["Burial", "Cremation", "Green/natural burial", "Donate body to science", "No preference", "Haven't decided"],
-              "follow_up_tip": "Having this answered removes one of the hardest decisions from your family."
-            },
             {
               "id": "Q54",
-              "type": "text",
-              "prompt": "Any specific wishes about your remains?",
-              "placeholder": "e.g., family plot, scatter ashes at the lake, specific funeral home...",
-              "follow_up_tip": "Even 'no preference' is helpful — it gives your family permission to choose."
-            }
-          ]
-        },
-        {
-          "card_title": "Service & Celebration",
-          "questions": [
+              "type": "multiple_choice",
+              "prompt": "If you couldn't speak for yourself, who is making medical decisions — and do they know it?",
+              "primary": true,
+              "options": [
+                "Clearly defined, legally documented, and they know",
+                "Informally understood but nothing is legal",
+                "No one has been chosen"
+              ],
+              "points": [2, 1, 0]
+            },
             {
               "id": "Q55",
               "type": "multiple_choice",
-              "prompt": "What kind of service would you want?",
-              "options": ["Traditional funeral", "Celebration of life", "Small private gathering", "No service", "Let my family decide"],
-              "follow_up_tip": "Your family wants to honor you the way you'd want."
+              "prompt": "Would that person know what you actually want — life support, resuscitation, organ donation?",
+              "primary": true,
+              "options": [
+                "Yes — we've had the conversation and it's written down",
+                "We've talked about it loosely",
+                "They'd be guessing in a hospital hallway"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q56",
-              "type": "textarea",
-              "prompt": "Any specific requests?",
-              "placeholder": "e.g., play a certain song, specific readings, no flowers — donate instead...",
-              "follow_up_tip": "These details make the service feel like YOU."
+              "type": "multiple_choice",
+              "prompt": "Is your medical history accessible — conditions, medications, allergies, doctors?",
+              "primary": false,
+              "options": [
+                "Yes — documented and easy to find",
+                "Partially — my spouse knows most of it",
+                "Only I know my full medical picture"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q57",
-              "type": "textarea",
-              "prompt": "Anyone who should be notified that your family might not think of?",
-              "placeholder": "e.g., old college friend, former colleague, online community...",
-              "follow_up_tip": "There are always people who slip through the cracks."
+              "type": "multiple_choice",
+              "prompt": "Would your family feel confident making medical decisions on your behalf — without guilt or doubt?",
+              "primary": true,
+              "options": [
+                "Yes — my wishes are clear enough to remove the burden",
+                "Somewhat — but they'd still second-guess",
+                "No — they'd carry that weight forever"
+              ],
+              "points": [2, 1, 0],
+              "callout": "The guilt of making a wrong medical decision for a loved one never goes away. Clarity is the kindest thing you can give them."
             }
           ]
         },
         {
-          "card_title": "Personal Belongings",
+          "card_title": "Legacy",
           "questions": [
             {
               "id": "Q58",
-              "type": "textarea",
-              "prompt": "Specific items for specific people?",
-              "placeholder": "e.g., grandmother's ring to daughter, guitar to best friend...",
-              "follow_up_tip": "This prevents conflict and ensures your wishes are honored."
+              "type": "multiple_choice",
+              "prompt": "Have you expressed how you want to be remembered — the values, traditions, and words that matter most to you?",
+              "primary": true,
+              "options": [
+                "Yes — written down",
+                "I've mentioned some things in conversation",
+                "No — I've never put it into words"
+              ],
+              "points": [2, 1, 0]
             },
             {
               "id": "Q59",
-              "type": "text",
-              "prompt": "Anything to donate, sell, or destroy?",
-              "placeholder": "e.g., donate clothes to Goodwill, sell the boat, shred old journals...",
-              "follow_up_tip": "Give your family clear permission to handle things."
-            }
-          ]
-        },
-        {
-          "card_title": "Your Words",
-          "questions": [
+              "type": "multiple_choice",
+              "prompt": "Would your funeral or memorial preferences be followed — or argued about?",
+              "primary": true,
+              "options": [
+                "Followed — clearly documented",
+                "Mostly followed — people have a general idea",
+                "Argued about — no one knows what I'd want"
+              ],
+              "points": [2, 1, 0]
+            },
             {
               "id": "Q60",
-              "type": "textarea",
-              "prompt": "Is there anything you want your family to know — messages, values, traditions, love you want to pass on?",
-              "placeholder": "This is your space. Say what matters most to you.",
-              "follow_up_tip": "This is the page your family will read over and over."
+              "type": "multiple_choice",
+              "prompt": "Is there anything you want your family to know — a message, a letter, something only you can say — that you haven't written down yet?",
+              "primary": true,
+              "options": [
+                "I've written it",
+                "I've thought about it but haven't done it",
+                "I haven't — but I should"
+              ],
+              "points": [2, 1, 0],
+              "callout": "This is the last question for a reason. Everything above is logistics. This is legacy. Don't leave the most important thing unsaid."
             }
           ]
         }
