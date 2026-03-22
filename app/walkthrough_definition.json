@@ -1,8 +1,8 @@
 {
   "title": "The Resolved Brief",
   "subtitle": "The 20-Minute System That Organizes Your Entire Life For The People You Love.",
-  "version": "5.1",
-  "approach": "hybrid \u2014 assessment reveals starting point, data fields close gaps in real time, dual scoring shows transformation",
+  "version": "5.2",
+  "approach": "hybrid \u2014 assessment reveals starting point, data fields close gaps in real time, triple scoring shows transformation to 100%",
   "sections": [
     {
       "section_id": "foundation",
@@ -2018,23 +2018,33 @@
     "closing_message": "You don't have to do it all today. You already did the hard part."
   },
   "scoring": {
-    "model": "dual_score",
-    "description": "Before score = assessment taps only. After score = boosted by every data field completed. The PDF shows the transformation.",
+    "model": "triple_score",
+    "description": "Three scores tell the transformation story: where you started, where the brief brought you, and where you'll be after completing the few remaining items.",
     "before_scoring": {
-      "description": "Raw assessment score based on tap answers only",
+      "label": "Where You Started",
+      "description": "Raw assessment score based on tap answers only — this is the wake-up call.",
       "max_possible": 120,
       "max_without_children": 104
     },
-    "after_scoring": {
-      "description": "Each completed data field boosts the related question to max points (2). If user tapped 0 but filled in the data field, their 'after' score for that question becomes 2.",
-      "rule": "If a question has data_fields AND at least one data_field is filled in, the after_score for that question = 2 regardless of what they tapped.",
+    "current_scoring": {
+      "label": "Where You Are Now",
+      "description": "Boosted by every data field completed during the walkthrough. If user tapped 0 but filled in the data field, their score for that question becomes 2.",
+      "rule": "If a question has data_fields AND at least one data_field is filled in, the current_score for that question = 2 regardless of what they tapped.",
       "max_possible": 120,
       "max_without_children": 104
+    },
+    "projected_scoring": {
+      "label": "After Your Follow-Ups",
+      "description": "Always 100%. The follow-up items are the only remaining gap. Each has a specific action, link, and time estimate. Completing them closes every gap.",
+      "rule": "projected_score = max_possible. The follow-up section contains ONLY the items needed to reach 100%. Show the count and total time.",
+      "message_template": "Complete these {count} items ({total_time}) and you're fully resolved."
     },
     "display": {
+      "format": "progress_bar_triple",
       "before_label": "Where You Started",
-      "after_label": "Where You Are Now",
-      "message_template": "You came in at {before}/{max}. Your Resolved Brief brought you to {after}/{max}.",
+      "current_label": "Where You Are Now",
+      "projected_label": "After Your Follow-Ups → 100%",
+      "message_template": "You came in at {before_pct}%. Your Resolved Brief brought you to {current_pct}%. Complete the {followup_count} items below and you're at 100%.",
       "section_breakdown": true
     },
     "ranges": [
