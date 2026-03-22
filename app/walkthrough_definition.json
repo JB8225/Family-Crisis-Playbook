@@ -3,6 +3,33 @@
   "subtitle": "The 20-Minute System That Organizes Your Entire Life For The People You Love.",
   "version": "5.2",
   "approach": "hybrid \u2014 assessment reveals starting point, data fields close gaps in real time, triple scoring shows transformation to 100%",
+  "welcome": {
+    "headline": "You just did the hardest part.",
+    "subhead": "You showed up. Now let's build your Resolved Brief together.",
+    "body": "Here's how this works: I'm going to walk you through 7 short sections about your life — your finances, your family, your wishes. Most answers are a single tap. When something needs a detail — like a name or a phone number — I'll ask for it right there so it goes straight into your brief.\n\nBy the end, you'll have a professional, personalized document your family can actually use if something happens tomorrow. No account numbers. No passwords. Those go on a separate handwritten page you'll seal in an envelope.\n\nThis takes most people about 20 minutes. But there's no timer and no pressure — your progress saves automatically. Close the tab, come back tomorrow, pick up right where you left off.",
+    "what_to_expect": [
+      {
+        "icon": "tap",
+        "text": "Most questions are a quick tap — no typing needed"
+      },
+      {
+        "icon": "detail",
+        "text": "When we need a name or number, a field appears — fill in what you know, skip what you don't"
+      },
+      {
+        "icon": "save",
+        "text": "Your progress saves automatically — come back anytime"
+      },
+      {
+        "icon": "lock",
+        "text": "We never ask for account numbers or passwords — that stays with you"
+      }
+    ],
+    "reassurance": "Don't worry about getting everything perfect. If you're not sure about something, tap your best guess or skip it. Your brief captures what you know today — you can always update it later.",
+    "stats": ["~20 min", "7 sections", "Saves automatically"],
+    "cta": "LET'S BUILD YOUR BRIEF",
+    "footer_note": "Your answers are private and encrypted. Only you receive the final document."
+  },
   "sections": [
     {
       "section_id": "foundation",
@@ -1923,6 +1950,20 @@
       ]
     }
   ],
+  "emotional_close": {
+    "headline": "Take a breath. You just did it.",
+    "body": "You just did what most families put off for years — and never get around to. Everything you entered is now organized, structured, and ready to protect the people you love.",
+    "score_reveal": {
+      "before_intro": "When you started, your family's preparedness looked like this:",
+      "current_intro": "After building your Resolved Brief together:",
+      "projected_intro": "And once you knock out the few items below —",
+      "projected_close": "you'll be 100% resolved.",
+      "no_followups_message": "You're fully resolved. Nothing left to do but print it, fill out your Account & Access sheet, and tell one person where the envelope is."
+    },
+    "quote": "There's an envelope in my desk.",
+    "quote_sub": "You're about to be able to say that.",
+    "cta": "GET MY RESOLVED BRIEF"
+  },
   "follow_up_section": {
     "title": "What's Left \u2014 And How To Finish It",
     "subtitle": "Your Resolved Brief handles the heavy lifting. These are the few things that need one more step \u2014 with exactly how to do each one.",
