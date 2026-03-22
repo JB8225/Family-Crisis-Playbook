@@ -4,8 +4,8 @@
   "version": "5.2",
   "approach": "hybrid \u2014 assessment reveals starting point, data fields close gaps in real time, triple scoring shows transformation to 100%",
   "welcome": {
-    "headline": "You just did the hardest part.",
-    "subhead": "You showed up. Now let's build your Resolved Brief together.",
+    "headline": "You made the decision most people put off for years.",
+    "subhead": "Now let's turn it into a plan your family can actually use.",
     "body": "Here's how this works: I'm going to walk you through 7 short sections about your life — your finances, your family, your wishes. Most answers are a single tap. When something needs a detail — like a name or a phone number — I'll ask for it right there so it goes straight into your brief.\n\nBy the end, you'll have a professional, personalized document your family can actually use if something happens tomorrow. No account numbers. No passwords. Those go on a separate handwritten page you'll seal in an envelope.\n\nThis takes most people about 20 minutes. But there's no timer and no pressure — your progress saves automatically. Close the tab, come back tomorrow, pick up right where you left off.",
     "what_to_expect": [
       {
@@ -97,7 +97,7 @@
                 }
               ],
               "solution_tip": "Your executor and document location are now in your brief. Your family knows exactly where to go and who's in charge.",
-              "gap_tip": "A basic will can be created at FreeWill.com (free) or Trust & Will ($159) in about 20 minutes online. We'll flag this in your brief with the direct link."
+              "gap_tip": "A basic will can be created online in about 20 minutes. We recommend Trust & Will (trustandwill.com) — plans start at $159 and walk you through everything step by step. We'll include the link in your brief."
             },
             {
               "id": "Q3",
@@ -131,18 +131,6 @@
                 2,
                 1,
                 0
-              ],
-              "data_fields": [
-                {
-                  "id": "Q4_location",
-                  "type": "text",
-                  "prompt": "Where is it kept?",
-                  "placeholder": "e.g., top drawer of filing cabinet, attorney's office, bank safe deposit box...",
-                  "show_if_option": [
-                    0,
-                    1
-                  ]
-                }
               ],
               "solution_tip": "Documented. Your family now knows the exact location \u2014 no searching, no guessing.",
               "gap_tip": "Once you have one, your brief will document exactly where it lives. One less thing your family has to figure out."
@@ -259,25 +247,6 @@
               ],
               "solution_tip": "Your family can now reach your attorney with one phone call. That single contact unlocks access to your will, trust, and legal directives.",
               "gap_tip": "No attorney yet? That's fine \u2014 not everyone needs one. For a basic will, online tools work. Your brief will note this so you can revisit it when ready."
-            },
-            {
-              "id": "Q9",
-              "type": "multiple_choice",
-              "prompt": "If your family had to prove what you wanted \u2014 in court \u2014 could they?",
-              "primary": true,
-              "options": [
-                "Yes \u2014 everything is legally documented",
-                "Some things, but not everything",
-                "No \u2014 nothing would hold up"
-              ],
-              "points": [
-                2,
-                1,
-                0
-              ],
-              "callout": "This is the question most people get wrong. Verbal agreements mean nothing in probate court.",
-              "solution_tip": "Your brief documents your wishes clearly. While it's not a legal document itself, it points your family to every legal document that IS.",
-              "gap_tip": "Your brief captures your stated wishes right now. To make them legally binding, your follow-up section will include direct links to free state forms."
             }
           ]
         }
@@ -1185,7 +1154,7 @@
                 }
               ],
               "solution_tip": "Life insurance details captured \u2014 provider, coverage, and beneficiary. Your family can file a claim on day one.",
-              "gap_tip": "No life insurance means your family has no financial cushion. Your brief's follow-up will include options \u2014 a basic term policy can be set up online in 15 minutes."
+              "gap_tip": "No life insurance means your family has no financial cushion. A basic term policy can be set up online in 15 minutes — we recommend Ethos (ethoslife.com) for a fast, no-exam application. We'll include the link in your brief."
             },
             {
               "id": "Q38",
@@ -1469,7 +1438,7 @@
                 }
               ],
               "solution_tip": "Password system documented. Your Vault Page will have the master password \u2014 your family gets in with one key.",
-              "gap_tip": "Your Vault Page solves this. Write your key passwords by hand \u2014 email, banking, phone \u2014 seal the page in an envelope. That's your family's access plan."
+              "gap_tip": "Your Vault Page solves this for now — write your key passwords by hand and seal them in an envelope. Going forward, a password manager like 1Password (1password.com) keeps everything secure and shareable. We'll include the link in your brief."
             },
             {
               "id": "Q48",
@@ -1524,7 +1493,7 @@
                 }
               ],
               "solution_tip": "Photo locations documented. Your family knows where every memory lives.",
-              "gap_tip": "List where they are \u2014 your brief documents it. With the Vault Page passwords, your family can access everything."
+              "gap_tip": "List where they are — your brief documents it. If your photos aren't backed up to the cloud yet, Google One (one.google.com) gives you 100GB for $1.99/mo. With the Vault Page passwords, your family can access everything."
             },
             {
               "id": "Q50",
