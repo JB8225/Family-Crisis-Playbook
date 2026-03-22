@@ -1,65 +1,179 @@
 {
   "title": "The Resolved Brief",
   "subtitle": "The 20-Minute System That Organizes Your Entire Life For The People You Love.",
-  "version": "4.0",
+  "version": "5.1",
   "sections": [
     {
-      "section_id": "foundation",
+      "section_id": "legal_foundation",
       "icon": "compass",
       "title": "Foundation & Legal",
-      "subtitle": "If something happened tomorrow, would your wishes be followed — or would the state decide for you?",
-      "intro_message": "Let's start with the foundation. These questions determine whether your family would follow your wishes — or be left guessing.",
+      "subtitle": "If something happened tomorrow, would your wishes be followed \u2014 or would the state decide for you?",
+      "intro_message": "Let's start with the foundation. These questions determine whether your family would follow your wishes \u2014 or be left guessing.",
       "cards": [
         {
           "card_title": "Your Wishes",
           "questions": [
             {
               "id": "Q1",
-              "type": "multiple_choice",
-              "prompt": "If something happened tomorrow, would your wishes be followed — or decided by the state?",
+              "type": "assessment",
+              "prompt": "If something happened tomorrow, would your wishes be followed \u2014 or decided by the state?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your family's wishes may be decided by the state \u2014 not by you.",
+              "pdf_section": "legal_foundation",
               "options": [
                 "My wishes are clearly documented and legally binding",
                 "I have some things written down, but it's incomplete",
-                "Nothing is documented — the state would decide"
-              ],
-              "points": [2, 1, 0]
+                "Nothing is documented \u2014 the state would decide"
+              ]
             },
             {
               "id": "Q2",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Do you have a will or trust in place?",
               "primary": false,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "No will or trust means probate court decides everything.",
+              "pdf_section": "legal_foundation",
               "options": [
-                "Yes — current and reviewed recently",
-                "Yes — but it may be outdated",
+                "Yes \u2014 current and reviewed recently",
+                "Yes \u2014 but it may be outdated",
                 "No"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "will_type",
+                    "label": "Type of document",
+                    "type": "select",
+                    "placeholder": "Select: Will, Trust, or Both",
+                    "options": [
+                      "Will",
+                      "Trust",
+                      "Both"
+                    ]
+                  },
+                  {
+                    "id": "attorney_name",
+                    "label": "Attorney name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "attorney_phone",
+                    "label": "Attorney phone",
+                    "type": "text",
+                    "placeholder": "Phone number"
+                  },
+                  {
+                    "id": "document_location",
+                    "label": "Where is it stored?",
+                    "type": "text",
+                    "placeholder": "Safe deposit box, home safe, attorney's office, etc."
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Will/Trust document number",
+                  "Filing date"
+                ]
+              }
             },
             {
               "id": "Q3",
-              "type": "multiple_choice",
-              "prompt": "Does your plan reflect your life today — your current family, assets, and relationships?",
+              "type": "assessment",
+              "prompt": "Does your plan reflect your life today \u2014 your current family, assets, and relationships?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your estate plan may not reflect your current life.",
+              "pdf_section": "legal_foundation",
               "options": [
                 "Fully up to date",
                 "Some things have changed since I last updated it",
                 "Outdated or never created"
-              ],
-              "points": [2, 1, 0]
+              ]
             },
             {
               "id": "Q4",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If someone needed your will tonight, would they know where to find it?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "legal_foundation",
               "options": [
-                "Yes — it's in a known, accessible location",
+                "Yes \u2014 it's in a known, accessible location",
                 "It exists, but they'd have to search for it",
                 "No one would know where to look"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "document_location",
+                    "label": "Where is it stored?",
+                    "type": "text",
+                    "placeholder": "Safe deposit box, home safe, attorney's office, etc."
+                  },
+                  {
+                    "id": "who_knows",
+                    "label": "Who knows the location?",
+                    "type": "text",
+                    "placeholder": "Names of family members or advisors"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -68,63 +182,215 @@
           "questions": [
             {
               "id": "Q5",
-              "type": "multiple_choice",
-              "prompt": "Have you formally assigned someone to handle your affairs — power of attorney, executor, trustee?",
+              "type": "hybrid",
+              "prompt": "Have you formally assigned someone to handle your affairs \u2014 power of attorney, executor, trustee?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "No one has legal authority to act on your behalf.",
+              "pdf_section": "legal_foundation",
               "options": [
-                "Yes — legally documented",
-                "Informally — I've mentioned it but nothing is filed",
+                "Yes \u2014 legally documented",
+                "Informally \u2014 I've mentioned it but nothing is filed",
                 "No one has been assigned"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "poa_name",
+                    "label": "Person of authority name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "poa_relationship",
+                    "label": "Relationship to you",
+                    "type": "text",
+                    "placeholder": "Spouse, child, sibling, etc."
+                  },
+                  {
+                    "id": "poa_phone",
+                    "label": "Their phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  },
+                  {
+                    "id": "healthcare_proxy_name",
+                    "label": "Healthcare proxy (if different)",
+                    "type": "text",
+                    "placeholder": "Full name, or leave blank if same"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Power of Attorney document number"
+                ]
+              }
             },
             {
               "id": "Q6",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "Would that person actually know what to do first?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your designated person wouldn't know what to do first.",
+              "pdf_section": "legal_foundation",
               "options": [
-                "Yes — we've discussed it",
+                "Yes \u2014 we've discussed it",
                 "They'd figure it out eventually",
                 "They'd have no idea where to start"
-              ],
-              "points": [2, 1, 0]
+              ]
             },
             {
               "id": "Q7",
-              "type": "multiple_choice",
-              "prompt": "Are your important documents stored in one known location — or scattered?",
+              "type": "hybrid",
+              "prompt": "Are your important documents stored in one known location \u2014 or scattered?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "legal_foundation",
               "options": [
                 "One secure, known location",
                 "A few different places",
                 "Scattered or I'm not sure where everything is"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "storage_location",
+                    "label": "Primary location",
+                    "type": "text",
+                    "placeholder": "Safe deposit box, home safe, attorney's office, etc."
+                  },
+                  {
+                    "id": "backup_location",
+                    "label": "Backup location",
+                    "type": "text",
+                    "placeholder": "Secondary storage location"
+                  }
+                ]
+              }
             },
             {
               "id": "Q8",
-              "type": "multiple_choice",
-              "prompt": "Who is your estate attorney — and could your family reach them?",
+              "type": "hybrid",
+              "prompt": "Who is your estate attorney \u2014 and could your family reach them?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "legal_foundation",
               "options": [
                 "I have one and my family knows how to reach them",
                 "I have one but my family doesn't know who it is",
                 "I don't have one"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "attorney_name",
+                    "label": "Attorney name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "firm_name",
+                    "label": "Law firm name",
+                    "type": "text",
+                    "placeholder": "Firm name"
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Phone number"
+                  },
+                  {
+                    "id": "email",
+                    "label": "Email address",
+                    "type": "text",
+                    "placeholder": "Email"
+                  }
+                ]
+              }
             },
             {
               "id": "Q9",
-              "type": "multiple_choice",
-              "prompt": "If your family had to prove what you wanted — in court — could they?",
+              "type": "assessment",
+              "prompt": "If your family had to prove what you wanted \u2014 in court \u2014 could they?",
               "primary": true,
-              "options": [
-                "Yes — everything is legally documented",
-                "Some things, but not everything",
-                "No — nothing would hold up"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "If challenged in court, your wishes may not hold up.",
+              "pdf_section": "legal_foundation",
+              "options": [
+                "Yes \u2014 everything is legally documented",
+                "Some things, but not everything",
+                "No \u2014 nothing would hold up"
+              ],
               "callout": "This is the question most people get wrong. Verbal agreements mean nothing in probate court."
             }
           ]
@@ -132,62 +398,176 @@
       ]
     },
     {
-      "section_id": "people",
+      "section_id": "key_people",
       "icon": "users",
       "title": "Key People & Decision Makers",
-      "subtitle": "Someone will have to step in. The question is whether they'll be ready — or drowning.",
-      "intro_message": "Now let's figure out who your people are — and whether they're actually prepared to step in.",
+      "subtitle": "Someone will have to step in. The question is whether they'll be ready \u2014 or drowning.",
+      "intro_message": "Now let's figure out who your people are \u2014 and whether they're actually prepared to step in.",
       "cards": [
         {
           "card_title": "Who Steps In",
           "questions": [
             {
               "id": "Q10",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If something happened to you tonight, who would actually step in to handle everything?",
               "primary": true,
-              "options": [
-                "One person — clearly defined and they know it",
-                "I have someone in mind, but we've never discussed it",
-                "No one — it would be chaos"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "No one is clearly designated to step in if something happens tonight.",
+              "pdf_section": "key_people",
+              "options": [
+                "One person \u2014 clearly defined and they know it",
+                "I have someone in mind, but we've never discussed it",
+                "No one \u2014 it would be chaos"
+              ],
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "person_name",
+                    "label": "Person's name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to you",
+                    "type": "text",
+                    "placeholder": "Spouse, sibling, friend, etc."
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  },
+                  {
+                    "id": "email",
+                    "label": "Email address",
+                    "type": "text",
+                    "placeholder": "Email"
+                  }
+                ]
+              }
             },
             {
               "id": "Q11",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "Would that person know where to start in the first 24 hours?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your person wouldn't know where to start in the first 24 hours.",
+              "pdf_section": "key_people",
               "options": [
-                "Yes — they have a clear starting point",
+                "Yes \u2014 they have a clear starting point",
                 "They'd figure it out, but it would take time",
                 "They'd be completely lost"
-              ],
-              "points": [2, 1, 0]
+              ]
             },
             {
               "id": "Q12",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If both you and your partner were gone at the same time, who steps in next?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "If both you and your partner were gone, no backup exists.",
+              "pdf_section": "key_people",
               "options": [
                 "Clearly defined backup",
                 "Someone would probably step up",
-                "No one — it would be a crisis on top of a crisis"
+                "No one \u2014 it would be a crisis on top of a crisis"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "backup_name",
+                    "label": "Backup person's name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to you",
+                    "type": "text",
+                    "placeholder": "Sibling, parent, friend, etc."
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  },
+                  {
+                    "id": "location",
+                    "label": "Where they live",
+                    "type": "text",
+                    "placeholder": "City/state or proximity to you"
+                  }
+                ]
+              }
             },
             {
               "id": "Q13",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "Have you actually told these people they're the ones?",
               "primary": true,
-              "options": [
-                "Yes — we've had the conversation",
-                "I assumed they'd figure it out",
-                "No — I've never said it out loud"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your designated people don't know they've been chosen.",
+              "pdf_section": "key_people",
+              "options": [
+                "Yes \u2014 we've had the conversation",
+                "I assumed they'd figure it out",
+                "No \u2014 I've never said it out loud"
+              ]
             }
           ]
         },
@@ -196,74 +576,184 @@
           "questions": [
             {
               "id": "Q14",
-              "type": "multiple_choice",
-              "prompt": "Would your family know who to call for help — your attorney, CPA, financial advisor, insurance agent?",
+              "type": "hybrid",
+              "prompt": "Would your family know who to call for help \u2014 your attorney, CPA, financial advisor, insurance agent?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "key_people",
               "options": [
-                "Yes — names and numbers are documented",
+                "Yes \u2014 names and numbers are documented",
                 "They'd know some, but not all",
                 "They wouldn't know who any of these people are"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "attorney_name",
+                    "label": "Attorney name and phone",
+                    "type": "textarea",
+                    "placeholder": "Name and contact info"
+                  },
+                  {
+                    "id": "cpa_name",
+                    "label": "CPA/Accountant name and phone",
+                    "type": "textarea",
+                    "placeholder": "Name and contact info"
+                  },
+                  {
+                    "id": "advisor_name",
+                    "label": "Financial advisor name and phone",
+                    "type": "textarea",
+                    "placeholder": "Name and contact info"
+                  },
+                  {
+                    "id": "other_contact",
+                    "label": "Other key contacts",
+                    "type": "textarea",
+                    "placeholder": "Insurance agent, doctor, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q15",
-              "type": "multiple_choice",
-              "prompt": "Would the roles between your key people be clear — or would everyone step on each other?",
+              "type": "assessment",
+              "prompt": "Would the roles between your key people be clear \u2014 or would everyone step on each other?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "key_people",
               "options": [
-                "Clear — everyone knows their role",
+                "Clear \u2014 everyone knows their role",
                 "Some overlap, but manageable",
                 "It would be confusing and likely cause conflict"
-              ],
-              "points": [2, 1, 0]
+              ]
             },
             {
               "id": "Q16",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "Does your family know your wishes well enough to speak for you confidently?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "key_people",
               "options": [
-                "Yes — they could represent my wishes clearly",
+                "Yes \u2014 they could represent my wishes clearly",
                 "On some things, but not all",
                 "They'd be guessing"
-              ],
-              "points": [2, 1, 0]
+              ]
             },
             {
               "id": "Q17",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If a disagreement broke out between family members, is there a clear tiebreaker?",
               "primary": true,
-              "options": [
-                "Yes — one person has final authority, documented",
-                "Informally understood",
-                "No — it would turn into a fight"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0],
-              "callout": "Family conflict after a crisis is more common than people think. This one question prevents it."
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Family disagreements have no clear tiebreaker \u2014 conflict is likely.",
+              "pdf_section": "key_people",
+              "options": [
+                "Yes \u2014 one person has final authority, documented",
+                "Informally understood",
+                "No \u2014 it would turn into a fight"
+              ],
+              "callout": "Family conflict after a crisis is more common than people think. This one question prevents it.",
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "tiebreaker_name",
+                    "label": "Tiebreaker person's name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to you",
+                    "type": "text",
+                    "placeholder": "Spouse, parent, trusted advisor, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q18",
-              "type": "multiple_choice",
-              "prompt": "Could your key people access what they need — accounts, documents, contacts — within 48 hours?",
+              "type": "assessment",
+              "prompt": "Could your key people access what they need \u2014 accounts, documents, contacts \u2014 within 48 hours?",
               "primary": false,
-              "options": [
-                "Yes — everything is organized and accessible",
-                "Some things, but they'd have to dig",
-                "No — they'd be locked out of almost everything"
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "key_people",
+              "options": [
+                "Yes \u2014 everything is organized and accessible",
+                "Some things, but they'd have to dig",
+                "No \u2014 they'd be locked out of almost everything"
+              ]
             }
           ]
         }
       ]
     },
     {
-      "section_id": "children",
+      "section_id": "children_dependents",
       "icon": "baby",
       "title": "Children & Dependents",
-      "subtitle": "If you weren't here tomorrow, would your children's world keep turning — or fall apart?",
+      "subtitle": "If you weren't here tomorrow, would your children's world keep turning \u2014 or fall apart?",
       "intro_message": "This section is for parents and caregivers. Skip it if it doesn't apply to you.",
       "skippable": true,
       "cards": [
@@ -272,39 +762,133 @@
           "questions": [
             {
               "id": "Q19",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Is there a clear, documented plan for who would care for your children?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "No legal guardianship plan exists for your children.",
+              "pdf_section": "children_dependents",
               "options": [
-                "Yes — legal guardianship is designated",
+                "Yes \u2014 legal guardianship is designated",
                 "I've thought about it but nothing is official",
                 "No plan exists"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "guardian_name",
+                    "label": "Guardian's name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to your children",
+                    "type": "text",
+                    "placeholder": "Sibling, parent, cousin, friend, etc."
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  },
+                  {
+                    "id": "location",
+                    "label": "Where they live",
+                    "type": "text",
+                    "placeholder": "City/state"
+                  }
+                ]
+              }
             },
             {
               "id": "Q20",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Is there a backup guardian if your first choice can't do it?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "children_dependents",
               "options": [
-                "Yes — identified and documented",
+                "Yes \u2014 identified and documented",
                 "I have someone in mind",
                 "No backup"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "backup_guardian_name",
+                    "label": "Backup guardian's name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to your children",
+                    "type": "text",
+                    "placeholder": "Sibling, parent, friend, etc."
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  }
+                ]
+              }
             },
             {
               "id": "Q21",
-              "type": "multiple_choice",
-              "prompt": "Have you told the guardian they've been chosen — and do they understand what it means?",
+              "type": "assessment",
+              "prompt": "Have you told the guardian they've been chosen \u2014 and do they understand what it means?",
               "primary": false,
-              "options": [
-                "Yes — we've had a real conversation about it",
-                "I've mentioned it casually",
-                "No — they don't know"
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "children_dependents",
+              "options": [
+                "Yes \u2014 we've had a real conversation about it",
+                "I've mentioned it casually",
+                "No \u2014 they don't know"
+              ]
             }
           ]
         },
@@ -313,115 +897,417 @@
           "questions": [
             {
               "id": "Q22",
-              "type": "multiple_choice",
-              "prompt": "Could someone continue your children's daily routines — school, activities, medical, meals?",
+              "type": "hybrid",
+              "prompt": "Could someone continue your children's daily routines \u2014 school, activities, medical, meals?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your children's daily routines would collapse without documentation.",
+              "pdf_section": "children_dependents",
               "options": [
-                "Yes — it's all documented or well-known",
+                "Yes \u2014 it's all documented or well-known",
                 "Some of it, but there are gaps",
                 "They'd be starting from scratch"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "school_name",
+                    "label": "School name and contact",
+                    "type": "text",
+                    "placeholder": "School name and phone"
+                  },
+                  {
+                    "id": "teacher_contact",
+                    "label": "Teacher names and emails",
+                    "type": "textarea",
+                    "placeholder": "List teachers/contacts"
+                  },
+                  {
+                    "id": "activities",
+                    "label": "Activities and schedules",
+                    "type": "textarea",
+                    "placeholder": "Sports, music, clubs, schedules"
+                  },
+                  {
+                    "id": "medications",
+                    "label": "Medications",
+                    "type": "textarea",
+                    "placeholder": "List any medications and dosages"
+                  },
+                  {
+                    "id": "special_needs_notes",
+                    "label": "Special needs or notes",
+                    "type": "textarea",
+                    "placeholder": "Allergies, dietary restrictions, behavioral notes, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q23",
-              "type": "multiple_choice",
-              "prompt": "Are your children's critical details easy to find — doctors, allergies, medications, school contacts?",
+              "type": "hybrid",
+              "prompt": "Are your children's critical details easy to find \u2014 doctors, allergies, medications, school contacts?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "children_dependents",
               "options": [
-                "Yes — organized and accessible",
+                "Yes \u2014 organized and accessible",
                 "Scattered across different places",
                 "Only in my head"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "pediatrician_name",
+                    "label": "Pediatrician name and phone",
+                    "type": "text",
+                    "placeholder": "Name and phone"
+                  },
+                  {
+                    "id": "allergies",
+                    "label": "Allergies",
+                    "type": "textarea",
+                    "placeholder": "Food, medication, environmental allergies"
+                  },
+                  {
+                    "id": "medications",
+                    "label": "Current medications",
+                    "type": "textarea",
+                    "placeholder": "Medication names, dosages, and schedules"
+                  },
+                  {
+                    "id": "insurance_info",
+                    "label": "Insurance information",
+                    "type": "text",
+                    "placeholder": "Policy number and company"
+                  }
+                ]
+              }
             },
             {
               "id": "Q24",
-              "type": "multiple_choice",
-              "prompt": "Would someone know how to emotionally support your children through this — therapist contacts, special needs, comfort routines?",
+              "type": "hybrid",
+              "prompt": "Would someone know how to emotionally support your children through this \u2014 therapist contacts, special needs, comfort routines?",
               "primary": false,
-              "options": [
-                "Yes — documented or well-communicated",
-                "Partially",
-                "No — no one would know what they need"
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "children_dependents",
+              "options": [
+                "Yes \u2014 documented or well-communicated",
+                "Partially",
+                "No \u2014 no one would know what they need"
+              ],
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "therapist_name",
+                    "label": "Therapist or counselor name",
+                    "type": "text",
+                    "placeholder": "Name and phone"
+                  },
+                  {
+                    "id": "support_resources",
+                    "label": "Support resources and services",
+                    "type": "textarea",
+                    "placeholder": "Current services, support groups, etc."
+                  },
+                  {
+                    "id": "emotional_notes",
+                    "label": "Emotional support notes",
+                    "type": "textarea",
+                    "placeholder": "What helps them feel safe, comfort items, routines, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q25",
-              "type": "multiple_choice",
-              "prompt": "Would your children's future — education, values, traditions — be guided by your wishes or guessed at?",
+              "type": "assessment",
+              "prompt": "Would your children's future \u2014 education, values, traditions \u2014 be guided by your wishes or guessed at?",
               "primary": true,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your children's future would be guided by guesswork, not your wishes.",
+              "pdf_section": "children_dependents",
               "options": [
                 "Guided by my clearly stated wishes",
-                "Somewhat — people close to me would try",
+                "Somewhat \u2014 people close to me would try",
                 "Mostly guessed"
               ],
-              "points": [2, 1, 0],
               "callout": "This is the one that keeps parents up at night. If you haven't written it down, you're leaving your children's future to interpretation."
             },
             {
               "id": "Q26",
-              "type": "multiple_choice",
-              "prompt": "Are there financial provisions specifically for your children — education funds, trusts, designated accounts?",
+              "type": "hybrid",
+              "prompt": "Are there financial provisions specifically for your children \u2014 education funds, trusts, designated accounts?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "children_dependents",
               "options": [
-                "Yes — clearly set up and documented",
+                "Yes \u2014 clearly set up and documented",
                 "Some, but incomplete",
                 "Nothing specific"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "education_fund_type",
+                    "label": "Fund type",
+                    "type": "select",
+                    "placeholder": "529 Plan, Trust, Insurance, Other",
+                    "options": [
+                      "529 Plan",
+                      "Trust",
+                      "Insurance",
+                      "Other"
+                    ]
+                  },
+                  {
+                    "id": "account_info",
+                    "label": "Account information",
+                    "type": "textarea",
+                    "placeholder": "Account number, institution, balance if known"
+                  },
+                  {
+                    "id": "trustee_name",
+                    "label": "Trustee or administrator name",
+                    "type": "text",
+                    "placeholder": "Name and contact info"
+                  }
+                ]
+              }
             }
           ]
         }
       ]
     },
     {
-      "section_id": "money",
+      "section_id": "financial_accounts",
       "icon": "dollar-sign",
       "title": "Money, Assets & Obligations",
       "subtitle": "Bills don't stop. Mortgages don't pause. Could your family keep the lights on?",
-      "intro_message": "Now let's look at the money. Not the numbers — just whether your family could find it and manage it without you.",
+      "intro_message": "Now let's look at the money. Not the numbers \u2014 just whether your family could find it and manage it without you.",
       "cards": [
         {
           "card_title": "Access & Accounts",
           "questions": [
             {
               "id": "Q27",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If your family needed money within 7 days, would they know exactly where to get it?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your family may not know where to access money in the first week.",
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — clear access to accounts",
+                "Yes \u2014 clear access to accounts",
                 "They'd eventually figure it out",
                 "They'd have no idea where to start"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "primary_bank",
+                    "label": "Primary bank",
+                    "type": "text",
+                    "placeholder": "Bank name"
+                  },
+                  {
+                    "id": "account_type",
+                    "label": "Account type",
+                    "type": "text",
+                    "placeholder": "Checking, savings, money market, etc."
+                  },
+                  {
+                    "id": "how_to_access",
+                    "label": "How to access it",
+                    "type": "textarea",
+                    "placeholder": "Instructions for accessing the account"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Account numbers for primary bank accounts"
+                ]
+              }
             },
             {
               "id": "Q28",
-              "type": "multiple_choice",
-              "prompt": "How easy would it be for someone to find ALL of your accounts — banking, retirement, investments, crypto?",
+              "type": "hybrid",
+              "prompt": "How easy would it be for someone to find ALL of your accounts \u2014 banking, retirement, investments, crypto?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Finding all your accounts would be a scavenger hunt.",
+              "pdf_section": "financial_accounts",
               "options": [
                 "Everything documented in one place",
                 "Some are documented, others aren't",
                 "It would be a scavenger hunt"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "accounts_list",
+                    "label": "All accounts (banking, retirement, investment, crypto, etc.)",
+                    "type": "textarea",
+                    "placeholder": "Bank name, account type, account number or access info"
+                  },
+                  {
+                    "id": "organized_location",
+                    "label": "Where this list is stored",
+                    "type": "text",
+                    "placeholder": "Location of the master list"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Full list of account numbers"
+                ]
+              }
             },
             {
               "id": "Q29",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Are there accounts your family doesn't even know exist?",
               "primary": true,
-              "options": [
-                "No — they know about everything",
-                "Possibly one or two",
-                "Yes — definitely accounts they'd never find"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0],
-              "callout": "Billions in retirement funds, life insurance, and bank accounts go unclaimed every year. This is why."
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Accounts exist that your family would never find.",
+              "pdf_section": "financial_accounts",
+              "options": [
+                "No \u2014 they know about everything",
+                "Possibly one or two",
+                "Yes \u2014 definitely accounts they'd never find"
+              ],
+              "callout": "Billions in retirement funds, life insurance, and bank accounts go unclaimed every year. This is why.",
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "hidden_accounts_notes",
+                    "label": "Hidden or forgotten accounts",
+                    "type": "textarea",
+                    "placeholder": "List any accounts family doesn't know about and where to find them"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -430,52 +1316,197 @@
           "questions": [
             {
               "id": "Q30",
-              "type": "multiple_choice",
-              "prompt": "Could someone keep your bills running — mortgage, utilities, insurance premiums, subscriptions?",
+              "type": "hybrid",
+              "prompt": "Could someone keep your bills running \u2014 mortgage, utilities, insurance premiums, subscriptions?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Bills would start failing within weeks \u2014 mortgage, utilities, insurance.",
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — everything is documented with autopay details",
+                "Yes \u2014 everything is documented with autopay details",
                 "They'd figure out most of it",
                 "Bills would start failing within weeks"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "autopay_list",
+                    "label": "Bills on autopay",
+                    "type": "textarea",
+                    "placeholder": "List all autopay bills, amounts, and due dates"
+                  },
+                  {
+                    "id": "primary_account",
+                    "label": "Primary account for autopay",
+                    "type": "text",
+                    "placeholder": "Bank and account used for autopay"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Autopay account numbers and login details"
+                ]
+              }
             },
             {
               "id": "Q31",
-              "type": "multiple_choice",
-              "prompt": "Are your debts and obligations clearly outlined — mortgage, car loans, student loans, credit cards?",
+              "type": "hybrid",
+              "prompt": "Are your debts and obligations clearly outlined \u2014 mortgage, car loans, student loans, credit cards?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your family would discover debts they didn't know about.",
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — all documented",
+                "Yes \u2014 all documented",
                 "Some are known, others aren't",
                 "My family would discover debts they didn't know about"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "debts_list",
+                    "label": "All debts and obligations",
+                    "type": "textarea",
+                    "placeholder": "Mortgage, car loans, student loans, credit cards, medical debt, etc. Include creditor and approximate balance"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Loan account numbers and payoff amounts"
+                ]
+              }
             },
             {
               "id": "Q32",
-              "type": "multiple_choice",
-              "prompt": "Would someone know what you own — property, vehicles, investments, business interests?",
+              "type": "hybrid",
+              "prompt": "Would someone know what you own \u2014 property, vehicles, investments, business interests?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — a clear inventory exists",
+                "Yes \u2014 a clear inventory exists",
                 "They'd know the big things but miss others",
                 "They'd have no idea what I own"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "assets_list",
+                    "label": "Assets and property",
+                    "type": "textarea",
+                    "placeholder": "Real estate, vehicles, investments, business interests, jewelry, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q33",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If you have business interests or side income, could someone manage or wind them down?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — documented with instructions",
-                "Partially — some knowledge exists",
-                "No — it would collapse or be abandoned",
+                "Yes \u2014 documented with instructions",
+                "Partially \u2014 some knowledge exists",
+                "No \u2014 it would collapse or be abandoned",
                 "N/A"
               ],
-              "points": [2, 1, 0, null]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "business_name",
+                    "label": "Business name",
+                    "type": "text",
+                    "placeholder": "Business name"
+                  },
+                  {
+                    "id": "partner_names",
+                    "label": "Business partners or co-owners",
+                    "type": "text",
+                    "placeholder": "Names and contact info"
+                  },
+                  {
+                    "id": "operating_agreement_location",
+                    "label": "Operating agreement location",
+                    "type": "text",
+                    "placeholder": "Where the agreement is stored"
+                  },
+                  {
+                    "id": "accountant_contact",
+                    "label": "Accountant contact",
+                    "type": "text",
+                    "placeholder": "Name and phone"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -484,90 +1515,298 @@
           "questions": [
             {
               "id": "Q34",
-              "type": "multiple_choice",
-              "prompt": "Would someone know who to contact for financial help — your banker, advisor, accountant?",
+              "type": "hybrid",
+              "prompt": "Would someone know who to contact for financial help \u2014 your banker, advisor, accountant?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — names and contacts documented",
+                "Yes \u2014 names and contacts documented",
                 "They'd know one or two",
                 "They wouldn't know who to call"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "banker_name",
+                    "label": "Banker name and phone",
+                    "type": "text",
+                    "placeholder": "Name and contact"
+                  },
+                  {
+                    "id": "advisor_name",
+                    "label": "Financial advisor name and phone",
+                    "type": "text",
+                    "placeholder": "Name and contact"
+                  },
+                  {
+                    "id": "cpa_name",
+                    "label": "CPA/Accountant name and phone",
+                    "type": "text",
+                    "placeholder": "Name and contact"
+                  }
+                ]
+              }
             },
             {
               "id": "Q35",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Do beneficiary designations on your accounts match your current wishes?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Beneficiary designations may be outdated and override your will.",
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — recently reviewed and current",
-                "I'm not sure — haven't checked in a while",
+                "Yes \u2014 recently reviewed and current",
+                "I'm not sure \u2014 haven't checked in a while",
                 "I don't know what's listed"
               ],
-              "points": [2, 1, 0],
-              "callout": "Beneficiary designations override your will. An ex-spouse on a 401k gets the money — even if your will says otherwise."
+              "callout": "Beneficiary designations override your will. An ex-spouse on a 401k gets the money \u2014 even if your will says otherwise.",
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "accounts_to_review",
+                    "label": "Accounts that need review",
+                    "type": "textarea",
+                    "placeholder": "List accounts to check beneficiary designations on"
+                  }
+                ]
+              }
             },
             {
               "id": "Q36",
-              "type": "multiple_choice",
-              "prompt": "Could your family handle your full financial picture — income, expenses, debts, assets — without major confusion?",
+              "type": "assessment",
+              "prompt": "Could your family handle your full financial picture \u2014 income, expenses, debts, assets \u2014 without major confusion?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "financial_accounts",
               "options": [
-                "Yes — it's organized and accessible",
+                "Yes \u2014 it's organized and accessible",
                 "With effort and time",
                 "It would be overwhelming"
-              ],
-              "points": [2, 1, 0]
+              ]
             }
           ]
         }
       ]
     },
     {
-      "section_id": "insurance",
+      "section_id": "insurance_protection",
       "icon": "shield",
       "title": "Insurance & Protection",
       "subtitle": "Insurance only works if someone files a claim. If they don't know it exists, it's worthless.",
-      "intro_message": "Let's look at your safety net. Not just what you have — but whether your family could actually use it.",
+      "intro_message": "Let's look at your safety net. Not just what you have \u2014 but whether your family could actually use it.",
       "cards": [
         {
           "card_title": "Life Insurance",
           "questions": [
             {
               "id": "Q37",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Do you have life insurance?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Life insurance may not exist or details are unknown.",
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — through work, private policy, or both",
+                "Yes \u2014 through work, private policy, or both",
                 "I think so, but I'm not sure of the details",
                 "No"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "provider",
+                    "label": "Insurance provider",
+                    "type": "text",
+                    "placeholder": "Company name"
+                  },
+                  {
+                    "id": "policy_type",
+                    "label": "Type of policy",
+                    "type": "select",
+                    "placeholder": "Term, Whole, Universal, Group",
+                    "options": [
+                      "Term",
+                      "Whole",
+                      "Universal",
+                      "Group"
+                    ]
+                  },
+                  {
+                    "id": "coverage_amount",
+                    "label": "Coverage amount",
+                    "type": "text",
+                    "placeholder": "Dollar amount"
+                  },
+                  {
+                    "id": "claims_phone",
+                    "label": "Claims phone number",
+                    "type": "text",
+                    "placeholder": "Phone number to file claim"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Policy number",
+                  "Group/Certificate number"
+                ]
+              }
             },
             {
               "id": "Q38",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "If a life insurance claim needed to be filed, would someone know how?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Insurance exists but the claims process is unclear.",
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — provider, policy number, and claims process documented",
+                "Yes \u2014 provider, policy number, and claims process documented",
                 "They'd know I have it but would have to figure out the rest",
                 "No one would know where to start"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "claims_phone",
+                    "label": "Claims phone number",
+                    "type": "text",
+                    "placeholder": "Phone number"
+                  },
+                  {
+                    "id": "how_to_file_notes",
+                    "label": "How to file a claim",
+                    "type": "textarea",
+                    "placeholder": "Step-by-step instructions or documents needed"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Policy number for claims filing"
+                ]
+              }
             },
             {
               "id": "Q39",
-              "type": "multiple_choice",
-              "prompt": "Do you know your actual coverage amount — and would it cover your family for at least 2 years?",
+              "type": "hybrid",
+              "prompt": "Do you know your actual coverage amount \u2014 and would it cover your family for at least 2 years?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Coverage amount is unknown \u2014 may not be adequate.",
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — I know the amount and it's adequate",
+                "Yes \u2014 I know the amount and it's adequate",
                 "I know the amount but it might not be enough",
                 "I have no idea what my coverage is"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "coverage_amount",
+                    "label": "Coverage amount",
+                    "type": "text",
+                    "placeholder": "Dollar amount"
+                  },
+                  {
+                    "id": "adequate_notes",
+                    "label": "Notes on adequacy",
+                    "type": "textarea",
+                    "placeholder": "Is it enough? What gaps exist?"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -576,71 +1815,225 @@
           "questions": [
             {
               "id": "Q40",
-              "type": "multiple_choice",
-              "prompt": "Are your other insurance policies documented — health, home, auto, disability, umbrella?",
+              "type": "hybrid",
+              "prompt": "Are your other insurance policies documented \u2014 health, home, auto, disability, umbrella?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — all policies organized in one place",
+                "Yes \u2014 all policies organized in one place",
                 "Some are, some aren't",
                 "My family would have to call around to find them"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "policies_list",
+                    "label": "All insurance policies",
+                    "type": "textarea",
+                    "placeholder": "Health, home, auto, disability, umbrella \u2014 include provider, policy number, and contact"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Policy numbers for each insurance type"
+                ]
+              }
             },
             {
               "id": "Q41",
-              "type": "multiple_choice",
-              "prompt": "Do you have disability insurance — and do you know what it covers?",
+              "type": "hybrid",
+              "prompt": "Do you have disability insurance \u2014 and do you know what it covers?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — through work or privately, and I understand the coverage",
+                "Yes \u2014 through work or privately, and I understand the coverage",
                 "I think I have it through work, but I'm not sure",
                 "No / I don't know"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "disability_provider",
+                    "label": "Disability insurance provider",
+                    "type": "text",
+                    "placeholder": "Company or employer"
+                  },
+                  {
+                    "id": "coverage_type",
+                    "label": "Type of coverage",
+                    "type": "text",
+                    "placeholder": "Short-term, long-term, percentage covered, etc."
+                  },
+                  {
+                    "id": "monthly_benefit",
+                    "label": "Monthly benefit amount",
+                    "type": "text",
+                    "placeholder": "Dollar amount"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Disability policy number"
+                ]
+              }
             },
             {
               "id": "Q42",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "If you were incapacitated for 6 months, would your income be replaced?",
               "primary": true,
-              "options": [
-                "Yes — disability coverage would kick in",
-                "Partially — some coverage but gaps exist",
-                "No — my family would be on their own financially"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "If incapacitated for 6 months, income would not be replaced.",
+              "pdf_section": "insurance_protection",
+              "options": [
+                "Yes \u2014 disability coverage would kick in",
+                "Partially \u2014 some coverage but gaps exist",
+                "No \u2014 my family would be on their own financially"
+              ],
               "callout": "Most people insure their car but not their income. Your ability to earn is your most valuable asset."
             },
             {
               "id": "Q43",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Could someone locate your insurance agent or broker?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — contact info is documented",
+                "Yes \u2014 contact info is documented",
                 "My family might be able to find them",
                 "No one knows who they are"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "agent_name",
+                    "label": "Agent name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "agent_phone",
+                    "label": "Agent phone",
+                    "type": "text",
+                    "placeholder": "Phone number"
+                  },
+                  {
+                    "id": "agent_email",
+                    "label": "Agent email",
+                    "type": "text",
+                    "placeholder": "Email address"
+                  }
+                ]
+              }
             },
             {
               "id": "Q44",
-              "type": "multiple_choice",
-              "prompt": "Are beneficiaries on your insurance policies current — not an ex-spouse, deceased parent, or outdated name?",
+              "type": "hybrid",
+              "prompt": "Are beneficiaries on your insurance policies current \u2014 not an ex-spouse, deceased parent, or outdated name?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "insurance_protection",
               "options": [
-                "Yes — recently verified",
-                "I'm not sure — haven't checked",
+                "Yes \u2014 recently verified",
+                "I'm not sure \u2014 haven't checked",
                 "Likely outdated"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "policies_to_update",
+                    "label": "Policies needing beneficiary review",
+                    "type": "textarea",
+                    "placeholder": "List policies and current beneficiary names"
+                  }
+                ]
+              }
             }
           ]
         }
       ]
     },
     {
-      "section_id": "digital",
+      "section_id": "digital_access",
       "icon": "lock",
       "title": "Digital Life & Access",
       "subtitle": "Your entire life is behind a passcode. If no one can get in, everything is lost.",
@@ -651,51 +2044,179 @@
           "questions": [
             {
               "id": "Q45",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Could someone you trust unlock your phone today?",
               "primary": true,
-              "options": [
-                "Yes — they know the passcode",
-                "Maybe — I use biometrics and haven't shared the backup PIN",
-                "No — only I can get in"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your phone \u2014 gateway to your digital life \u2014 is completely locked.",
+              "pdf_section": "digital_access",
+              "options": [
+                "Yes \u2014 they know the passcode",
+                "Maybe \u2014 I use biometrics and haven't shared the backup PIN",
+                "No \u2014 only I can get in"
+              ],
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": []
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Phone passcode/PIN",
+                  "Authenticator app backup codes"
+                ]
+              }
             },
             {
               "id": "Q46",
-              "type": "multiple_choice",
-              "prompt": "If your email is the key to everything — password resets, bank statements, account recovery — could anyone get into it?",
+              "type": "hybrid",
+              "prompt": "If your email is the key to everything \u2014 password resets, bank statements, account recovery \u2014 could anyone get into it?",
               "primary": true,
-              "options": [
-                "Yes — access is documented",
-                "They might be able to figure it out",
-                "No — it's completely locked"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Email access is locked, blocking resets for every other account.",
+              "pdf_section": "digital_access",
+              "options": [
+                "Yes \u2014 access is documented",
+                "They might be able to figure it out",
+                "No \u2014 it's completely locked"
+              ],
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "email_addresses",
+                    "label": "Email addresses",
+                    "type": "textarea",
+                    "placeholder": "All email addresses and passwords or where they're stored"
+                  },
+                  {
+                    "id": "access_method",
+                    "label": "How to access email",
+                    "type": "text",
+                    "placeholder": "Password, recovery phone, backup email, etc."
+                  },
+                  {
+                    "id": "recovery_info",
+                    "label": "Recovery information",
+                    "type": "text",
+                    "placeholder": "Recovery phone number or backup email"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Email passwords or password manager entry"
+                ]
+              }
             },
             {
               "id": "Q47",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Where are your passwords stored?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Passwords are scattered or only in your head.",
+              "pdf_section": "digital_access",
               "options": [
-                "Password manager — and someone knows the master password",
-                "Scattered — some saved in browser, some on paper, some in my head",
+                "Password manager \u2014 and someone knows the master password",
+                "Scattered \u2014 some saved in browser, some on paper, some in my head",
                 "Only in my head"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": []
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Master password",
+                  "Recovery codes"
+                ]
+              }
             },
             {
               "id": "Q48",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Could your family get into your computer?",
               "primary": false,
-              "options": [
-                "Yes — they know the password",
-                "Maybe — it's usually unlocked",
-                "No — it's locked and no one has the password"
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "digital_access",
+              "options": [
+                "Yes \u2014 they know the password",
+                "Maybe \u2014 it's usually unlocked",
+                "No \u2014 it's locked and no one has the password"
+              ],
+              "data_fields": {
+                "show_when": [
+                  0,
+                  2
+                ],
+                "defer_option": true,
+                "fields": []
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Computer password/login"
+                ]
+              }
             }
           ]
         },
@@ -704,71 +2225,228 @@
           "questions": [
             {
               "id": "Q49",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Would your family be able to access your photos, videos, and irreplaceable digital memories?",
               "primary": true,
-              "options": [
-                "Yes — they know how to access my cloud storage",
-                "Some things, but not everything",
-                "No — decades of memories would be gone"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0],
-              "callout": "Photos can't be recovered. If they're locked in iCloud or Google Photos behind a password no one has, they're gone forever."
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Decades of photos and irreplaceable digital files could be lost.",
+              "pdf_section": "digital_access",
+              "options": [
+                "Yes \u2014 they know how to access my cloud storage",
+                "Some things, but not everything",
+                "No \u2014 decades of memories would be gone"
+              ],
+              "callout": "Photos can't be recovered. If they're locked in iCloud or Google Photos behind a password no one has, they're gone forever.",
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "cloud_service",
+                    "label": "Cloud storage service",
+                    "type": "text",
+                    "placeholder": "Google Photos, iCloud, Amazon Photos, etc."
+                  },
+                  {
+                    "id": "access_info",
+                    "label": "How to access it",
+                    "type": "textarea",
+                    "placeholder": "Password or access instructions"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Cloud storage passwords"
+                ]
+              }
             },
             {
               "id": "Q50",
-              "type": "multiple_choice",
-              "prompt": "Are important documents stored in the cloud — and could your family access them?",
+              "type": "hybrid",
+              "prompt": "Are important documents stored in the cloud \u2014 and could your family access them?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "digital_access",
               "options": [
-                "Yes — Google Drive, Dropbox, iCloud — and access is documented",
+                "Yes \u2014 Google Drive, Dropbox, iCloud \u2014 and access is documented",
                 "Some are in the cloud, but access isn't clear",
                 "I don't store things in the cloud / no one could get in"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "cloud_providers",
+                    "label": "Cloud storage providers",
+                    "type": "textarea",
+                    "placeholder": "Google Drive, Dropbox, OneDrive, iCloud, etc. and what's stored where"
+                  },
+                  {
+                    "id": "access_notes",
+                    "label": "Access notes",
+                    "type": "textarea",
+                    "placeholder": "Passwords or access instructions"
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Cloud account credentials"
+                ]
+              }
             },
             {
               "id": "Q51",
-              "type": "multiple_choice",
+              "type": "hybrid",
               "prompt": "Do you have cryptocurrency, NFTs, or digital assets that require a private key or recovery phrase?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "digital_access",
               "options": [
-                "Yes — and recovery info is securely stored where someone could find it",
-                "Yes — but the recovery phrase is only known to me",
+                "Yes \u2014 and recovery info is securely stored where someone could find it",
+                "Yes \u2014 but the recovery phrase is only known to me",
                 "No digital assets like this"
               ],
-              "points": [2, 1, null]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "wallet_type",
+                    "label": "Wallet type and platform",
+                    "type": "text",
+                    "placeholder": "MetaMask, Coinbase, Ledger, etc."
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Wallet recovery phrase",
+                  "Private keys"
+                ]
+              }
             },
             {
               "id": "Q52",
-              "type": "multiple_choice",
-              "prompt": "What financial apps are on your phone — and could someone access them?",
+              "type": "hybrid",
+              "prompt": "What financial apps are on your phone \u2014 and could someone access them?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "digital_access",
               "options": [
-                "Documented — banking, Venmo, PayPal, investment apps are all known",
+                "Documented \u2014 banking, Venmo, PayPal, investment apps are all known",
                 "They'd find some but miss others",
                 "No one would know what apps I use for money"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "financial_apps_list",
+                    "label": "Financial apps",
+                    "type": "textarea",
+                    "placeholder": "Banking, Venmo, PayPal, investment apps, cryptocurrency exchanges, etc."
+                  }
+                ]
+              },
+              "private_fill_in": {
+                "label": "Private Details \u2014 Fill In By Hand",
+                "instructions": "Do NOT enter these online. Write them on your printed copy and keep in a sealed envelope.",
+                "blank_fields": [
+                  "Financial app PINs and passwords"
+                ]
+              }
             },
             {
               "id": "Q53",
-              "type": "multiple_choice",
+              "type": "assessment",
               "prompt": "If every digital account you have was locked tomorrow, how much of your life would be inaccessible?",
               "primary": false,
-              "options": [
-                "Very little — most things are documented offline too",
-                "A significant amount",
-                "Almost everything — my entire life is digital"
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "digital_access",
+              "options": [
+                "Very little \u2014 most things are documented offline too",
+                "A significant amount",
+                "Almost everything \u2014 my entire life is digital"
+              ]
             }
           ]
         }
       ]
     },
     {
-      "section_id": "medical",
+      "section_id": "medical_wishes",
       "icon": "heart",
       "title": "Medical & Final Wishes",
       "subtitle": "When you can't speak for yourself, someone else will. Have you told them what to say?",
@@ -779,52 +2457,155 @@
           "questions": [
             {
               "id": "Q54",
-              "type": "multiple_choice",
-              "prompt": "If you couldn't speak for yourself, who is making medical decisions — and do they know it?",
+              "type": "hybrid",
+              "prompt": "If you couldn't speak for yourself, who is making medical decisions \u2014 and do they know it?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "No one is legally designated to make medical decisions for you.",
+              "pdf_section": "medical_wishes",
               "options": [
                 "Clearly defined, legally documented, and they know",
                 "Informally understood but nothing is legal",
                 "No one has been chosen"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "proxy_name",
+                    "label": "Healthcare proxy name",
+                    "type": "text",
+                    "placeholder": "Full name"
+                  },
+                  {
+                    "id": "relationship",
+                    "label": "Relationship to you",
+                    "type": "text",
+                    "placeholder": "Spouse, child, friend, etc."
+                  },
+                  {
+                    "id": "phone",
+                    "label": "Phone number",
+                    "type": "text",
+                    "placeholder": "Contact number"
+                  },
+                  {
+                    "id": "legal_document_location",
+                    "label": "Legal document location",
+                    "type": "text",
+                    "placeholder": "Where the healthcare proxy document is stored"
+                  }
+                ]
+              }
             },
             {
               "id": "Q55",
-              "type": "multiple_choice",
-              "prompt": "Would that person know what you actually want — life support, resuscitation, organ donation?",
+              "type": "hybrid",
+              "prompt": "Would that person know what you actually want \u2014 life support, resuscitation, organ donation?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Medical wishes \u2014 life support, organ donation \u2014 would be guessed.",
+              "pdf_section": "medical_wishes",
               "options": [
-                "Yes — we've had the conversation and it's written down",
+                "Yes \u2014 we've had the conversation and it's written down",
                 "We've talked about it loosely",
                 "They'd be guessing in a hospital hallway"
               ],
-              "points": [2, 1, 0]
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "wishes_details",
+                    "label": "Medical wishes",
+                    "type": "textarea",
+                    "placeholder": "Life support, resuscitation, organ donation, pain management, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q56",
-              "type": "multiple_choice",
-              "prompt": "Is your medical history accessible — conditions, medications, allergies, doctors?",
+              "type": "hybrid",
+              "prompt": "Is your medical history accessible \u2014 conditions, medications, allergies, doctors?",
               "primary": false,
+              "weight": "standard",
+              "scores": [
+                0,
+                1,
+                2
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "medical_wishes",
               "options": [
-                "Yes — documented and easy to find",
-                "Partially — my spouse knows most of it",
+                "Yes \u2014 documented and easy to find",
+                "Partially \u2014 my spouse knows most of it",
                 "Only I know my full medical picture"
               ],
-              "points": [2, 1, 0]
-            },
-            {
-              "id": "Q57",
-              "type": "multiple_choice",
-              "prompt": "Would your family feel confident making medical decisions on your behalf — without guilt or doubt?",
-              "primary": true,
-              "options": [
-                "Yes — my wishes are clear enough to remove the burden",
-                "Somewhat — but they'd still second-guess",
-                "No — they'd carry that weight forever"
-              ],
-              "points": [2, 1, 0],
-              "callout": "The guilt of making a wrong medical decision for a loved one never goes away. Clarity is the kindest thing you can give them."
+              "data_fields": {
+                "show_when": [
+                  0,
+                  1
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "primary_doctor_name",
+                    "label": "Primary doctor name and phone",
+                    "type": "text",
+                    "placeholder": "Name and contact"
+                  },
+                  {
+                    "id": "conditions",
+                    "label": "Medical conditions",
+                    "type": "textarea",
+                    "placeholder": "List all chronic conditions and health issues"
+                  },
+                  {
+                    "id": "medications",
+                    "label": "Current medications",
+                    "type": "textarea",
+                    "placeholder": "Medication names, dosages, and schedules"
+                  },
+                  {
+                    "id": "allergies",
+                    "label": "Allergies",
+                    "type": "textarea",
+                    "placeholder": "Medication, food, environmental allergies"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -832,45 +2613,151 @@
           "card_title": "Legacy",
           "questions": [
             {
-              "id": "Q58",
-              "type": "multiple_choice",
-              "prompt": "Have you expressed how you want to be remembered — the values, traditions, and words that matter most to you?",
+              "id": "Q57",
+              "type": "assessment",
+              "prompt": "Would your family feel confident making medical decisions on your behalf \u2014 without guilt or doubt?",
               "primary": true,
-              "options": [
-                "Yes — written down",
-                "I've mentioned some things in conversation",
-                "No — I've never put it into words"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Your family would carry guilt from guessing your medical wishes.",
+              "pdf_section": "medical_wishes",
+              "options": [
+                "Yes \u2014 my wishes are clear enough to remove the burden",
+                "Somewhat \u2014 but they'd still second-guess",
+                "No \u2014 they'd carry that weight forever"
+              ],
+              "callout": "The guilt of making a wrong medical decision for a loved one never goes away. Clarity is the kindest thing you can give them."
+            },
+            {
+              "id": "Q58",
+              "type": "hybrid",
+              "prompt": "Have you expressed how you want to be remembered \u2014 the values, traditions, and words that matter most to you?",
+              "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "How you want to be remembered has never been expressed.",
+              "pdf_section": "medical_wishes",
+              "options": [
+                "Yes \u2014 written down",
+                "I've mentioned some things in conversation",
+                "No \u2014 I've never put it into words"
+              ],
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "legacy_message",
+                    "label": "How you want to be remembered",
+                    "type": "textarea",
+                    "placeholder": "Values, traditions, words that matter most, life lessons, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q59",
-              "type": "multiple_choice",
-              "prompt": "Would your funeral or memorial preferences be followed — or argued about?",
+              "type": "hybrid",
+              "prompt": "Would your funeral or memorial preferences be followed \u2014 or argued about?",
               "primary": true,
-              "options": [
-                "Followed — clearly documented",
-                "Mostly followed — people have a general idea",
-                "Argued about — no one knows what I'd want"
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
               ],
-              "points": [2, 1, 0]
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "risk_message": "Funeral preferences would be argued about, not followed.",
+              "pdf_section": "medical_wishes",
+              "options": [
+                "Followed \u2014 clearly documented",
+                "Mostly followed \u2014 people have a general idea",
+                "Argued about \u2014 no one knows what I'd want"
+              ],
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "funeral_preferences",
+                    "label": "Funeral and memorial preferences",
+                    "type": "textarea",
+                    "placeholder": "Burial or cremation, location, service type, music, readings, who should speak, etc."
+                  }
+                ]
+              }
             },
             {
               "id": "Q60",
-              "type": "multiple_choice",
-              "prompt": "Is there anything you want your family to know — a message, a letter, something only you can say — that you haven't written down yet?",
+              "type": "hybrid",
+              "prompt": "Is there anything you want your family to know \u2014 a message, a letter, something only you can say \u2014 that you haven't written down yet?",
               "primary": true,
+              "weight": "high",
+              "scores": [
+                0,
+                2,
+                4
+              ],
+              "statuses": [
+                "complete",
+                "partial",
+                "missing"
+              ],
+              "pdf_section": "medical_wishes",
               "options": [
                 "I've written it",
                 "I've thought about it but haven't done it",
-                "I haven't — but I should"
+                "I haven't \u2014 but I should"
               ],
-              "points": [2, 1, 0],
-              "callout": "This is the last question for a reason. Everything above is logistics. This is legacy. Don't leave the most important thing unsaid."
+              "callout": "This is the last question for a reason. Everything above is logistics. This is legacy. Don't leave the most important thing unsaid.",
+              "data_fields": {
+                "show_when": [
+                  1,
+                  2
+                ],
+                "defer_option": true,
+                "fields": [
+                  {
+                    "id": "final_message",
+                    "label": "Your final message",
+                    "type": "textarea",
+                    "placeholder": "Write anything you want your family to know. There are no word limits."
+                  }
+                ]
+              }
             }
           ]
         }
       ]
     }
-  ]
+  ],
+  "private_details_note": "This brief is designed to be printed. Sections marked with 'Private Details' include blank lines for sensitive information (account numbers, passwords, PINs) that should be filled in by hand and kept in a sealed, private location."
 }
