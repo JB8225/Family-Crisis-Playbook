@@ -1295,12 +1295,19 @@ function renderSectionIntro() {
   const iconMap = {
     compass: '🧭',
     users: '👥',
+    baby: '👶',
     heart: '❤️',
     bank: '🏦',
     shield: '🛡️',
+    laptop: '💻',
+    stethoscope: '🩺',
     document: '📄',
     star: '⭐'
   };
+
+  const skipBtn = section.skippable
+    ? `<button class="cta-secondary" onclick="skipSection();" style="margin-top:12px; background:transparent; border:1px solid rgba(255,255,255,0.3); color:rgba(255,255,255,0.7); padding:14px 32px; border-radius:12px; font-size:1rem; cursor:pointer;">Skip This Section</button>`
+    : '';
 
   document.getElementById('app').innerHTML = `
     <div class="sintro">
@@ -1309,7 +1316,8 @@ function renderSectionIntro() {
       <p class="sub">${section.subtitle}</p>
       <p class="reassure">${section.intro_message}</p>
       <div style="margin-top: 32px;">
-        <button class="cta" onclick="nextCard();">Continue</button>
+        <button class="cta" onclick="nextCard();">This Applies to Me</button>
+        ${skipBtn}
       </div>
     </div>
   `;
@@ -1546,6 +1554,18 @@ function nextCard() {
   updateProgressBar();
 }
 
+function skipSection() {
+  // Skip current section entirely and move to next
+  if (currentSection < _RAW_WALKTHROUGH.sections.length - 1) {
+    currentSection++;
+    currentCard = -1;
+    renderSectionIntro();
+  } else {
+    renderEmotionalClose();
+  }
+  updateProgressBar();
+}
+
 function prevCard() {
   if (currentCard > 0) {
     currentCard--;
@@ -1568,14 +1588,7 @@ function nextSection() {
     currentSection++;
     currentCard = -1;
 
-    // Check if section is skippable
-    const section = _RAW_WALKTHROUGH.sections[currentSection];
-    if (section.skippable) {
-      // Skip this section
-      nextSection();
-    } else {
-      renderSectionIntro();
-    }
+    renderSectionIntro();
   } else {
     // Done with all sections - show emotional close
     renderEmotionalClose();
