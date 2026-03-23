@@ -560,9 +560,10 @@ A grieving family member will open this document, possibly at a hospital, possib
 CRITICAL RULES:
 1. Address the FAMILY MEMBER reading this. Refer to {first_name} by first name.
 2. ONLY reference institutions and details that appear in {first_name}'s answers below. Never invent.
-3. If an answer is empty, say "this was not documented."
-4. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
-5. This is a legal document. Accuracy matters more than completeness.
+3. Answers are in V5.2 format: assessment questions are stored as option indices (0=best, 1=partial, 2=gap). Data fields use IDs like Q2_executor, Q27_primary_bank, etc. — those contain the actual text values. Focus on the data_field values (the text) for building narratives.
+4. If a data field is empty or missing, say "this was not documented."
+5. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
+6. This is a legal document. Accuracy matters more than completeness.
 
 VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually named):
 - Chase Bank: 1-888-356-0023
@@ -582,6 +583,14 @@ VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually na
 - Prudential: 1-800-778-2255
 - IRS (deceased taxpayer line): 1-800-829-1040
 
+KEY DATA FIELDS TO REFERENCE:
+- Foundation: Q2_executor (executor/trustee), Q2_location (will location), Q5_who (POA), Q7_location (documents), Q8_attorney (estate attorney)
+- People: Q10_who (point person), Q10_phone (their phone), Q12_backup (backup contact), Q14_attorney/Q14_cpa/Q14_advisor/Q14_insurance (professional contacts), Q17_authority (final decision maker)
+- Money: Q27_primary_bank (primary bank), Q27_joint (joint account holder), Q28_accounts (all accounts), Q30_autopay/Q30_manual (bills), Q31_debts, Q32_assets, Q33_business
+- Insurance: Q37_provider/Q37_amount/Q37_beneficiary (life insurance), Q40_health/Q40_home/Q40_auto, Q43_agent
+- Digital: Q46_email, Q47_manager (password manager), Q49_photos, Q50_cloud, Q51_crypto, Q52_apps
+- Medical: Q54_proxy/Q54_backup (healthcare proxy), Q56_conditions/Q56_meds/Q56_allergies/Q56_doctor
+
 {first_name}'s answers:
 {answers_json}
 
@@ -599,8 +608,9 @@ Separate multiple institution blocks with a blank line.
 
 Return ONLY a JSON object with these exact keys:
 {{
-  "financial": {{"narrative": "...", "action_guide": "..."}},
-  "income": {{"narrative": "...", "action_guide": "..."}},
+  "foundation": {{"narrative": "...", "action_guide": "..."}},
+  "people": {{"narrative": "...", "action_guide": "..."}},
+  "money": {{"narrative": "...", "action_guide": "..."}},
   "insurance": {{"narrative": "...", "action_guide": "..."}},
   "digital": {{"narrative": "...", "action_guide": "..."}},
   "medical": {{"narrative": "...", "action_guide": "..."}}
@@ -665,13 +675,17 @@ def generate_fallback_narratives(answers: dict, name: str) -> dict:
     first = name.split()[0] if name else "your loved one"
     guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
     return {
-        "financial": {
-            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
-            "action_guide": guide,
+        "foundation": {
+            "narrative": f"{first} documented the legal foundation — will, power of attorney, and where everything is stored. The details below tell you exactly who's in charge and where to find the documents.",
+            "action_guide": f"INSTITUTION: Estate Attorney | PHONE: See attorney contact below | STEP 1: Contact the estate attorney and report the death | STEP 2: Provide a certified death certificate and ask about next steps for will execution | STEP 3: Ask about any trusts, directives, or documents that need to be filed | HAVE READY: Death certificate, will location, trust documents | TIMELINE: Initial consultation within 24-48 hours | WATCH OUT: Do not attempt to change titles on property or access accounts before speaking with the attorney — there may be tax implications",
         },
-        "income": {
-            "narrative": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out alone. Review the details below to keep things running and cancel what's no longer needed.",
-            "action_guide": "INSTITUTION: Employer/Payroll | PHONE: Call HR department directly | STEP 1: Notify HR of the death and ask about final paycheck and any accrued benefits | STEP 2: Ask about life insurance through the employer | STEP 3: Request information about pension or 401k if applicable | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — freeze or cancel each one individually",
+        "people": {
+            "narrative": f"{first} identified the key people who should step in and what roles they play. The contacts below include the point person, backup, and professional advisors who can help coordinate everything.",
+            "action_guide": f"INSTITUTION: Point Person | PHONE: See contact below | STEP 1: Notify the point person immediately and share this Resolved Brief | STEP 2: Have them contact the attorney and financial advisor within 24-48 hours | STEP 3: The point person should coordinate with the backup contact for tax and financial matters | HAVE READY: This Brief, death certificate, contact information | TIMELINE: Initial coordination within 24-48 hours | WATCH OUT: Clear roles prevent family conflict — the backup should support, not override, the point person's decisions",
+        },
+        "money": {
+            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, debts, and financial obligations that matter. Take your time with this section.",
+            "action_guide": guide,
         },
         "insurance": {
             "narrative": f"{first} made sure you would know what coverage is in place and how to access it. The policy details and contact information are documented below so you can file claims without searching.",
