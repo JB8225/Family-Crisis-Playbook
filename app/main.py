@@ -843,7 +843,8 @@ class SamCartWebhook(BaseModel):
 async def samcart_webhook(request: Request):
     """
     Receives SamCart webhook after purchase.
-    Generates the Resolved Brief and emails it to the customer.
+    Creates a paid session and returns walkthrough URL.
+    PDF generation happens AFTER the walkthrough via /generate-brief.
     """
     try:
         body = await request.json()
@@ -880,9 +881,9 @@ async def samcart_webhook(request: Request):
                 content={"status": "error", "message": "No email found in payload"}
             )
 
+        # ─── Find or create a session for this paid customer ───
         if not session_id:
             print(f"No session_id in webhook, searching by email: {email}")
-            # ─── FIX 1 BENEFIT: Q46 now synced to email column, so this works ───
             result = supabase.table("sessions").select("session_id").eq(
                 "email", email
             ).order("created_at", desc=True).limit(1).execute()
@@ -891,31 +892,36 @@ async def samcart_webhook(request: Request):
                 session_id = result.data[0]["session_id"]
                 print(f"Found session by email: {session_id}")
             else:
-                result = supabase.table("sessions").select("session_id").eq(
-                    "walkthrough_completed", True
-                ).eq("purchase_status", "unpaid").order(
-                    "last_activity_at", desc=True
-                ).limit(1).execute()
+                # No existing session — create one for this paid customer
+                print(f"Creating new paid session for {email}")
+                first_name = name.split()[0] if name and name != "Valued Customer" else ""
+                result = supabase.table("sessions").insert({
+                    "email": email,
+                    "first_name": first_name,
+                    "purchase_status": "paid",
+                    "last_activity_at": now_iso(),
+                }).execute()
+                session_id = result.data[0]["session_id"]
+                print(f"Created new session: {session_id}")
 
-                if result.data:
-                    session_id = result.data[0]["session_id"]
-                    print(f"Found most recent unpaid session: {session_id}")
-                else:
-                    print("ERROR: No matching session found")
-                    return JSONResponse(
-                        status_code=200,
-                        content={"status": "error", "message": "No matching session"}
-                    )
+        # ─── Mark session as paid (do NOT generate PDF yet) ───
+        supabase.table("sessions").update({
+            "purchase_status": "paid",
+            "email": email,
+            "first_name": name.split()[0] if name and name != "Valued Customer" else None,
+            "last_activity_at": now_iso(),
+        }).eq("session_id", session_id).execute()
 
-        result = await generate_resolved_brief(session_id, email, name)
+        walkthrough_url = f"/walkthrough?session_id={session_id}"
+        print(f"Session {session_id} marked as paid. Walkthrough URL: {walkthrough_url}")
 
         return JSONResponse(
             status_code=200,
             content={
-                "status": "success" if result else "error",
+                "status": "success",
                 "session_id": session_id,
                 "email": email,
-                "pdf_status": result or "failed",
+                "walkthrough_url": walkthrough_url,
             }
         )
 
@@ -929,17 +935,23 @@ async def samcart_webhook(request: Request):
         )
 
 
-# ═══ MANUAL PDF GENERATION (for testing) ═══
+# ═══ PDF GENERATION — called after walkthrough completion ═══
 
-class ManualBriefRequest(BaseModel):
-    email: Optional[str] = None
-    name: Optional[str] = None
+class GenerateBriefRequest(BaseModel):
+    answers: Optional[dict] = None  # walkthrough answers from frontend localStorage
+    email: Optional[str] = None     # override (for testing)
+    name: Optional[str] = None      # override (for testing)
 
 @app.post("/api/session/{session_id}/generate-brief")
-async def manual_generate_brief(session_id: str, data: ManualBriefRequest = ManualBriefRequest()):
-    """Manually trigger PDF generation for testing."""
+async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = GenerateBriefRequest()):
+    """
+    Generate the Resolved Brief PDF after walkthrough completion.
+    Called by the walkthrough CTA button — receives answers from frontend,
+    saves them to Supabase, then generates + emails the PDF.
+    """
     try:
-        result = supabase.table("sessions").select("email, first_name").eq(
+        # ─── 1. Validate session exists ───
+        result = supabase.table("sessions").select("*").eq(
             "session_id", session_id
         ).execute()
 
@@ -947,19 +959,52 @@ async def manual_generate_brief(session_id: str, data: ManualBriefRequest = Manu
             raise HTTPException(status_code=404, detail="Session not found")
 
         session = result.data[0]
-        email = data.email or session.get("email") or "test@example.com"
-        name = data.name or session.get("first_name") or "Test User"
 
+        # ─── 2. Validate session is paid ───
+        if session.get("purchase_status") != "paid":
+            raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
+
+        # ─── 3. Prevent duplicate generation ───
+        if session.get("pdf_generated"):
+            return {
+                "status": "already_generated",
+                "message": "Your Resolved Brief has already been generated and emailed.",
+                "session_id": session_id,
+            }
+
+        # ─── 4. Save answers from frontend if provided ───
+        if data.answers:
+            print(f"Saving {len(data.answers)} answers from frontend for session {session_id}")
+            supabase.table("sessions").update({
+                "answers_json": data.answers,
+                "walkthrough_completed": True,
+                "last_activity_at": now_iso(),
+            }).eq("session_id", session_id).execute()
+
+        # ─── 5. Pull email/name from session (or override for testing) ───
+        email = data.email or session.get("email")
+        name = data.name or session.get("first_name") or "Valued Customer"
+
+        if not email:
+            raise HTTPException(status_code=400, detail="No email found for this session. Please contact support.")
+
+        # ─── 6. Generate + email the PDF ───
+        print(f"Generating Resolved Brief for {email} (session: {session_id})")
         status = await generate_resolved_brief(session_id, email, name)
 
         return {
             "status": "success" if status else "error",
+            "message": "Your Resolved Brief is on its way to your inbox!" if status else "Generation failed — our team has been notified.",
             "pdf_status": status or "failed",
             "session_id": session_id,
         }
+
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Generate brief error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 # ═══════════════════════════════════════════════════
 # SCORECARD REPORT EMAIL — Add to bottom of main.py
