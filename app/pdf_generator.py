@@ -1,10 +1,10 @@
 """
-The Resolved Brief — PDF Generator
-===================================
-Generates a personalized, professional Resolved Brief from walkthrough answers.
-Matches the exact brand design: navy/gold/cream, R badge, section headers.
+The Resolved Brief — PDF Generator V5.2
+========================================
+Generates a personalized, professional Resolved Brief from V5.2 walkthrough data.
+Maps assessment answers and data fields to the exact brand design: navy/gold/cream.
 
-v2: Added action guide rendering — phone numbers, steps, timelines, gotchas.
+v5.2: Integrates with the new hybrid assessment + data collection walkthrough.
 """
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -32,85 +32,123 @@ MID_GRAY = HexColor("#8A8578")
 DARK_GRAY = HexColor("#4A4A4A")
 FIELD_DOT = HexColor("#C8C3BA")
 RED_ACCENT = HexColor("#C0392B")
-ACTION_BG = HexColor("#EEF2F7")       # Soft blue-gray for action guide blocks
-ACTION_BORDER = HexColor("#1B2A3D")   # Navy border
-STEP_NUM_BG = HexColor("#C9A84C")     # Gold step numbers
-WATCH_OUT_BG = HexColor("#FFF3CD")    # Warm yellow for watch-out
+ACTION_BG = HexColor("#EEF2F7")
+ACTION_BORDER = HexColor("#1B2A3D")
+STEP_NUM_BG = HexColor("#C9A84C")
+WATCH_OUT_BG = HexColor("#FFF3CD")
 WATCH_OUT_BORDER = HexColor("#E6AC00")
 
 W, H = letter  # 612 x 792
 
-# ═══ MOCK DATA ═══
+# ═══ MOCK DATA - V5.2 FORMAT ═══
 MOCK = {
     "name": "Michael Thompson",
     "date": datetime.now().strftime("%B %d, %Y"),
     "answers": {
-        "S1": "Yes", "S1A": "3-5 years ago", "S1B": "Yes",
-        "S2": "Yes", "S3": "No", "S4": "Yes", "S5": "No",
-        "S6": "2-3", "S7": "No", "S8": "With some digging",
-        "S9": "Most of them", "S10": "Yes", "S11": "No", "S12": "No",
-        "Q1": "Sarah Thompson (wife)", "Q2": "Yes", "Q3": "James Thompson (brother)",
-        "Q4": "High blood pressure, mild asthma", "Q5": "Lisinopril 10mg, Albuterol inhaler as needed",
-        "Q6": "Penicillin", "Q7": "Dr. Emily Chen, Northwestern Medical",
-        "Q8": "Dr. Raj Patel - cardiologist", "Q9": "Blue Cross Blue Shield through employer",
-        "Q10": "Wallet", "Q12": "Full resuscitation", "Q13": "Yes",
-        "Q14": "Chase (checking + savings), Ally (savings)", "Q15": "Checking,Savings,Money Market",
-        "Q16": "Sarah Thompson (joint on Chase)", "Q17": "401(k),Roth IRA",
-        "Q18": "Fidelity (401k through work), Vanguard (Roth IRA)",
-        "Q19": "Schwab brokerage account",
-        "Q20": "Wells Fargo mortgage", "Q21": "Toyota Financial (car loan)",
-        "Q22": "Chase Sapphire, Amex Blue Cash", "Q23": "Filing cabinet,Computer or cloud",
-        "Q24": "No",
-        "Q25": "Chase checking", "Q26": "Ally savings, HSA through employer",
-        "Q27": "Employer paycheck",
-        "Q28": "Mortgage, electric (ComEd), internet (Xfinity), car insurance (State Farm), Netflix, Spotify",
-        "Q29": "Water bill quarterly", "Q30": "Netflix, Spotify, NYT, gym, iCloud",
-        "Q31": "Property tax (June + Sept), car registration (October)",
-        "Q32": "Yes - both", "Q33": "MetLife (employer), Northwestern Mutual (private)",
-        "Q34": "$500K employer + $250K private", "Q35": "Sarah Thompson",
-        "Q36": "Yes - through employer", "Q37": "No", "Q38": "State Farm homeowners",
-        "Q39": "State Farm auto", "Q40": "$1M umbrella through State Farm",
-        "Q41": "Filing cabinet", "Q42": "John Davis, State Farm, 312-555-0847",
-        "Q43": "Password manager app", "Q44": "1Password",
-        "Q45": "In the sealed envelope",
-        "Q46": "michael.t@gmail.com", "Q47": "Yes - someone knows the code",
-        "Q48": "No - only I can access it", "Q49": "Venmo,Zelle",
-        "Q50": "No", "Q51": "iCloud,Google Photos", "Q52": "Google Drive,iCloud",
-        "Q53": "Cremation", "Q54": "Scatter ashes at Lake Michigan",
-        "Q55": "Celebration of life",
-        "Q56": "Play What a Wonderful World by Louis Armstrong. Keep it casual.",
-        "Q57": "College roommate Dave Brennan, old boss Linda Park",
-        "Q58": "Grandfather's watch to Jake, guitar collection to brother James",
-        "Q59": "Donate clothes to Goodwill, sell the boat",
-        "Q60": "To Sarah - you made every single day better. To Jake and Emma - be kind, work hard, and never stop being curious. I'm proud of who you're becoming."
+        # Foundation & Legal (Q1-Q8)
+        "Q1": 1, "Q2": 0, "Q2_executor": "Sarah Thompson", "Q2_location": "Home safe",
+        "Q3": 1, "Q4": 0, "Q5": 0, "Q5_who": "Sarah Thompson — POA & executor",
+        "Q6": 0, "Q7": 0, "Q7_location": "Home safe, filing cabinet",
+        "Q8": 1, "Q8_attorney": "Jennifer Lee, 555-0142",
+
+        # Key People & Decision Makers (Q10-Q18)
+        "Q10": 0, "Q10_who": "Sarah Thompson (wife)", "Q10_phone": "555-0101",
+        "Q11": 0, "Q12": 0, "Q12_backup": "James Thompson (brother)",
+        "Q13": 0, "Q14": 0,
+        "Q14_attorney": "Jennifer Lee, 555-0142",
+        "Q14_cpa": "Robert Chen, Chen & Associates, 555-0143",
+        "Q14_advisor": "Michael Park, Advisors USA, 555-0144",
+        "Q14_insurance": "John Davis, State Farm, 312-555-0847",
+        "Q15": 0, "Q16": 0, "Q17": 0,
+        "Q17_authority": "Sarah Thompson has final authority on all decisions",
+        "Q18": 0,
+
+        # Children & Dependents (Q19-Q26) - skip if not applicable
+        "Q19": 2, "Q20": 2, "Q21": 2, "Q22": 2, "Q23": 2, "Q24": 2, "Q25": 2, "Q26": 2,
+
+        # Money, Assets & Obligations (Q27-Q36)
+        "Q27": 0, "Q27_primary_bank": "Chase Bank", "Q27_joint": "Yes, joint with Sarah Thompson",
+        "Q28": 0, "Q28_accounts": "Chase checking, Chase savings, Ally savings, Fidelity 401k, Vanguard Roth IRA, Schwab brokerage",
+        "Q29": 0, "Q29_hidden": "No hidden accounts",
+        "Q30": 0, "Q30_autopay": "Mortgage (Wells Fargo), Electric (ComEd), Internet (Xfinity), Car insurance (State Farm), Netflix, Spotify",
+        "Q30_manual": "Water bill (quarterly), Property tax (June & September), Car registration (October)",
+        "Q31": 0, "Q31_debts": "Mortgage: Wells Fargo, $250K balance | Car loan: Toyota Financial, $18K balance | Credit cards: Chase (paid monthly), Amex (paid monthly)",
+        "Q32": 0, "Q32_assets": "Home in Chicago (owner), 2008 Toyota Camry, 401k at Fidelity, Roth IRA at Vanguard",
+        "Q33": 2, "Q33_business": "No business interests",
+        "Q34": 0, "Q35": 0, "Q36": 0,
+
+        # Insurance & Protection (Q37-Q44)
+        "Q37": 0, "Q37_provider": "MetLife (employer) & Northwestern Mutual (private)",
+        "Q37_amount": "$500,000 (MetLife) + $250,000 (Northwestern Mutual)",
+        "Q37_beneficiary": "Sarah Thompson",
+        "Q38": 0, "Q38_policy_location": "Filing cabinet in office",
+        "Q39": 0,
+        "Q40": 0, "Q40_health": "Blue Cross Blue Shield (through employer)",
+        "Q40_home": "State Farm homeowners",
+        "Q40_auto": "State Farm auto",
+        "Q41": 0, "Q42": 0,
+        "Q43": 0, "Q43_agent": "John Davis, State Farm, 312-555-0847",
+        "Q44": 0,
+
+        # Digital Life & Access (Q45-Q53)
+        "Q45": 1, "Q46": 0, "Q46_email": "michael.t@gmail.com",
+        "Q47": 0, "Q47_manager": "1Password",
+        "Q48": 1,
+        "Q49": 0, "Q49_photos": "Google Photos, iCloud Photos",
+        "Q50": 0, "Q50_cloud": "Google Drive, iCloud",
+        "Q51": 2, "Q51_crypto": "None",
+        "Q52": 0, "Q52_apps": "Venmo, Zelle, Chase Mobile, Fidelity",
+        "Q53": 1,
+
+        # Medical & Final Wishes (Q54-Q60)
+        "Q54": 0, "Q54_proxy": "Sarah Thompson", "Q54_backup": "James Thompson",
+        "Q55": 0, "Q55_resuscitation": "Full resuscitation (do everything)",
+        "Q55_organ": "Yes, organ donor",
+        "Q56": 0, "Q56_conditions": "High blood pressure, mild asthma",
+        "Q56_meds": "Lisinopril 10mg daily, Albuterol inhaler as needed",
+        "Q56_allergies": "Penicillin (anaphylaxis)",
+        "Q56_doctor": "Dr. Emily Chen, Northwestern Medical, 555-0200",
+        "Q58": 1, "Q58_service": "Celebration of life",
+        "Q58_preference": "Cremation, scatter ashes at Lake Michigan",
+        "Q59": 0, "Q59_requests": "Play Louis Armstrong's 'What a Wonderful World' during celebration. Keep it casual and joyful.",
+        "Q60": 1, "Q60_message": "To Sarah — you made every single day better. To Jake and Emma — be kind, work hard, and never stop being curious. I'm proud of who you're becoming.",
     },
-    "homework": ["S3", "S5", "S7", "S11", "S12", "Q48"],
+    "homework": ["Q3", "Q5", "Q19", "Q21"],
     "ai_narratives": {}
 }
 
+
 def generate_sample_narratives(data):
-    A = data["answers"]
+    """Generate V5.2-aware sample narratives with action guides."""
     return {
-        "financial": {
-            "narrative": "Michael's primary banking is consolidated through Chase, with a joint checking account shared with Sarah and a separate savings account at Ally. Retirement planning is well-structured across a Fidelity 401(k) and Vanguard Roth IRA, with additional investments at Schwab. Financial documents are split between a filing cabinet and cloud storage.",
-            "action_guide": "INSTITUTION: Chase Bank | PHONE: 1-888-356-0023 | STEP 1: Call the Estate Services line and identify yourself as next of kin or executor | STEP 2: Request information on all accounts held under the deceased's name | STEP 3: Ask about joint account access for Sarah Thompson and next steps for transferring ownership | HAVE READY: Death certificate (certified copy), your photo ID, Social Security number of deceased | TIMELINE: Joint account access is typically immediate. Individual account transfers take 2-4 weeks | WATCH OUT: Do not close joint accounts until you speak with an estate attorney — tax implications vary\n\nINSTITUTION: Fidelity (401k) | PHONE: 1-800-343-3548 | STEP 1: Call Fidelity and report the death — ask for the Beneficiary Services team | STEP 2: Request the beneficiary claim packet — Sarah Thompson is the named beneficiary | STEP 3: Complete and return the packet with a certified death certificate | HAVE READY: Death certificate, beneficiary's ID, beneficiary's Social Security number | TIMELINE: Beneficiary claims typically process in 30-60 days | WATCH OUT: Do not roll over the 401k until you understand the inherited IRA rules — a mistake here can trigger significant taxes\n\nINSTITUTION: Vanguard (Roth IRA) | PHONE: 1-800-662-7447 | STEP 1: Call Vanguard and notify them of the death | STEP 2: Ask for the inherited IRA options for the named beneficiary | STEP 3: Complete the transfer paperwork | HAVE READY: Death certificate, beneficiary ID | TIMELINE: 30-60 days | WATCH OUT: Inherited Roth IRA rules differ from traditional IRA — withdrawals may still be tax-free but timing rules apply",
+        "foundation": {
+            "narrative": "You have a will and trust in place that was reviewed recently, with Sarah as your executor. Your documents are stored securely in a home safe and filing cabinet. You've formally assigned Sarah as your power of attorney, and your estate attorney Jennifer Lee is on record. This foundation is solid.",
+            "action_guide": "INSTITUTION: Jennifer Lee, Attorney at Law | PHONE: 555-0142 | STEP 1: Contact Jennifer Lee and report the death | STEP 2: Provide a certified death certificate and ask about next steps for will execution | STEP 3: Ask about any trusts, directives, or documents that need to be filed | HAVE READY: Death certificate, will location, trust documents | TIMELINE: Initial consultation within 24-48 hours | WATCH OUT: Do not attempt to change titles on property or access accounts before speaking with the attorney — there may be tax implications"
         },
-        "income": {
-            "narrative": "Income flows primarily through Chase checking via employer paycheck. Most recurring bills are on autopay, which is ideal — but those autopay cards must stay active or bills will start bouncing. The water bill is paid manually on a quarterly basis. Key annual payments to watch: property tax in June and September, car registration in October.",
-            "action_guide": "INSTITUTION: Employer / HR Department | PHONE: Call HR directly | STEP 1: Notify HR of the death and ask about the final paycheck | STEP 2: Ask about any accrued PTO payout and life insurance through the employer | STEP 3: Request information about pension or 401k continuation | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — go through the autopay list and cancel or transfer each one individually. Do not cancel cards until autopays are moved",
+        "people": {
+            "narrative": "Sarah Thompson is your clearly designated point person and she knows it. Your backup is your brother James. You have professional contacts documented: Jennifer Lee (attorney), Robert Chen (CPA), Michael Park (financial advisor), and John Davis (insurance agent). Sarah has final authority on all decisions, which eliminates confusion in a crisis.",
+            "action_guide": "INSTITUTION: Point Person — Sarah Thompson | PHONE: 555-0101 | STEP 1: Notify Sarah immediately and share this Resolved Brief | STEP 2: Have Sarah contact Jennifer Lee (attorney) within 24 hours | STEP 3: Sarah should coordinate with Robert Chen (CPA) for tax and financial matters | HAVE READY: This Brief, death certificate, contact information | TIMELINE: Initial coordination within 24-48 hours | WATCH OUT: Sarah is the decision maker — backup James should support, not override. Clear roles prevent family conflict."
+        },
+        "children": {
+            "narrative": "No dependent children.",
+            "action_guide": ""
+        },
+        "money": {
+            "narrative": "Your primary banking is through Chase with joint access for Sarah. All accounts are documented: Chase (checking and savings), Ally (savings), Fidelity 401(k), Vanguard Roth IRA, and Schwab brokerage. Bills are on autopay (mortgage, utilities, insurance, subscriptions) with manual quarterly and annual payments documented. Your debts are manageable: mortgage with Wells Fargo (~$250K), car loan with Toyota Financial (~$18K), and credit cards with zero balances kept open. You own a home in Chicago and a 2008 Toyota Camry.",
+            "action_guide": "INSTITUTION: Chase Bank | PHONE: 1-888-356-0023 | STEP 1: Sarah should call Chase estate services and identify herself as power of attorney / executor | STEP 2: Request full account list and ask about joint access and transfer procedures | STEP 3: Ask about automatic payments and what happens if joint account changes ownership | HAVE READY: Death certificate, Sarah's ID, account numbers | TIMELINE: Joint account access typically immediate; transfers take 2-4 weeks | WATCH OUT: Do not close autopay until you've transferred bills to Sarah's name — mortgage and insurance cannot lapse\n\nINSTITUTION: Fidelity (401k) | PHONE: 1-800-343-3548 | STEP 1: Call Fidelity and report the death; ask for Beneficiary Services | STEP 2: Confirm Sarah is the named beneficiary and request claim packet | STEP 3: Return the packet with certified death certificate | HAVE READY: Death certificate, beneficiary ID, Social Security number | TIMELINE: 30-60 days | WATCH OUT: Do not take immediate distributions — consult Robert Chen (CPA) about inherited IRA rules and tax implications\n\nINSTITUTION: Wells Fargo (Mortgage) | PHONE: 1-800-869-3557 | STEP 1: Call mortgage services and report the death | STEP 2: Discuss assumption or transfer options if Sarah wants to keep the home | STEP 3: Do NOT skip payments during transition — late payments can trigger acceleration | HAVE READY: Loan number, death certificate, Sarah's information | TIMELINE: Assumption takes 4-6 weeks; consult attorney first | WATCH OUT: If the house is in a trust, the trustee (Sarah) has different steps than if it's in individual name"
         },
         "insurance": {
-            "narrative": "Michael's insurance coverage is stronger than most. Life insurance totals $750,000 across MetLife (employer) and Northwestern Mutual (private), with Sarah as beneficiary on both. Disability coverage exists through the employer. All policies are filed in the filing cabinet, and agent John Davis at State Farm handles home, auto, and umbrella.",
-            "action_guide": "INSTITUTION: MetLife (Life Insurance — Employer Policy) | PHONE: 1-800-638-5433 | STEP 1: Call MetLife and ask for the Life Insurance Claims department | STEP 2: Provide the policy number if available, or identify through the employer | STEP 3: Complete and return the beneficiary claim form | HAVE READY: Death certificate (certified), beneficiary ID, policy number if available | TIMELINE: Life insurance claims typically pay within 30-60 days | WATCH OUT: If the death was within 2 years of the policy start date, the insurer may contest the claim — this is called the contestability period\n\nINSTITUTION: Northwestern Mutual (Private Life Insurance) | PHONE: 1-800-388-8123 | STEP 1: Call Northwestern Mutual and request the Claims department | STEP 2: Provide the policy number (located in the filing cabinet) | STEP 3: Submit the claim with a certified death certificate | HAVE READY: Death certificate, beneficiary ID, policy documents | TIMELINE: 30-60 days | WATCH OUT: Keep the policy in force (premium paid) until the claim is processed — a lapsed policy can complicate the claim\n\nINSTITUTION: State Farm (Home, Auto, Umbrella) | PHONE: 1-800-732-5246 | STEP 1: Call agent John Davis directly at 312-555-0847 | STEP 2: Notify State Farm of the death and discuss policy continuation | STEP 3: Transfer home and auto policies to the surviving spouse if applicable | HAVE READY: Death certificate, policy numbers | TIMELINE: Policy transfers are typically completed within 1-2 weeks | WATCH OUT: Do not let home or auto insurance lapse — coverage gaps can leave you unprotected and affect future rates",
+            "narrative": "Your life insurance totals $750,000 across MetLife (employer, $500K) and Northwestern Mutual (private, $250K), with Sarah as beneficiary. Other coverage includes Blue Cross health insurance (through employer), State Farm homeowners and auto, plus umbrella coverage. All policies are in your filing cabinet and your agent John Davis has complete documentation.",
+            "action_guide": "INSTITUTION: MetLife (Employer Life Insurance) | PHONE: 1-800-638-5433 | STEP 1: Sarah should call MetLife and report the death; ask for Claims department | STEP 2: Provide employee ID and policy number | STEP 3: Complete beneficiary claim form and return with certified death certificate | HAVE READY: Death certificate, policy number, beneficiary ID | TIMELINE: Life insurance typically pays within 30-60 days | WATCH OUT: The contestability period is 2 years from policy start — if death was within that window, the insurer may investigate the application\n\nINSTITUTION: Northwestern Mutual (Private Life Insurance) | PHONE: 1-800-388-8123 | STEP 1: Sarah should call and request Claims department | STEP 2: Provide policy number (in filing cabinet) and report the death | STEP 3: Submit claim with certified death certificate | HAVE READY: Policy documents, death certificate, beneficiary ID | TIMELINE: 30-60 days | WATCH OUT: Keep premiums current until claim is paid — lapsed policies complicate claims\n\nINSTITUTION: John Davis — Insurance Agent (State Farm) | PHONE: 312-555-0847 | STEP 1: Notify John Davis of the death | STEP 2: Discuss policy continuation for home and auto (critical for lender requirements) | STEP 3: Ask about any group insurance through other accounts that might need activation | HAVE READY: Policy numbers, death certificate | TIMELINE: 1-2 weeks for policy transfers | WATCH OUT: Home and auto insurance cannot lapse — coverage gaps affect rates and create legal liability"
         },
         "digital": {
-            "narrative": "Password management is handled through 1Password, with the master password stored in the sealed envelope — good setup. Michael's primary email is a Gmail account. The main gap is computer access — only Michael can currently get in. Financial apps include Venmo and Zelle. Photos are backed up across iCloud and Google Photos.",
-            "action_guide": "INSTITUTION: Gmail / Google Account | PHONE: No direct phone — use google.com/accounts/recovery | STEP 1: Start with the primary email account — it is the key to resetting everything else | STEP 2: Use Google's Inactive Account process or submit a deceased user request at support.google.com | STEP 3: Once in, use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate (digital copy), your own photo ID | TIMELINE: Google's deceased user process takes 4-8 weeks | WATCH OUT: Do not delete the Google account — it may hold 2-factor authentication codes, documents, and photos that you will need\n\nINSTITUTION: 1Password (Password Manager) | PHONE: No phone — use 1password.com/support | STEP 1: Retrieve the master password from the sealed envelope | STEP 2: Log in to 1Password and export the vault or access credentials one by one | STEP 3: Use the stored passwords to access financial accounts, email, and other services | HAVE READY: Master password from sealed envelope | TIMELINE: Immediate once you have the master password | WATCH OUT: The Emergency Kit (account key + master password) is required — without both, the vault is unrecoverable",
+            "narrative": "Your primary email is michael.t@gmail.com. Passwords are managed through 1Password, with the master password stored in the sealed envelope. Your Google account is the key to recovering everything else (Gmail, Photos, Drive). Your computer requires additional steps to access, but your phone has biometric unlocking. Key financial apps include Venmo, Zelle, Chase Mobile, and Fidelity.",
+            "action_guide": "INSTITUTION: Gmail / Google Account | PHONE: Use google.com/accounts/recovery | STEP 1: Start with the primary email account — it is the key to resetting everything else | STEP 2: Use Google's inactive account request or submit a deceased user request at support.google.com | STEP 3: Once access is confirmed, you can reset passwords for banking and other services | HAVE READY: Death certificate, your own photo ID | TIMELINE: Google's deceased user process takes 4-8 weeks | WATCH OUT: Do not delete the Google account — it contains 2-factor codes, documents, photos, and recovery emails for many services\n\nINSTITUTION: 1Password (Password Manager) | PHONE: Use 1password.com/support | STEP 1: Retrieve the master password from the sealed envelope | STEP 2: Log in to 1Password and access stored credentials | STEP 3: Use the credentials to access financial accounts, email, and other services | HAVE READY: Master password from sealed envelope | TIMELINE: Immediate once you have the master password | WATCH OUT: The Emergency Kit (account key + master password) is required — without both, the vault is unrecoverable"
         },
         "medical": {
-            "narrative": "Sarah Thompson is the medical decision maker and she knows she's been chosen. James Thompson serves as backup. Michael has high blood pressure and mild asthma — Lisinopril and Albuterol. Critical allergy: penicillin. Dr. Emily Chen at Northwestern Medical is primary care, Dr. Raj Patel handles cardiology. The gap: no living will or advance directive exists.",
-            "action_guide": "INSTITUTION: Blue Cross Blue Shield (Health Insurance) | PHONE: Call the member services number on the insurance card | STEP 1: Notify BCBS of the death and ask about any outstanding claims | STEP 2: Ask about COBRA continuation coverage if dependents need continued coverage | STEP 3: Cancel the policy once all claims are settled | HAVE READY: Death certificate, member ID number, insurance card | TIMELINE: Outstanding claims are typically resolved within 60-90 days | WATCH OUT: Do not cancel health insurance until all outstanding medical bills are resolved — some claims arrive months after treatment\n\nINSTITUTION: Dr. Emily Chen — Primary Care (Northwestern Medical) | PHONE: Call the practice directly | STEP 1: Notify the practice of the death | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID | TIMELINE: Medical records requests take up to 30 days under HIPAA | WATCH OUT: Medicare and insurance companies need to be notified separately — the doctor's office does not automatically report the death to either",
-        },
+            "narrative": "Sarah is your healthcare proxy and she knows it. Your backup is your brother James. You have high blood pressure (Lisinopril 10mg) and mild asthma (Albuterol inhaler). Critical allergy: penicillin (anaphylaxis risk). Your primary doctor is Dr. Emily Chen at Northwestern Medical. You want full resuscitation and are an organ donor. You have Blue Cross health insurance through your employer.",
+            "action_guide": "INSTITUTION: Blue Cross Blue Shield (Health Insurance) | PHONE: Call the member services number on your card | STEP 1: Notify Blue Cross of the death and ask about outstanding claims | STEP 2: Request information about COBRA continuation if Sarah needs coverage | STEP 3: Cancel the policy once claims are settled | HAVE READY: Death certificate, member ID, insurance card | TIMELINE: Outstanding claims typically resolve in 60-90 days | WATCH OUT: Do not cancel health insurance until all medical bills are settled — claims arrive months after treatment\n\nINSTITUTION: Dr. Emily Chen — Primary Care (Northwestern Medical) | PHONE: 555-0200 | STEP 1: Notify the practice of the death | STEP 2: Request medical records for insurance claims or estate purposes | STEP 3: Cancel any scheduled appointments | HAVE READY: Death certificate, patient ID | TIMELINE: Records requests take up to 30 days under HIPAA | WATCH OUT: Organ donation should be reported to Dr. Chen immediately — there may be time-sensitive requirements"
+        }
     }
 
 
@@ -127,7 +165,6 @@ def _parse_action_guide(action_guide_text: str) -> list:
     raw_blocks = [b.strip() for b in action_guide_text.strip().split("\n\n") if b.strip()]
 
     for raw in raw_blocks:
-        # Flatten any internal newlines within a block
         flat = " ".join(raw.splitlines())
         parts = [p.strip() for p in flat.split("|") if p.strip()]
 
@@ -147,21 +184,21 @@ def _parse_action_guide(action_guide_text: str) -> list:
 
 
 class ResolvedBriefBuilder:
-    """Builds a Resolved Brief PDF matching the brand design templates."""
+    """Builds a Resolved Brief PDF from V5.2 walkthrough data."""
 
-    def __init__(self, data):
+    def __init__(self, data, walkthrough_def=None):
         self.data = data
         self.A = data["answers"]
         self.name = data["name"]
         self.date = data["date"]
         self.hw = data.get("homework", [])
         self.narratives = data.get("ai_narratives", {})
+        self.walkthrough_def = walkthrough_def or {}
 
-        # Support both old format (string values) and new format (dict with narrative + action_guide)
+        # Generate narratives if not provided
         if not self.narratives:
             self.narratives = generate_sample_narratives(data)
         else:
-            # If any section is still a plain string (old format), wrap it
             for k, v in self.narratives.items():
                 if isinstance(v, str):
                     self.narratives[k] = {"narrative": v, "action_guide": ""}
@@ -185,11 +222,31 @@ class ResolvedBriefBuilder:
             "wish_message": ParagraphStyle("wish_msg", fontName="Helvetica-Oblique", fontSize=11.5, leading=18, textColor=DARK_NAVY, leftIndent=12, rightIndent=12, spaceBefore=8, spaceAfter=8),
         }
 
-    def _get(self, qid, default=""):
-        val = self.A.get(qid, default)
-        if val and "," in val and qid in ("Q15","Q17","Q23","Q27","Q44","Q49","Q51","Q52"):
+    def _get(self, field_id, default=""):
+        """Retrieve value from answers dict, handling both assessment and data field IDs."""
+        val = self.A.get(field_id, default)
+        if val and "," in val and field_id in ("Q28_accounts", "Q30_autopay", "Q30_manual", "Q49_photos", "Q50_cloud", "Q52_apps"):
             val = val.replace(",", ", ")
         return val or default
+
+    def _get_assessment_option(self, q_id):
+        """Get the text option for an assessment question based on selected index."""
+        if q_id not in self.A:
+            return ""
+        idx = self.A[q_id]
+        if not isinstance(idx, int):
+            return str(idx)
+
+        # Find the question in walkthrough definition
+        if self.walkthrough_def:
+            for section in self.walkthrough_def.get('sections', []):
+                for card in section.get('cards', []):
+                    for question in card.get('questions', []):
+                        if question.get('id') == q_id:
+                            options = question.get('options', [])
+                            if 0 <= idx < len(options):
+                                return options[idx]
+        return ""
 
     def _page_header(self, c, title, section_num=None, is_break_glass=False):
         c.setFillColor(NAVY)
@@ -223,19 +280,15 @@ class ResolvedBriefBuilder:
     def _page_footer(self, c, section_label):
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 7.5)
-        c.drawString(36, 24, "\u00A9 2026 Resolved \u00B7 ResolvedFamily.com \u00B7 Confidential")
+        c.drawString(36, 24, "© 2026 Resolved · ResolvedFamily.com · Confidential")
         c.drawRightString(W - 36, 24, section_label)
 
     def _draw_action_guide(self, c, blocks, y_start, min_y=50):
-        """
-        Draw the action guide blocks onto the canvas.
-        Returns the y position after drawing.
-        Each block = one institution with phone, steps, have ready, timeline, watch out.
-        """
+        """Draw action guide blocks onto canvas."""
         from reportlab.lib.utils import simpleSplit
         y = y_start
 
-        # Section header for the action guide
+        # Section header
         c.setFillColor(NAVY)
         c.rect(36, y - 2, W - 72, 24, fill=1, stroke=0)
         c.setFillColor(GOLD)
@@ -270,7 +323,7 @@ class ResolvedBriefBuilder:
             c.setFont("Helvetica-Bold", 11)
             c.drawString(46, y + 3, institution)
 
-            # Phone — right aligned in same bar
+            # Phone — right aligned
             if phone:
                 c.setFillColor(GOLD)
                 c.setFont("Helvetica-Bold", 9)
@@ -279,11 +332,11 @@ class ResolvedBriefBuilder:
 
             y -= 26
 
-            # Steps — circle vertically centered with first line of text
-            STEP_TEXT_X = 68        # text starts here
-            STEP_TEXT_W = W - 112   # text wraps within this width (leaving right margin)
-            CIRCLE_X    = 50        # center of gold circle
-            LINE_H      = 14        # line height for wrapped step text
+            # Steps
+            STEP_TEXT_X = 68
+            STEP_TEXT_W = W - 112
+            CIRCLE_X = 50
+            LINE_H = 14
 
             for i, step in enumerate(steps, 1):
                 if y < min_y:
@@ -291,7 +344,6 @@ class ResolvedBriefBuilder:
                 step_lines = simpleSplit(step, "Helvetica", 10, STEP_TEXT_W)[:3]
                 block_h = len(step_lines) * LINE_H
 
-                # Gold circle — vertically centered on the text block
                 circle_cy = y - (block_h / 2) + LINE_H / 2
                 c.setFillColor(GOLD)
                 c.circle(CIRCLE_X, circle_cy, 7, fill=1, stroke=0)
@@ -299,35 +351,32 @@ class ResolvedBriefBuilder:
                 c.setFont("Helvetica-Bold", 8)
                 c.drawCentredString(CIRCLE_X, circle_cy - 3, str(i))
 
-                # Step text lines
                 c.setFillColor(DARK_NAVY)
                 c.setFont("Helvetica", 10)
                 for li, sl in enumerate(step_lines):
                     c.drawString(STEP_TEXT_X, y - (li * LINE_H), sl)
 
-                y -= block_h + 6  # gap between steps
+                y -= block_h + 6
 
-            y -= 4  # small gap before HAVE READY row
+            y -= 4
 
-            # Have Ready + Timeline — fixed column widths, text clipped to column
+            # Have Ready + Timeline
             if have_ready or timeline:
-                # Column layout: left col takes ~55%, right col takes ~45%
-                LEFT_LABEL_X  = 42
-                LEFT_VALUE_X  = 112
-                LEFT_COL_END  = 36 + int((W - 72) * 0.54)   # where left col ends
-                RIGHT_START   = LEFT_COL_END + 6
+                LEFT_LABEL_X = 42
+                LEFT_VALUE_X = 112
+                LEFT_COL_END = 36 + int((W - 72) * 0.54)
+                RIGHT_START = LEFT_COL_END + 6
                 RIGHT_LABEL_X = RIGHT_START + 6
                 RIGHT_VALUE_X = RIGHT_START + 68
                 RIGHT_COL_END = W - 42
 
-                left_value_w  = LEFT_COL_END - LEFT_VALUE_X - 6
+                left_value_w = LEFT_COL_END - LEFT_VALUE_X - 6
                 right_value_w = RIGHT_COL_END - RIGHT_VALUE_X - 6
 
                 row_h = 18
                 c.setFillColor(LIGHT_GRAY)
                 c.rect(36, y - 4, W - 72, row_h, fill=1, stroke=0)
 
-                # Left: HAVE READY
                 if have_ready:
                     c.setFillColor(DARK_NAVY)
                     c.setFont("Helvetica-Bold", 8.5)
@@ -337,9 +386,7 @@ class ResolvedBriefBuilder:
                     ready_lines = simpleSplit(have_ready, "Helvetica", 8.5, left_value_w)
                     c.drawString(LEFT_VALUE_X, y + 2, ready_lines[0] if ready_lines else "")
 
-                # Right: TIMELINE
                 if timeline:
-                    # Divider line between columns
                     c.setStrokeColor(MID_GRAY)
                     c.setLineWidth(0.5)
                     c.line(RIGHT_START, y - 4, RIGHT_START, y + row_h - 4)
@@ -354,16 +401,14 @@ class ResolvedBriefBuilder:
 
                 y -= row_h + 4
 
-            # Watch Out — yellow box, text fully contained within box margins
+            # Watch Out
             if watch_out:
                 WATCH_LABEL_X = 46
-                WATCH_TEXT_X  = 132
-                WATCH_TEXT_W  = W - 72 - (WATCH_TEXT_X - 36) - 10  # stay inside right edge
-                LINE_H_W      = 13
+                WATCH_TEXT_X = 132
+                WATCH_TEXT_W = W - 72 - (WATCH_TEXT_X - 36) - 10
+                LINE_H_W = 13
 
-                watch_lines = simpleSplit(watch_out, "Helvetica", 9, WATCH_TEXT_W)
-                # Cap at 3 lines to avoid runaway boxes
-                watch_lines = watch_lines[:3]
+                watch_lines = simpleSplit(watch_out, "Helvetica", 9, WATCH_TEXT_W)[:3]
                 box_h = max(20, len(watch_lines) * LINE_H_W + 10)
 
                 c.setFillColor(WATCH_OUT_BG)
@@ -375,7 +420,7 @@ class ResolvedBriefBuilder:
 
                 c.setFillColor(WATCH_OUT_BORDER)
                 c.setFont("Helvetica-Bold", 8.5)
-                c.drawString(WATCH_LABEL_X, y + 2, "\u26A0  WATCH OUT:")
+                c.drawString(WATCH_LABEL_X, y + 2, "⚠  WATCH OUT:")
 
                 c.setFillColor(HexColor("#5D4B00"))
                 c.setFont("Helvetica", 9)
@@ -384,7 +429,7 @@ class ResolvedBriefBuilder:
 
                 y -= box_h + 4
 
-            y -= 14  # Space between institution blocks
+            y -= 14
 
         return y
 
@@ -431,8 +476,8 @@ class ResolvedBriefBuilder:
         c.setFillColor(MID_GRAY)
         c.drawCentredString(W/2, H * 0.295, self.date)
 
-        sections_left = ["Financial Overview", "Insurance & Benefits", "Medical & Emergency", "Family Emergency Card"]
-        sections_right = ["Income & Bills", "Digital Life & Access", "Final Wishes", "Follow-Up Checklist"]
+        sections_left = ["Foundation & Legal", "Key People & Decision Makers", "Money, Assets & Obligations", "Digital Life & Access"]
+        sections_right = ["Insurance & Protection", "Medical & Emergency", "Final Wishes", "Family Emergency Card"]
         y_start = H * 0.22
         c.setFont("Helvetica", 11)
         for i, (left, right) in enumerate(zip(sections_left, sections_right)):
@@ -446,19 +491,16 @@ class ResolvedBriefBuilder:
 
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 7.5)
-        c.drawCentredString(W/2, 36, "\u00A9 2026 Resolved \u00B7 ResolvedFamily.com")
+        c.drawCentredString(W/2, 36, "© 2026 Resolved · ResolvedFamily.com")
         c.setFont("Helvetica", 7)
         c.drawCentredString(W/2, 24, "This document is confidential and intended only for the named individual and their designated contacts.")
 
-    def build_section_page(self, c, title, subtitle, section_num, narrative_key, fields_by_card, continuation_page=False):
-        """
-        Build a section page: header → narrative → action guide → field cards.
-        If action guide is long, it may push fields to render lower or on next page.
-        """
+    def build_section_page(self, c, title, subtitle, section_num, narrative_key, fields_by_card):
+        """Build a section page: header → narrative → action guide → field cards."""
         from reportlab.lib.utils import simpleSplit
 
         self._page_header(c, title, section_num)
-        self._page_footer(c, f"Section {section_num} of 7")
+        self._page_footer(c, f"Section {section_num} of 8")
 
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica", 11)
@@ -466,26 +508,24 @@ class ResolvedBriefBuilder:
 
         y = H - 125
 
-        # Pull narrative and action guide from new format
+        # Narrative and action guide
         section_data = self.narratives.get(narrative_key, {})
         if isinstance(section_data, dict):
             narrative_text = section_data.get("narrative", "")
             action_guide_text = section_data.get("action_guide", "")
         else:
-            # Old plain-string format fallback
             narrative_text = str(section_data)
             action_guide_text = ""
 
-        # ── PART A: Narrative intro ──
+        # Narrative intro
         if narrative_text:
-            # Light cream box behind narrative
             narrative_lines = simpleSplit(narrative_text, "Helvetica", 10.5, W - 88)
             box_h = len(narrative_lines) * 15 + 16
             c.setFillColor(HexColor("#F0EDE5"))
             c.rect(36, y - box_h + 10, W - 72, box_h, fill=1, stroke=0)
             c.setStrokeColor(GOLD)
             c.setLineWidth(2)
-            c.line(36, y - box_h + 10, 36, y + 10)  # Gold left border
+            c.line(36, y - box_h + 10, 36, y + 10)
             c.setLineWidth(0.5)
 
             c.setFillColor(DARK_GRAY)
@@ -497,7 +537,7 @@ class ResolvedBriefBuilder:
                 y -= 15
             y -= 14
 
-        # ── PART B: Action Guide ──
+        # Action Guide
         if action_guide_text:
             action_blocks = _parse_action_guide(action_guide_text)
             if action_blocks:
@@ -505,12 +545,12 @@ class ResolvedBriefBuilder:
                 y = self._draw_action_guide(c, action_blocks, y, min_y=60)
                 y -= 10
 
-        # ── PART C: Field Cards ──
+        # Field Cards
         for card_title, fields in fields_by_card:
             if y < 120:
                 break
 
-            # Card header bar
+            # Card header
             c.setFillColor(NAVY)
             c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
             c.setFillColor(GOLD)
@@ -552,11 +592,11 @@ class ResolvedBriefBuilder:
         """Build the complete Resolved Brief PDF."""
         c = canvas.Canvas(output_path, pagesize=letter)
 
-        # ═══ PAGE 1: COVER ═══
+        # PAGE 1: COVER
         self.build_cover(c)
         c.showPage()
 
-        # ═══ PAGE 2: INTRODUCTION LETTER ═══
+        # PAGE 2: INTRODUCTION
         from reportlab.lib.utils import simpleSplit
         self._page_header(c, "Before You Begin")
         self._page_footer(c, "Introduction")
@@ -575,7 +615,7 @@ class ResolvedBriefBuilder:
         c.setFillColor(DARK_GRAY)
         c.setFont("Helvetica", 11)
         paras = [
-            f"This is {first}'s Resolved Brief \u2014 the most important document your family will ever need. It covers their finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
+            f"This is {first}'s Resolved Brief — the most important document your family will ever need. It covers finances, insurance, medical wishes, and final instructions. Every section was built from their own words, organized so you can find what you need quickly.",
             "",
             "Here is what to do:",
             "",
@@ -594,7 +634,7 @@ class ResolvedBriefBuilder:
             ("2", "Work through each section as you need it", "You do not have to read it all at once. Each section stands on its own."),
             ("3", "Use the Action Guide in each section", "Every section includes step-by-step instructions, phone numbers, and what to have ready before you call."),
             ("4", "Check the Follow-Up Checklist", "Some items were flagged to address later. This list tells you what still needs attention."),
-            ("5", "Look for the sealed envelope", "Passwords, PINs, and account numbers are written by hand on the Emergency Card and sealed separately."),
+            ("5", "Look for the sealed envelope", "Passwords, PINs, and account numbers are written by hand on the Vault Page and sealed separately."),
         ]
 
         for num, title, detail in steps:
@@ -614,7 +654,6 @@ class ResolvedBriefBuilder:
                 y -= 15
             y -= 12
 
-        # Emergency Card note — navy callout box
         y -= 10
         note_text = "The Vault Page is included at the end of this document. Print it separately, fill in the sensitive details by hand, seal it in an envelope, and keep it with this Brief — or store it somewhere your family knows to look."
         note_lines = simpleSplit(note_text, "Helvetica", 10, W - 130)
@@ -649,157 +688,200 @@ class ResolvedBriefBuilder:
 
         c.showPage()
 
-        # ═══ PAGE 3: FINANCIAL OVERVIEW ═══
-        self.build_section_page(c, "Financial Overview",
-            "Where the money lives \u2014 banks, investments, and debts", 1, "financial",
+        # PAGE 3: FOUNDATION & LEGAL
+        self.build_section_page(c, "Foundation & Legal",
+            "Documents, authority, and legal foundation", 1, "foundation",
             [
-                ("Bank Accounts", [
-                    ("Primary Bank", self._get("Q14")),
-                    ("Account Types", self._get("Q15")),
-                    ("Joint Account Holder", self._get("Q16")),
+                ("Will / Trust", [
+                    ("Executor/Trustee", self._get("Q2_executor")),
+                    ("Document Location", self._get("Q2_location")),
                 ]),
-                ("Investments & Retirement", [
-                    ("Retirement Accounts", self._get("Q17")),
-                    ("Held At", self._get("Q18")),
-                    ("Brokerage Accounts", self._get("Q19")),
+                ("Power of Attorney", [
+                    ("Assigned To", self._get("Q5_who")),
                 ]),
-                ("Debts & Documents", [
-                    ("Mortgage/Rent", self._get("Q20")),
-                    ("Loans", self._get("Q21")),
-                    ("Credit Cards", self._get("Q22")),
-                    ("Documents Location", self._get("Q23")),
-                    ("Safe Deposit Box", self._get("Q24")),
+                ("Documents", [
+                    ("Primary Location", self._get("Q7_location")),
+                    ("Estate Attorney", self._get("Q8_attorney")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 4: INCOME & BILLS ═══
-        self.build_section_page(c, "Income & Bills",
-            "What comes in, what goes out \u2014 so nothing gets missed", 2, "income",
+        # PAGE 4: KEY PEOPLE & DECISION MAKERS
+        self.build_section_page(c, "Key People & Decision Makers",
+            "Who steps in and who to call for help", 2, "people",
             [
-                ("Income Sources", [
-                    ("Primary Account", self._get("Q25")),
-                    ("Other Accounts", self._get("Q26")),
-                    ("Income Sources", self._get("Q27")),
+                ("Primary & Backup", [
+                    ("Point Person", self._get("Q10_who")),
+                    ("Phone", self._get("Q10_phone")),
+                    ("Backup Contact", self._get("Q12_backup")),
+                ]),
+                ("Professional Contacts", [
+                    ("Attorney", self._get("Q14_attorney")),
+                    ("CPA/Accountant", self._get("Q14_cpa")),
+                    ("Financial Advisor", self._get("Q14_advisor")),
+                    ("Insurance Agent", self._get("Q14_insurance")),
+                ]),
+                ("Authority & Roles", [
+                    ("Final Decision Maker", self._get("Q17_authority")),
+                ]),
+            ])
+        c.showPage()
+
+        # PAGE 5: MONEY, ASSETS & OBLIGATIONS
+        self.build_section_page(c, "Money, Assets & Obligations",
+            "Where money lives, what you owe, and what you own", 3, "money",
+            [
+                ("Banking", [
+                    ("Primary Bank", self._get("Q27_primary_bank")),
+                    ("Joint Account Holder", self._get("Q27_joint")),
+                    ("All Accounts", self._get("Q28_accounts")),
+                    ("Hidden Accounts", self._get("Q29_hidden")),
                 ]),
                 ("Bills & Payments", [
-                    ("Bills on Autopay", self._get("Q28")),
-                    ("Manual Bills", self._get("Q29")),
-                    ("Annual Payments", self._get("Q31")),
+                    ("Bills on Autopay", self._get("Q30_autopay")),
+                    ("Manual Payments", self._get("Q30_manual")),
                 ]),
-                ("Subscriptions & Memberships", [
-                    ("Active Subscriptions", self._get("Q30")),
+                ("Debts & Assets", [
+                    ("Debts & Obligations", self._get("Q31_debts")),
+                    ("Property & Assets", self._get("Q32_assets")),
+                    ("Business Interests", self._get("Q33_business")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 5: INSURANCE & BENEFITS ═══
-        self.build_section_page(c, "Insurance & Benefits",
-            "Your safety net \u2014 what's covered and where the policies are", 3, "insurance",
+        # PAGE 6: INSURANCE & PROTECTION
+        self.build_section_page(c, "Insurance & Protection",
+            "Coverage, policies, and where to find them", 4, "insurance",
             [
                 ("Life Insurance", [
-                    ("Provider", self._get("Q33")),
-                    ("Coverage Amount", self._get("Q34")),
-                    ("Beneficiary", self._get("Q35")),
-                    ("Policy Type", self._get("Q32")),
+                    ("Provider(s)", self._get("Q37_provider")),
+                    ("Coverage Amount", self._get("Q37_amount")),
+                    ("Beneficiary", self._get("Q37_beneficiary")),
+                    ("Policy Location", self._get("Q38_policy_location")),
                 ]),
-                ("Other Coverage", [
-                    ("Disability Insurance", self._get("Q36")),
-                    ("Long-Term Care", self._get("Q37")),
-                    ("Home/Renters", self._get("Q38")),
-                    ("Auto Insurance", self._get("Q39")),
+                ("Other Insurance", [
+                    ("Health Insurance", self._get("Q40_health")),
+                    ("Home/Renters", self._get("Q40_home")),
+                    ("Auto Insurance", self._get("Q40_auto")),
                 ]),
-                ("Policy Locations", [
-                    ("Documents Kept At", self._get("Q41")),
-                    ("Agent/Broker", self._get("Q42")),
-                    ("Other Policies", self._get("Q40")),
+                ("Agent & Contact", [
+                    ("Insurance Agent", self._get("Q43_agent")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 6: DIGITAL LIFE & ACCESS ═══
+        # PAGE 7: DIGITAL LIFE & ACCESS
         self.build_section_page(c, "Digital Life & Access",
-            "How your family gets into your accounts when they need to", 4, "digital",
+            "How your family gets into accounts when they need to", 5, "digital",
             [
-                ("Passwords & Access", [
-                    ("Password Manager", self._get("Q44", self._get("Q43"))),
-                    ("Master Password Location", self._get("Q45")),
-                    ("Primary Email", self._get("Q46")),
+                ("Passwords & Email", [
+                    ("Primary Email", self._get("Q46_email")),
+                    ("Password Manager", self._get("Q47_manager")),
                 ]),
-                ("Device Access", [
-                    ("Phone Access", self._get("Q47")),
-                    ("Computer Access", self._get("Q48")),
-                    ("Financial Apps", self._get("Q49")),
-                ]),
-                ("Digital Assets & Storage", [
-                    ("Cryptocurrency", self._get("Q50")),
-                    ("Photos Stored At", self._get("Q51")),
-                    ("Cloud Storage", self._get("Q52")),
+                ("Digital Assets", [
+                    ("Photos Stored At", self._get("Q49_photos")),
+                    ("Cloud Storage", self._get("Q50_cloud")),
+                    ("Cryptocurrency", self._get("Q51_crypto")),
+                    ("Financial Apps", self._get("Q52_apps")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 7: MEDICAL & EMERGENCY ═══
+        # PAGE 8: MEDICAL & EMERGENCY
         self.build_section_page(c, "Medical & Emergency",
-            "Who makes decisions and what they need to know", 5, "medical",
+            "Who decides and what they need to know", 6, "medical",
             [
-                ("Decision Makers", [
-                    ("Healthcare Proxy", self._get("Q1")),
-                    ("This Person Knows", self._get("Q2")),
-                    ("Backup Contact", self._get("Q3")),
+                ("Healthcare Decision Maker", [
+                    ("Healthcare Proxy", self._get("Q54_proxy")),
+                    ("Backup Proxy", self._get("Q54_backup")),
                 ]),
                 ("Medical Information", [
-                    ("Conditions", self._get("Q4")),
-                    ("Medications", self._get("Q5")),
-                    ("Allergies", self._get("Q6")),
-                    ("Primary Doctor", self._get("Q7")),
+                    ("Conditions", self._get("Q56_conditions")),
+                    ("Medications", self._get("Q56_meds")),
+                    ("Allergies", self._get("Q56_allergies")),
+                    ("Primary Doctor", self._get("Q56_doctor")),
                 ]),
                 ("End-of-Life Preferences", [
-                    ("Resuscitation Preference", self._get("Q12")),
-                    ("Organ Donor", self._get("Q13")),
-                    ("Health Insurance", self._get("Q9")),
+                    ("Resuscitation", self._get("Q55_resuscitation")),
+                    ("Organ Donor", self._get("Q55_organ")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 8: FINAL WISHES ═══
-        self.build_section_page(c, "Final Wishes",
-            "These are the exact words and wishes they left for you.", 6, "wishes",
-            [
-                ("Arrangements", [
-                    ("Burial / Cremation", self._get("Q53")),
-                    ("Specific Wishes", self._get("Q54")),
-                ]),
-                ("Service & Celebration", [
-                    ("Type of Service", self._get("Q55")),
-                    ("Specific Requests", self._get("Q56")),
-                    ("People to Notify", self._get("Q57")),
-                ]),
-                ("Personal Belongings", [
-                    ("Items for Specific People", self._get("Q58")),
-                    ("Donate / Sell / Destroy", self._get("Q59")),
-                ]),
-            ])
+        # PAGE 9: FINAL WISHES — no narrative/action guide, verbatim data only
+        self._page_header(c, "Final Wishes", section_num=7)
+        self._page_footer(c, "Section 7 of 8")
 
-        msg = self._get("Q60")
+        y = H - 96
+        c.setFillColor(MID_GRAY)
+        c.setFont("Helvetica-Oblique", 11)
+        c.drawString(36, y, "These are the exact words and wishes they left for you.")
+        y -= 28
+
+        # Arrangements card
+        c.setFillColor(NAVY)
+        c.rect(36, y - 4, W - 72, 24, fill=1, stroke=0)
+        c.setFillColor(white)
+        c.setFont("Times-Bold", 13)
+        c.drawString(46, y + 2, "Arrangements")
+        y -= 30
+
+        wish_fields = [
+            ("Burial / Cremation:", self._get("Q58_preference")),
+            ("Service Type:", self._get("Q58_service")),
+        ]
+        for label, val in wish_fields:
+            c.setFillColor(DARK_NAVY)
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(46, y, label)
+            c.setFillColor(DARK_GRAY)
+            c.setFont("Helvetica", 10.5)
+            c.drawString(200, y, val if val else ". . . . . . . . . . . . . . . .")
+            y -= 20
+        y -= 8
+
+        # Specific Requests card
+        c.setFillColor(GOLD)
+        c.rect(36, y - 4, W - 72, 24, fill=1, stroke=0)
+        c.setFillColor(DARK_NAVY)
+        c.setFont("Times-Bold", 13)
+        c.drawString(46, y + 2, "Specific Requests")
+        y -= 30
+
+        requests = self._get("Q59_requests")
+        if requests:
+            c.setFillColor(DARK_GRAY)
+            c.setFont("Helvetica", 10.5)
+            for line in simpleSplit(requests, "Helvetica", 10.5, W - 100)[:6]:
+                c.drawString(46, y, line)
+                y -= 16
+        else:
+            c.setFillColor(FIELD_DOT)
+            c.setFont("Helvetica-Oblique", 10)
+            c.drawString(46, y, "No specific requests documented")
+            y -= 16
+        y -= 16
+
+        # Your Words — the emotional centerpiece
+        msg = self._get("Q60_message")
         if msg:
             c.setFillColor(GOLD)
-            c.setFont("Times-Bold", 12)
-            c.drawString(42, 180, "Your Words")
+            c.setFont("Times-Bold", 14)
+            c.drawString(36, y, "Your Words")
             c.setStrokeColor(GOLD)
-            c.setLineWidth(0.5)
-            c.line(42, 175, W - 42, 175)
+            c.setLineWidth(1)
+            c.line(36, y - 6, W - 36, y - 6)
+            y -= 24
+
             c.setFillColor(DARK_NAVY)
-            c.setFont("Helvetica-Oblique", 11)
-            lines = simpleSplit(msg, "Helvetica-Oblique", 11, W - 100)
-            y = 158
-            for line in lines[:8]:
+            c.setFont("Helvetica-Oblique", 11.5)
+            for line in simpleSplit(msg, "Helvetica-Oblique", 11.5, W - 100)[:12]:
                 c.drawString(50, y, line)
-                y -= 16
+                y -= 18
 
         c.showPage()
 
-        # ═══ PAGE 9: FAMILY EMERGENCY CARD ═══
+        # PAGE 10: FAMILY EMERGENCY CARD
         self._page_header(c, "", is_break_glass=True)
         self._page_footer(c, "Family Emergency Card")
 
@@ -809,7 +891,7 @@ class ResolvedBriefBuilder:
 
         y = H - 130
 
-        # First 24 Hours header
+        # First 24 Hours
         c.setFillColor(NAVY)
         c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
         c.setFillColor(GOLD)
@@ -820,19 +902,20 @@ class ResolvedBriefBuilder:
         y -= 30
 
         steps_24 = []
-        steps_24.append(f"1.  Call {self._get('Q1', '(primary emergency contact)')}")
-        steps_24.append("2.  Locate the Resolved Brief and the sealed envelope")
-        agent = self._get("Q42", "")
+        point_person = self._get("Q10_who", "the designated point person")
+        point_phone = self._get("Q10_phone", "")
+        steps_24.append(f"1.  Call {point_person} {f'at {point_phone}' if point_phone else ''}")
+        steps_24.append("2.  Locate The Resolved Brief and the sealed envelope with passwords")
+        agent = self._get("Q43_agent", "")
         if agent:
             steps_24.append(f"3.  Call insurance agent: {agent}")
-        if self._get("Q44", self._get("Q43", "")):
-            steps_24.append(f"{len(steps_24)+1}.  Access password manager using sealed envelope instructions")
-        income = self._get("Q27", "")
-        if "employer" in income.lower():
-            steps_24.append(f"{len(steps_24)+1}.  Contact employer / HR")
-        elif "self" in income.lower():
-            steps_24.append(f"{len(steps_24)+1}.  Notify business clients / partners")
-        doctor = self._get("Q7", "")
+        pm = self._get("Q47_manager", "")
+        if pm:
+            steps_24.append(f"{len(steps_24)+1}.  Access password manager ({pm}) using sealed envelope instructions")
+        proxy = self._get("Q54_proxy", "")
+        if proxy:
+            steps_24.append(f"{len(steps_24)+1}.  Notify healthcare proxy: {proxy}")
+        doctor = self._get("Q56_doctor", "")
         if doctor:
             steps_24.append(f"{len(steps_24)+1}.  Contact primary doctor: {doctor}")
 
@@ -859,43 +942,41 @@ class ResolvedBriefBuilder:
         y -= 28
 
         contacts = [
-            ("Healthcare Proxy:", self._get("Q1")),
-            ("Insurance Agent:", self._get("Q42")),
-            ("Primary Doctor:", self._get("Q7")),
+            ("Healthcare Proxy:", self._get("Q54_proxy")),
+            ("Insurance Agent:", self._get("Q43_agent")),
+            ("Primary Doctor:", self._get("Q56_doctor")),
         ]
         access = [
-            ("Phone Passcode:", self._get("Q47")),
-            ("Computer Password:", self._get("Q48")),
-            ("Email Access:", self._get("Q46")),
-            ("Password Manager:", self._get("Q44", self._get("Q43"))),
+            ("Primary Email:", self._get("Q46_email")),
+            ("Password Manager:", self._get("Q47_manager")),
         ]
 
-        for i, ((cl, cv), (al, av)) in enumerate(zip(contacts, access)):
+        max_len = max(len(contacts), len(access))
+        for i in range(max_len):
             c.setFillColor(DARK_NAVY)
             c.setFont("Helvetica-Bold", 9)
-            c.drawString(col1_x + 8, y, cl)
-            c.drawString(col2_x + 8, y, al)
-            c.setFillColor(DARK_GRAY)
-            c.setFont("Helvetica", 9)
-            c.drawString(col1_x + 8, y - 12, cv[:35] + "..." if len(cv) > 38 else cv)
-            c.drawString(col2_x + 8, y - 12, av[:35] + "..." if len(av) > 38 else av)
+            if i < len(contacts):
+                cl, cv = contacts[i]
+                c.drawString(col1_x + 8, y, cl)
+                c.setFillColor(DARK_GRAY)
+                c.setFont("Helvetica", 9)
+                c.drawString(col1_x + 8, y - 12, cv[:35] + "..." if len(cv) > 38 else cv)
+                c.setFillColor(DARK_NAVY)
+                c.setFont("Helvetica-Bold", 9)
+            if i < len(access):
+                al, av = access[i]
+                c.drawString(col2_x + 8, y, al)
+                c.setFillColor(DARK_GRAY)
+                c.setFont("Helvetica", 9)
+                c.drawString(col2_x + 8, y - 12, av[:35] + "..." if len(av) > 38 else av)
             c.setStrokeColor(LIGHT_GRAY)
             c.line(col1_x + 4, y - 18, col1_x + col_w - 4, y - 18)
             c.line(col2_x + 4, y - 18, col2_x + col_w - 4, y - 18)
             y -= 28
 
-        for al, av in access[len(contacts):]:
-            c.setFillColor(DARK_NAVY)
-            c.setFont("Helvetica-Bold", 9)
-            c.drawString(col2_x + 8, y, al)
-            c.setFillColor(DARK_GRAY)
-            c.setFont("Helvetica", 9)
-            c.drawString(col2_x + 8, y - 12, av[:35] + "..." if len(av) > 38 else av)
-            c.setStrokeColor(LIGHT_GRAY)
-            c.line(col2_x + 4, y - 18, col2_x + col_w - 4, y - 18)
-            y -= 28
-
         y -= 20
+
+        # VAULT PAGE SECTION
         c.setFillColor(NAVY)
         c.rect(36, y - 4, W - 72, 28, fill=1, stroke=0)
         c.setFillColor(GOLD)
@@ -937,41 +1018,160 @@ class ResolvedBriefBuilder:
 
         c.showPage()
 
-        # ═══ PAGE 10: FOLLOW-UP CHECKLIST ═══
+        # PAGE 11: WALLET EMERGENCY CARD
+        # Two wallet-sized cards (3.5" x 2") on one page — cut along dotted lines
+        c.setFillColor(CREAM)
+        c.rect(0, 0, W, H, fill=1, stroke=0)
+
+        c.setFillColor(MID_GRAY)
+        c.setFont("Helvetica-Oblique", 10)
+        c.drawCentredString(W/2, H - 40, "Cut along the dotted lines. Keep one in your wallet, give one to your emergency contact.")
+
+        # Draw two identical wallet cards
+        card_w = 3.5 * inch
+        card_h = 2.25 * inch
+        cards_x = (W - card_w) / 2
+
+        for card_idx, card_top_y in enumerate([H - 70, H - 70 - card_h - 40]):
+            # Dotted cut border
+            c.setStrokeColor(LIGHT_GRAY)
+            c.setLineWidth(0.5)
+            c.setDash(3, 3)
+            c.rect(cards_x, card_top_y - card_h, card_w, card_h, fill=0, stroke=1)
+            c.setDash()
+
+            # Card background
+            c.setFillColor(WARM_WHITE)
+            c.rect(cards_x + 1, card_top_y - card_h + 1, card_w - 2, card_h - 2, fill=1, stroke=0)
+
+            # Navy header strip
+            c.setFillColor(NAVY)
+            c.rect(cards_x + 1, card_top_y - 22, card_w - 2, 21, fill=1, stroke=0)
+            c.setFillColor(GOLD)
+            c.setFont("Helvetica-Bold", 8)
+            c.drawCentredString(W/2, card_top_y - 16, f"THE RESOLVED BRIEF  —  {self.name.upper()}")
+
+            y = card_top_y - 36
+            lx = cards_x + 12  # left margin inside card
+            rx = cards_x + card_w - 12  # right margin
+
+            # THE MOST IMPORTANT LINE — where the Brief is kept
+            c.setFillColor(NAVY)
+            c.setFont("Helvetica-Bold", 7.5)
+            c.drawString(lx, y, "THE RESOLVED BRIEF IS LOCATED AT:")
+            y -= 11
+            c.setFillColor(DARK_GRAY)
+            c.setFont("Helvetica", 7)
+            doc_loc = self._get("Q7_location", "")
+            c.drawString(lx, y, doc_loc if doc_loc else "______________________________________")
+            y -= 13
+
+            c.setFillColor(NAVY)
+            c.setFont("Helvetica-Bold", 7.5)
+            c.drawString(lx, y, "SEALED ENVELOPE (PASSWORDS) IS AT:")
+            y -= 11
+            c.setFillColor(DARK_GRAY)
+            c.setFont("Helvetica", 7)
+            c.drawString(lx, y, "______________________________________")
+            y -= 14
+
+            # Gold divider
+            c.setStrokeColor(GOLD)
+            c.setLineWidth(0.5)
+            c.line(lx, y + 4, rx, y + 4)
+            y -= 6
+
+            # Two-column layout for remaining info
+            mid = cards_x + card_w / 2
+
+            # Left column
+            fields_left = [
+                ("Emergency Contact:", self._get("Q10_who", "")),
+                ("Phone:", self._get("Q10_phone", "")),
+                ("Healthcare Proxy:", self._get("Q54_proxy", "")),
+                ("Organ Donor:", self._get("Q55_organ", "")),
+            ]
+
+            # Right column
+            fields_right = [
+                ("Attorney:", self._get("Q8_attorney", "")),
+                ("Doctor:", self._get("Q56_doctor", "")),
+                ("Allergies:", self._get("Q56_allergies", "None")),
+                ("Medications:", self._get("Q56_meds", "None")),
+            ]
+
+            col_y = y
+            for label, val in fields_left:
+                c.setFillColor(DARK_NAVY)
+                c.setFont("Helvetica-Bold", 6)
+                c.drawString(lx, col_y, label)
+                c.setFillColor(DARK_GRAY)
+                c.setFont("Helvetica", 6)
+                # Truncate to fit
+                display = val[:28] if val else "_______________"
+                c.drawString(lx + 2, col_y - 8, display)
+                col_y -= 18
+
+            col_y = y
+            for label, val in fields_right:
+                c.setFillColor(DARK_NAVY)
+                c.setFont("Helvetica-Bold", 6)
+                c.drawString(mid + 4, col_y, label)
+                c.setFillColor(DARK_GRAY)
+                c.setFont("Helvetica", 6)
+                display = val[:28] if val else "_______________"
+                c.drawString(mid + 6, col_y - 8, display)
+                col_y -= 18
+
+        # Instructions below both cards
+        c.setFillColor(MID_GRAY)
+        c.setFont("Helvetica-Oblique", 9)
+        inst_y = card_top_y - card_h - 30
+        c.drawCentredString(W/2, inst_y, "Fill in the Sealed Envelope location by hand after printing.")
+        c.drawCentredString(W/2, inst_y - 14, "The most important thing on this card is WHERE THE BRIEF IS KEPT.")
+
+        c.showPage()
+
+        # PAGE 12: FOLLOW-UP CHECKLIST
         self._page_header(c, "Follow-Up Checklist")
         self._page_footer(c, "Checklist")
 
         c.setFillColor(MID_GRAY)
         c.setFont("Helvetica-Oblique", 10)
-        c.drawString(36, H - 96, "Items to address \u2014 you don't have to be perfect, just keep going")
+        c.drawString(36, H - 96, "Items to address — you don't have to be perfect, just keep going")
         c.setFillColor(DARK_NAVY)
         c.setFont("Helvetica", 10)
         c.drawString(36, H - 114, "These are the items flagged during your session. Check them off as you go.")
 
         y = H - 145
 
+        # Dynamic checklist based on answers
         categories = {
             "Legal Documents": [
-                "Create or update your will",
-                "Set up healthcare proxy / power of attorney",
-                "Create or update living will / advance directive",
-                "Review and update beneficiaries on all accounts",
+                ("Create or update your will", ["Q2"]),
+                ("Set up power of attorney", ["Q5"]),
+                ("Create or update healthcare directive", ["Q55"]),
+                ("Review beneficiaries on all accounts", ["Q35"]),
             ],
             "Financial": [
-                "Organize financial documents in one location",
-                "Set up joint access or POD on key accounts",
-                "Review life insurance coverage and beneficiaries",
+                ("Organize financial documents in one location", ["Q7"]),
+                ("Set up joint access or POD on key accounts", ["Q27"]),
+                ("Review and document all accounts", ["Q28"]),
             ],
             "Digital": [
-                "Set up password manager emergency access",
-                "Store master password in Master File",
-                "Enable legacy contacts on Apple / Google accounts",
+                ("Set up password manager with emergency access", ["Q47"]),
+                ("Store master password in sealed location", ["Q47"]),
+                ("Enable legacy contacts on email/cloud accounts", ["Q46"]),
+            ],
+            "Medical & Insurance": [
+                ("Have conversation with healthcare proxy", ["Q54"]),
+                ("Review life insurance coverage and beneficiaries", ["Q37"]),
+                ("Document medical conditions and allergies", ["Q56"]),
             ],
             "Personal": [
-                "Have the conversation with your healthcare proxy",
-                "Tell someone where The Resolved Brief is kept",
-                "Review and update every 6 months",
-                "Share The Resolved Brief with family members",
+                ("Tell someone where this Brief is stored", ["Q10"]),
+                ("Share Brief with key family members", ["Q10"]),
+                ("Review and update every 6 months", []),
             ],
         }
 
@@ -988,30 +1188,44 @@ class ResolvedBriefBuilder:
             c.drawString(52, y, cat)
             y -= 26
 
-            for item in items:
+            for item, related_qs in items:
                 if y < 50:
                     break
-                c.setStrokeColor(MID_GRAY)
-                c.setLineWidth(0.75)
-                c.rect(52, y - 2, 12, 12, fill=0, stroke=1)
-                c.setFillColor(DARK_NAVY)
-                c.setFont("Helvetica", 10)
-                c.drawString(72, y, item)
-                y -= 22
+                # Check if this item should be flagged (score 0 or 1 on related questions)
+                should_show = True
+                if related_qs:
+                    for qid in related_qs:
+                        if qid in self.A and isinstance(self.A[qid], int):
+                            if self.A[qid] >= 2:
+                                should_show = False
+
+                if should_show or not related_qs:
+                    c.setStrokeColor(MID_GRAY)
+                    c.setLineWidth(0.75)
+                    c.rect(52, y - 2, 12, 12, fill=0, stroke=1)
+                    c.setFillColor(DARK_NAVY)
+                    c.setFont("Helvetica", 10)
+                    c.drawString(72, y, item)
+                    y -= 22
 
             y -= 8
 
         c.setFillColor(NAVY)
         c.setFont("Times-Bold", 12)
-        c.drawCentredString(W/2, 58, "You don\u2019t have to do it all today. You already did the hard part.")
+        c.drawCentredString(W/2, 58, "You don't have to do it all today. You already did the hard part.")
 
         c.showPage()
         c.save()
         print(f"Resolved Brief generated: {output_path}")
 
 
-# ═══ GENERATE SAMPLE ═══
+def generate_brief(data, output_path, walkthrough_def=None):
+    """Convenience function to generate a brief from data."""
+    builder = ResolvedBriefBuilder(data, walkthrough_def)
+    builder.build(output_path)
+
+
 if __name__ == "__main__":
-    output = "/mnt/user-data/outputs/The-Resolved-Brief-SAMPLE.pdf"
+    output = "/sessions/determined-upbeat-edison/mnt/Resolved/The-Resolved-Brief-SAMPLE.pdf"
     builder = ResolvedBriefBuilder(MOCK)
     builder.build(output)
