@@ -1206,6 +1206,13 @@ let currentScore = 0;
 let projectedScore = 0;
 let maxScore = 120;
 
+// ─── Session ID from URL (set by SamCart redirect) ───
+const urlParams = new URLSearchParams(window.location.search);
+const sessionId = urlParams.get('session_id') || localStorage.getItem('walkthrough_session_id');
+if (sessionId) {
+  localStorage.setItem('walkthrough_session_id', sessionId);
+}
+
 // Load saved answers from localStorage
 function loadAnswers() {
   const saved = localStorage.getItem('walkthrough_answers');
@@ -1639,9 +1646,61 @@ function renderEmotionalClose() {
       ${scoreHtml}
       <div class="emo-quote">"${ec.quote}"</div>
       <div class="emo-quote-sub">${ec.quote_sub}</div>
-      <button class="cta" onclick="location.href='/brief';">${ec.cta}</button>
+      <button class="cta" id="generate-brief-btn" onclick="generateBrief();">${ec.cta}</button>
+      <div id="brief-status" style="margin-top:1rem;"></div>
     </div>
   `;
+}
+
+// ─── Generate Brief — POST answers to backend, trigger PDF + email ───
+async function generateBrief() {
+  const btn = document.getElementById('generate-brief-btn');
+  const statusEl = document.getElementById('brief-status');
+
+  if (!sessionId) {
+    statusEl.innerHTML = '<p style="color:#e8927c;">Session not found. Please contact support or check your email for instructions.</p>';
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.textContent = 'Generating your brief...';
+  btn.style.opacity = '0.7';
+  statusEl.innerHTML = '<p style="color:#c9b458;">This takes about 60 seconds — we\'re building your personalized report with AI.</p>';
+
+  try {
+    const response = await fetch(`/api/session/${sessionId}/generate-brief`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers: answers }),
+    });
+
+    const result = await response.json();
+
+    if (result.status === 'success' || result.status === 'already_generated') {
+      btn.textContent = 'Brief sent!';
+      btn.style.background = '#2a6041';
+      statusEl.innerHTML = `
+        <p style="color:#c9b458; font-size:1.1rem; font-weight:600;">
+          ✓ ${result.message || 'Your Resolved Brief is on its way to your inbox!'}
+        </p>
+        <p style="color:#a0aec0; margin-top:0.5rem;">Check your email (and spam folder) in the next few minutes.</p>
+      `;
+    } else if (response.status === 403) {
+      btn.textContent = 'GET MY RESOLVED BRIEF';
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      statusEl.innerHTML = '<p style="color:#e8927c;">Payment not found for this session. Please complete your purchase first.</p>';
+    } else {
+      throw new Error(result.message || result.detail || 'Generation failed');
+    }
+  } catch (err) {
+    console.error('Generate brief error:', err);
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    statusEl.innerHTML = `<p style="color:#e8927c;">Something went wrong: ${err.message}. Please try again or contact support.</p>`;
+  }
 }
 
 // Update progress bar
