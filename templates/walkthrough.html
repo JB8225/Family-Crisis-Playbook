@@ -1272,25 +1272,34 @@ function calculateScores() {
 
 // Render welcome screen
 function renderWelcome() {
-  const w = _RAW_WALKTHROUGH.welcome;
-  const stepsHtml = w.what_to_expect.map((step, i) => `
-    <div class="w-step stagger-item">
-      <div class="w-step-n">${i + 1}</div>
-      <div class="w-step-t">${step.text}</div>
-    </div>
-  `).join('');
-
-  const statsHtml = w.stats.map(stat => `<span><strong>${stat}</strong></span>`).join('');
-
   document.getElementById('app').innerHTML = `
     <div class="welcome">
-      <h1>${w.headline}</h1>
-      <p class="body">${w.body}</p>
-      <div class="w-steps">${stepsHtml}</div>
-      <div class="w-time">${statsHtml}</div>
-      <p class="body" style="font-size: 16px; margin-bottom: 24px;">${w.reassurance}</p>
-      <button class="cta" onclick="nextSection();">${w.cta}</button>
-      <p class="privacy">🔒 ${w.footer_note}</p>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(212,168,83,0.12); border:1px solid rgba(212,168,83,0.3); border-radius:999px; padding:6px 16px; font-size:13px; font-weight:600; letter-spacing:0.08em; color:#D4A853; text-transform:uppercase; margin-bottom:28px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#D4A853;display:inline-block;"></span>
+        The Resolved Brief
+      </div>
+
+      <h1 style="font-family:var(--serif); font-size:clamp(30px,5vw,48px); font-weight:700; line-height:1.2; margin-bottom:0;">
+        Your family's <span style="color:#B99B64;">plan for the worst</span> in 20 minutes.
+      </h1>
+
+      <div style="width:48px; height:2px; background:linear-gradient(90deg,#D4A853,#C4933F); border-radius:2px; margin:24px auto;"></div>
+
+      <p class="body" style="font-size:18px; line-height:1.7; color:rgba(255,255,255,0.72); margin-bottom:28px;">
+        Seven short sections. <strong style="color:#fff;">One document</strong> your family can actually use if something happens to you tomorrow &mdash; instead of scrambling for answers.
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:36px;">
+        ${['Finances','Medical wishes','Key contacts','What to do first','Where to find things'].map(p => `
+          <span style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:999px; padding:6px 14px; font-size:13px; color:rgba(255,255,255,0.65);">${p}</span>
+        `).join('')}
+      </div>
+
+      <button class="cta" onclick="nextSection();">Build my brief now &rarr;</button>
+
+      <p style="margin-top:16px; font-size:14px; color:rgba(255,255,255,0.35); letter-spacing:0.01em;">
+        No account numbers. No passwords. Takes about 20 minutes.
+      </p>
     </div>
   `;
 }
