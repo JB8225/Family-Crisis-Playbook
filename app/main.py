@@ -935,6 +935,122 @@ async def samcart_webhook(request: Request):
         )
 
 
+# ═══ FREE FLOW: START — create/find session, return session_id ═══
+
+class FreeStartRequest(BaseModel):
+    email: str
+    first_name: Optional[str] = None
+
+@app.post("/api/free/start")
+async def free_start(data: FreeStartRequest):
+    """
+    Called by /free/ page form on submit.
+    Finds existing session by email or creates a new one.
+    Returns session_id so frontend can redirect to walkthrough.
+    """
+    try:
+        email = data.email.strip().lower()
+        first_name = (data.first_name or "").strip()
+
+        # Look for most recent session with this email
+        result = supabase.table("sessions").select("session_id, first_name").eq(
+            "email", email
+        ).order("created_at", desc=True).limit(1).execute()
+
+        if result.data:
+            session_id = result.data[0]["session_id"]
+            # Update name if provided and not already set
+            if first_name and not result.data[0].get("first_name"):
+                supabase.table("sessions").update({
+                    "first_name": first_name,
+                    "last_activity_at": now_iso(),
+                }).eq("session_id", session_id).execute()
+            print(f"Free flow: found existing session {session_id} for {email}")
+        else:
+            # Create new session
+            insert_result = supabase.table("sessions").insert({
+                "email": email,
+                "first_name": first_name or None,
+                "purchase_status": "free",
+                "last_activity_at": now_iso(),
+            }).execute()
+            session_id = insert_result.data[0]["session_id"]
+            print(f"Free flow: created new session {session_id} for {email}")
+
+        return JSONResponse(
+            status_code=200,
+            content={"status": "ok", "session_id": session_id}
+        )
+
+    except Exception as e:
+        print(f"Free start error: {e}")
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "error": str(e)}
+        )
+
+
+# ═══ FREE FLOW: GENERATE — called at end of walkthrough ═══
+
+class FreeBriefRequest(BaseModel):
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+
+@app.post("/api/session/{session_id}/free-brief")
+async def free_brief(session_id: str, data: FreeBriefRequest = FreeBriefRequest()):
+    """
+    Called by walkthrough completion screen (free flow).
+    Saves answers, marks session as free, generates + emails PDF immediately.
+    """
+    try:
+        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
+        if not result.data:
+            return JSONResponse(status_code=404, content={"status": "error", "error": "Session not found."})
+
+        session = result.data[0]
+
+        # Prevent duplicate generation
+        if session.get("pdf_generated"):
+            return JSONResponse(status_code=200, content={
+                "status": "success",
+                "message": "Your Resolved Brief was already sent — check your inbox (and spam folder)."
+            })
+
+        email = data.email or session.get("email")
+        name = data.first_name or session.get("first_name") or (email.split("@")[0] if email else "Friend")
+
+        if not email:
+            return JSONResponse(status_code=400, content={"status": "error", "error": "No email found for this session."})
+
+        # Mark as free/paid so generate_resolved_brief doesn't block
+        supabase.table("sessions").update({
+            "purchase_status": "free",
+            "email": email,
+            "first_name": name.split()[0] if name else None,
+            "walkthrough_completed": True,
+            "last_activity_at": now_iso(),
+        }).eq("session_id", session_id).execute()
+
+        print(f"Generating free brief for {email} (session: {session_id})")
+        status = await generate_resolved_brief(session_id, email, name)
+
+        if status in ("sent", "generated_not_sent"):
+            return JSONResponse(status_code=200, content={"status": "success"})
+        else:
+            return JSONResponse(status_code=200, content={
+                "status": "error",
+                "error": "Generation failed — please try again or contact support."
+            })
+
+    except Exception as e:
+        print(f"Free brief error: {e}")
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"status": "error", "error": str(e)})
+
+
 # ═══ PDF GENERATION — called after walkthrough completion ═══
 
 class GenerateBriefRequest(BaseModel):
@@ -960,8 +1076,8 @@ async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = 
 
         session = result.data[0]
 
-        # ─── 2. Validate session is paid ───
-        if session.get("purchase_status") != "paid":
+        # ─── 2. Validate session is paid or free ───
+        if session.get("purchase_status") not in ("paid", "free"):
             raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
 
         # ─── 3. Prevent duplicate generation ───
