@@ -1076,9 +1076,12 @@ async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = 
 
         session = result.data[0]
 
-        # ─── 2. Validate session is paid or free ───
+        # ─── 2. Auto-grant free access (free launch period) ───
         if session.get("purchase_status") not in ("paid", "free"):
-            raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
+            supabase.table("sessions").update({
+                "purchase_status": "free",
+                "last_activity_at": now_iso(),
+            }).eq("session_id", session_id).execute()
 
         # ─── 3. Prevent duplicate generation ───
         if session.get("pdf_generated"):
