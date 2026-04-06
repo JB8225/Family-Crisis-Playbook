@@ -104,7 +104,7 @@ body > * {
 @media (hover: hover) and (pointer: fine) {
   .card-w:hover,
   .grouped:hover {
-    transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+    transform: perspective(1000px) rotateX(1deg) rotateY(-1deg) scale(1.02);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
@@ -1771,8 +1771,8 @@ function initTilt() {
       if (isWithinBounds) {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const rotateX = ((e.clientY - centerY) / rect.height) * 4;
-        const rotateY = ((centerX - e.clientX) / rect.width) * 4;
+        const rotateX = Math.max(-1.5, Math.min(1.5, ((e.clientY - centerY) / rect.height) * 1.5));
+        const rotateY = Math.max(-1.5, Math.min(1.5, ((centerX - e.clientX) / rect.width) * 1.5));
         card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
       }
     });
