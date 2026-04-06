@@ -1686,11 +1686,6 @@ async function generateBrief() {
         </p>
         <p style="color:#a0aec0; margin-top:0.5rem;">Check your email (and spam folder) in the next few minutes.</p>
       `;
-    } else if (response.status === 403) {
-      btn.textContent = 'GET MY RESOLVED BRIEF';
-      btn.disabled = false;
-      btn.style.opacity = '1';
-      statusEl.innerHTML = '<p style="color:#e8927c;">Payment not found for this session. Please complete your purchase first.</p>';
     } else {
       throw new Error(result.message || result.detail || 'Generation failed');
     }
