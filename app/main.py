@@ -174,10 +174,10 @@ app = FastAPI(title="Resolved Family", version="3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://familycrisisplaybook.com",
-        "https://www.familycrisisplaybook.com",
         "https://resolvedfamily.com",
         "https://www.resolvedfamily.com",
+        "https://familycrisisplaybook.com",
+        "https://www.familycrisisplaybook.com",
         "http://localhost:3000",
         "http://localhost:8080",
     ],
@@ -935,122 +935,6 @@ async def samcart_webhook(request: Request):
         )
 
 
-# ═══ FREE FLOW: START — create/find session, return session_id ═══
-
-class FreeStartRequest(BaseModel):
-    email: str
-    first_name: Optional[str] = None
-
-@app.post("/api/free/start")
-async def free_start(data: FreeStartRequest):
-    """
-    Called by /free/ page form on submit.
-    Finds existing session by email or creates a new one.
-    Returns session_id so frontend can redirect to walkthrough.
-    """
-    try:
-        email = data.email.strip().lower()
-        first_name = (data.first_name or "").strip()
-
-        # Look for most recent session with this email
-        result = supabase.table("sessions").select("session_id, first_name").eq(
-            "email", email
-        ).order("created_at", desc=True).limit(1).execute()
-
-        if result.data:
-            session_id = result.data[0]["session_id"]
-            # Update name if provided and not already set
-            if first_name and not result.data[0].get("first_name"):
-                supabase.table("sessions").update({
-                    "first_name": first_name,
-                    "last_activity_at": now_iso(),
-                }).eq("session_id", session_id).execute()
-            print(f"Free flow: found existing session {session_id} for {email}")
-        else:
-            # Create new session
-            insert_result = supabase.table("sessions").insert({
-                "email": email,
-                "first_name": first_name or None,
-                "purchase_status": "free",
-                "last_activity_at": now_iso(),
-            }).execute()
-            session_id = insert_result.data[0]["session_id"]
-            print(f"Free flow: created new session {session_id} for {email}")
-
-        return JSONResponse(
-            status_code=200,
-            content={"status": "ok", "session_id": session_id}
-        )
-
-    except Exception as e:
-        print(f"Free start error: {e}")
-        import traceback
-        traceback.print_exc()
-        return JSONResponse(
-            status_code=500,
-            content={"status": "error", "error": str(e)}
-        )
-
-
-# ═══ FREE FLOW: GENERATE — called at end of walkthrough ═══
-
-class FreeBriefRequest(BaseModel):
-    email: Optional[str] = None
-    first_name: Optional[str] = None
-
-@app.post("/api/session/{session_id}/free-brief")
-async def free_brief(session_id: str, data: FreeBriefRequest = FreeBriefRequest()):
-    """
-    Called by walkthrough completion screen (free flow).
-    Saves answers, marks session as free, generates + emails PDF immediately.
-    """
-    try:
-        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
-        if not result.data:
-            return JSONResponse(status_code=404, content={"status": "error", "error": "Session not found."})
-
-        session = result.data[0]
-
-        # Prevent duplicate generation
-        if session.get("pdf_generated"):
-            return JSONResponse(status_code=200, content={
-                "status": "success",
-                "message": "Your Resolved Brief was already sent — check your inbox (and spam folder)."
-            })
-
-        email = data.email or session.get("email")
-        name = data.first_name or session.get("first_name") or (email.split("@")[0] if email else "Friend")
-
-        if not email:
-            return JSONResponse(status_code=400, content={"status": "error", "error": "No email found for this session."})
-
-        # Mark as free/paid so generate_resolved_brief doesn't block
-        supabase.table("sessions").update({
-            "purchase_status": "free",
-            "email": email,
-            "first_name": name.split()[0] if name else None,
-            "walkthrough_completed": True,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
-
-        print(f"Generating free brief for {email} (session: {session_id})")
-        status = await generate_resolved_brief(session_id, email, name)
-
-        if status in ("sent", "generated_not_sent"):
-            return JSONResponse(status_code=200, content={"status": "success"})
-        else:
-            return JSONResponse(status_code=200, content={
-                "status": "error",
-                "error": "Generation failed — please try again or contact support."
-            })
-
-    except Exception as e:
-        print(f"Free brief error: {e}")
-        import traceback
-        traceback.print_exc()
-        return JSONResponse(status_code=500, content={"status": "error", "error": str(e)})
-
-
 # ═══ PDF GENERATION — called after walkthrough completion ═══
 
 class GenerateBriefRequest(BaseModel):
@@ -1076,12 +960,9 @@ async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = 
 
         session = result.data[0]
 
-        # ─── 2. Auto-grant free access (free launch period) ───
-        if session.get("purchase_status") not in ("paid", "free"):
-            supabase.table("sessions").update({
-                "purchase_status": "free",
-                "last_activity_at": now_iso(),
-            }).eq("session_id", session_id).execute()
+        # ─── 2. Validate session is paid ───
+        if session.get("purchase_status") != "paid":
+            raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
 
         # ─── 3. Prevent duplicate generation ───
         if session.get("pdf_generated"):
@@ -1354,7 +1235,7 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
                 <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
                 <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
                 <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
-                <a href="https://familycrisisplaybook.com/free/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
+                <a href="https://resolvedfamily.com/free/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
                 <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">20 minutes. One document. Done.</p>
             </div>
 
@@ -1362,8 +1243,8 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
             <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
                 <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Know someone who should take this? Share the scorecard — it takes 5 minutes and it could change everything for their family.</p>
                 <div style="margin-top: 8px;">
-                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Ffamilycrisisplaybook.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
-                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Ffamilycrisisplaybook.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
+                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Fresolvedfamily.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
+                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Fresolvedfamily.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
                 </div>
             </div>
 
