@@ -960,9 +960,9 @@ async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = 
 
         session = result.data[0]
 
-        # ─── 2. Validate session is paid ───
-        if session.get("purchase_status") != "paid":
-            raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
+        # ─── 2. Payment check DISABLED — free during launch ───
+        # if session.get("purchase_status") != "paid":
+        #     raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
 
         # ─── 3. Prevent duplicate generation ───
         if session.get("pdf_generated"):
