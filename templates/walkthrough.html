@@ -1191,7 +1191,7 @@ textarea.qi {
 </head>
 <body>
 
-<div id="app"></div>
+<div id="app" style="background: #0f172a; min-height: 100vh;"></div>
 
 <script>
 // Load walkthrough from Jinja2
@@ -1549,26 +1549,36 @@ function findQuestion(questionId) {
   return null;
 }
 
+// Smooth screen transition — prevents white flash
+function transitionScreen(renderFn) {
+  const app = document.getElementById('app');
+  app.style.opacity = '0';
+  app.style.transition = 'opacity 0.15s ease';
+  setTimeout(() => {
+    renderFn();
+    app.style.opacity = '1';
+  }, 150);
+}
+
 // Navigation
 function nextCard() {
   const section = _RAW_WALKTHROUGH.sections[currentSection];
   if (currentCard < section.cards.length - 1) {
     currentCard++;
-    renderCard();
+    transitionScreen(() => renderCard());
   } else {
-    renderSectionComplete();
+    transitionScreen(() => renderSectionComplete());
   }
   updateProgressBar();
 }
 
 function skipSection() {
-  // Skip current section entirely and move to next
   if (currentSection < _RAW_WALKTHROUGH.sections.length - 1) {
     currentSection++;
     currentCard = -1;
-    renderSectionIntro();
+    transitionScreen(() => renderSectionIntro());
   } else {
-    renderEmotionalClose();
+    transitionScreen(() => renderEmotionalClose());
   }
   updateProgressBar();
 }
@@ -1583,22 +1593,18 @@ function prevCard() {
 
 function nextSection() {
   if (currentSection === -1) {
-    // Moving from welcome to first section
     currentSection = 0;
-    currentCard = -1; // -1 means show section intro
-    renderSectionIntro();
+    currentCard = -1;
+    transitionScreen(() => renderSectionIntro());
   } else if (currentCard === -1) {
-    // Moving from section intro to first card
     currentCard = 0;
-    renderCard();
+    transitionScreen(() => renderCard());
   } else if (currentSection < _RAW_WALKTHROUGH.sections.length - 1) {
     currentSection++;
     currentCard = -1;
-
-    renderSectionIntro();
+    transitionScreen(() => renderSectionIntro());
   } else {
-    // Done with all sections - show emotional close
-    renderEmotionalClose();
+    transitionScreen(() => renderEmotionalClose());
   }
   updateProgressBar();
 }
