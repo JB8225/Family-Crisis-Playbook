@@ -174,10 +174,10 @@ app = FastAPI(title="Resolved Family", version="3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://resolvedfamily.com",
-        "https://www.resolvedfamily.com",
         "https://familycrisisplaybook.com",
         "https://www.familycrisisplaybook.com",
+        "https://resolvedfamily.com",
+        "https://www.resolvedfamily.com",
         "http://localhost:3000",
         "http://localhost:8080",
     ],
@@ -560,10 +560,9 @@ A grieving family member will open this document, possibly at a hospital, possib
 CRITICAL RULES:
 1. Address the FAMILY MEMBER reading this. Refer to {first_name} by first name.
 2. ONLY reference institutions and details that appear in {first_name}'s answers below. Never invent.
-3. Answers are in V5.2 format: assessment questions are stored as option indices (0=best, 1=partial, 2=gap). Data fields use IDs like Q2_executor, Q27_primary_bank, etc. — those contain the actual text values. Focus on the data_field values (the text) for building narratives.
-4. If a data field is empty or missing, say "this was not documented."
-5. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
-6. This is a legal document. Accuracy matters more than completeness.
+3. If an answer is empty, say "this was not documented."
+4. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
+5. This is a legal document. Accuracy matters more than completeness.
 
 VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually named):
 - Chase Bank: 1-888-356-0023
@@ -583,14 +582,6 @@ VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually na
 - Prudential: 1-800-778-2255
 - IRS (deceased taxpayer line): 1-800-829-1040
 
-KEY DATA FIELDS TO REFERENCE:
-- Foundation: Q2_executor (executor/trustee), Q2_location (will location), Q5_who (POA), Q7_location (documents), Q8_attorney (estate attorney)
-- People: Q10_who (point person), Q10_phone (their phone), Q12_backup (backup contact), Q14_attorney/Q14_cpa/Q14_advisor/Q14_insurance (professional contacts), Q17_authority (final decision maker)
-- Money: Q27_primary_bank (primary bank), Q27_joint (joint account holder), Q28_accounts (all accounts), Q30_autopay/Q30_manual (bills), Q31_debts, Q32_assets, Q33_business
-- Insurance: Q37_provider/Q37_amount/Q37_beneficiary (life insurance), Q40_health/Q40_home/Q40_auto, Q43_agent
-- Digital: Q46_email, Q47_manager (password manager), Q49_photos, Q50_cloud, Q51_crypto, Q52_apps
-- Medical: Q54_proxy/Q54_backup (healthcare proxy), Q56_conditions/Q56_meds/Q56_allergies/Q56_doctor
-
 {first_name}'s answers:
 {answers_json}
 
@@ -608,13 +599,18 @@ Separate multiple institution blocks with a blank line.
 
 Return ONLY a JSON object with these exact keys:
 {{
-  "foundation": {{"narrative": "...", "action_guide": "..."}},
-  "people": {{"narrative": "...", "action_guide": "..."}},
-  "money": {{"narrative": "...", "action_guide": "..."}},
+  "financial": {{"narrative": "...", "action_guide": "..."}},
+  "income": {{"narrative": "...", "action_guide": "..."}},
   "insurance": {{"narrative": "...", "action_guide": "..."}},
   "digital": {{"narrative": "...", "action_guide": "..."}},
-  "medical": {{"narrative": "...", "action_guide": "..."}}
+  "medical": {{"narrative": "...", "action_guide": "..."}},
+  "children": {{"narrative": "...", "action_guide": "..."}}
 }}
+
+CHILDREN SECTION SPECIAL RULES:
+- The children section is SKIPPABLE. If Q61–Q67 are all empty, return: {{"narrative": "Not applicable — {first_name} did not have minor dependents at the time this Brief was prepared.", "action_guide": ""}}
+- If Q61–Q67 have data, the narrative should center on the temporary guardian (Q62) — they are the most important call. Mention the school pickup status (Q64), house key (Q63), and what the guardian needs to know (Q67) if filled in.
+- The action guide should include one block for the temporary guardian (use phone from Q62), one block for the school (use the school's main line phrasing if no school name was given), and one block for the permanent guardian (Q65) if named.
 
 DO NOT generate a "wishes" key. Wishes are presented verbatim.
 No markdown, no backticks, just the JSON object."""
@@ -675,17 +671,13 @@ def generate_fallback_narratives(answers: dict, name: str) -> dict:
     first = name.split()[0] if name else "your loved one"
     guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
     return {
-        "foundation": {
-            "narrative": f"{first} documented the legal foundation — will, power of attorney, and where everything is stored. The details below tell you exactly who's in charge and where to find the documents.",
-            "action_guide": f"INSTITUTION: Estate Attorney | PHONE: See attorney contact below | STEP 1: Contact the estate attorney and report the death | STEP 2: Provide a certified death certificate and ask about next steps for will execution | STEP 3: Ask about any trusts, directives, or documents that need to be filed | HAVE READY: Death certificate, will location, trust documents | TIMELINE: Initial consultation within 24-48 hours | WATCH OUT: Do not attempt to change titles on property or access accounts before speaking with the attorney — there may be tax implications",
-        },
-        "people": {
-            "narrative": f"{first} identified the key people who should step in and what roles they play. The contacts below include the point person, backup, and professional advisors who can help coordinate everything.",
-            "action_guide": f"INSTITUTION: Point Person | PHONE: See contact below | STEP 1: Notify the point person immediately and share this Resolved Brief | STEP 2: Have them contact the attorney and financial advisor within 24-48 hours | STEP 3: The point person should coordinate with the backup contact for tax and financial matters | HAVE READY: This Brief, death certificate, contact information | TIMELINE: Initial coordination within 24-48 hours | WATCH OUT: Clear roles prevent family conflict — the backup should support, not override, the point person's decisions",
-        },
-        "money": {
-            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, debts, and financial obligations that matter. Take your time with this section.",
+        "financial": {
+            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
             "action_guide": guide,
+        },
+        "income": {
+            "narrative": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out alone. Review the details below to keep things running and cancel what's no longer needed.",
+            "action_guide": "INSTITUTION: Employer/Payroll | PHONE: Call HR department directly | STEP 1: Notify HR of the death and ask about final paycheck and any accrued benefits | STEP 2: Ask about life insurance through the employer | STEP 3: Request information about pension or 401k if applicable | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — freeze or cancel each one individually",
         },
         "insurance": {
             "narrative": f"{first} made sure you would know what coverage is in place and how to access it. The policy details and contact information are documented below so you can file claims without searching.",
@@ -698,6 +690,10 @@ def generate_fallback_narratives(answers: dict, name: str) -> dict:
         "medical": {
             "narrative": f"If you are working with doctors or a hospital, this section has what they need. {first} documented their medical information and preferences so the right people can speak on their behalf.",
             "action_guide": "INSTITUTION: Primary Care Physician | PHONE: Call the office directly | STEP 1: Notify the practice of the death and request any outstanding referrals or prescriptions be closed | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID or insurance card | TIMELINE: Medical records requests: 30 days under HIPAA | WATCH OUT: Medicare and insurance may need separate notification — do not assume the doctor's office handles this",
+        },
+        "children": {
+            "narrative": f"If {first} has minor dependents, the most important call to make first is the temporary guardian — the person who walks into the house and picks the kids up that day. The details below cover who that person is, the long-term guardian named in the will, and the routines and medical information whoever takes over needs to know.",
+            "action_guide": "INSTITUTION: Temporary Guardian (named on the page above) | PHONE: See the phone number listed | STEP 1: Call the temporary guardian first — before notifying schools, before paperwork. The kids are the priority | STEP 2: Confirm they have a key to the house and access to medications, emergency supplies, and routines documented in this Brief | STEP 3: Coordinate the next 24–48 hours: school pickup, sleep arrangements, food | HAVE READY: This Brief, photo ID, school contact information | TIMELINE: This call should happen within the first hour | WATCH OUT: If the temporary guardian was never told they were chosen, the conversation is harder. Be direct and brief — they will rise to it\n\nINSTITUTION: School / Daycare | PHONE: Main office number | STEP 1: Notify the school of the situation | STEP 2: Confirm the temporary guardian is on the authorized pickup list (they should be — see this Brief) | STEP 3: Coordinate dismissal and any school-provided counseling support | HAVE READY: Photo ID, your relationship to the children, this Brief | TIMELINE: Same-day | WATCH OUT: Schools require photo ID matching authorized pickup names — verbal authorization will not get a child released",
         },
     }
 
@@ -729,9 +725,9 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                     "to": [to_email],
                     "subject": f"{first}, your Resolved Brief is ready",
                     "html": f"""
-                    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1B2A3D;">
-                        <div style="background: #1B2A3D; padding: 32px; text-align: center;">
-                            <h1 style="color: #C9A84C; font-family: Georgia, serif; margin: 0;">THE RESOLVED BRIEF</h1>
+                    <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1B2D4F;">
+                        <div style="background: #1B2D4F; padding: 32px; text-align: center;">
+                            <h1 style="color: #F5F0E8; font-family: 'Playfair Display', Georgia, serif; margin: 0;">THE RESOLVED BRIEF</h1>
                             <p style="color: rgba(255,255,255,0.6); margin-top: 8px;">Everything your family needs to know.</p>
                         </div>
                         <div style="padding: 32px; background: #F5F0E8;">
@@ -745,7 +741,7 @@ async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
                                 <li>Tell one person where it is</li>
                             </ol>
                             <p>That's it. You just did what most families never do.</p>
-                            <p style="color: #C9A84C; font-style: italic; font-family: Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
+                            <p style="color: #C9A84C; font-style: italic; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
                             <p style="color: #8A8578; font-size: 14px;">You earned that.</p>
                         </div>
                         <div style="padding: 16px; text-align: center; color: #8A8578; font-size: 12px;">
@@ -843,8 +839,7 @@ class SamCartWebhook(BaseModel):
 async def samcart_webhook(request: Request):
     """
     Receives SamCart webhook after purchase.
-    Creates a paid session and returns walkthrough URL.
-    PDF generation happens AFTER the walkthrough via /generate-brief.
+    Generates the Resolved Brief and emails it to the customer.
     """
     try:
         body = await request.json()
@@ -881,9 +876,9 @@ async def samcart_webhook(request: Request):
                 content={"status": "error", "message": "No email found in payload"}
             )
 
-        # ─── Find or create a session for this paid customer ───
         if not session_id:
             print(f"No session_id in webhook, searching by email: {email}")
+            # ─── FIX 1 BENEFIT: Q46 now synced to email column, so this works ───
             result = supabase.table("sessions").select("session_id").eq(
                 "email", email
             ).order("created_at", desc=True).limit(1).execute()
@@ -892,36 +887,31 @@ async def samcart_webhook(request: Request):
                 session_id = result.data[0]["session_id"]
                 print(f"Found session by email: {session_id}")
             else:
-                # No existing session — create one for this paid customer
-                print(f"Creating new paid session for {email}")
-                first_name = name.split()[0] if name and name != "Valued Customer" else ""
-                result = supabase.table("sessions").insert({
-                    "email": email,
-                    "first_name": first_name,
-                    "purchase_status": "paid",
-                    "last_activity_at": now_iso(),
-                }).execute()
-                session_id = result.data[0]["session_id"]
-                print(f"Created new session: {session_id}")
+                result = supabase.table("sessions").select("session_id").eq(
+                    "walkthrough_completed", True
+                ).eq("purchase_status", "unpaid").order(
+                    "last_activity_at", desc=True
+                ).limit(1).execute()
 
-        # ─── Mark session as paid (do NOT generate PDF yet) ───
-        supabase.table("sessions").update({
-            "purchase_status": "paid",
-            "email": email,
-            "first_name": name.split()[0] if name and name != "Valued Customer" else None,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
+                if result.data:
+                    session_id = result.data[0]["session_id"]
+                    print(f"Found most recent unpaid session: {session_id}")
+                else:
+                    print("ERROR: No matching session found")
+                    return JSONResponse(
+                        status_code=200,
+                        content={"status": "error", "message": "No matching session"}
+                    )
 
-        walkthrough_url = f"/walkthrough?session_id={session_id}"
-        print(f"Session {session_id} marked as paid. Walkthrough URL: {walkthrough_url}")
+        result = await generate_resolved_brief(session_id, email, name)
 
         return JSONResponse(
             status_code=200,
             content={
-                "status": "success",
+                "status": "success" if result else "error",
                 "session_id": session_id,
                 "email": email,
-                "walkthrough_url": walkthrough_url,
+                "pdf_status": result or "failed",
             }
         )
 
@@ -935,23 +925,17 @@ async def samcart_webhook(request: Request):
         )
 
 
-# ═══ PDF GENERATION — called after walkthrough completion ═══
+# ═══ MANUAL PDF GENERATION (for testing) ═══
 
-class GenerateBriefRequest(BaseModel):
-    answers: Optional[dict] = None  # walkthrough answers from frontend localStorage
-    email: Optional[str] = None     # override (for testing)
-    name: Optional[str] = None      # override (for testing)
+class ManualBriefRequest(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
 
 @app.post("/api/session/{session_id}/generate-brief")
-async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = GenerateBriefRequest()):
-    """
-    Generate the Resolved Brief PDF after walkthrough completion.
-    Called by the walkthrough CTA button — receives answers from frontend,
-    saves them to Supabase, then generates + emails the PDF.
-    """
+async def manual_generate_brief(session_id: str, data: ManualBriefRequest = ManualBriefRequest()):
+    """Manually trigger PDF generation for testing."""
     try:
-        # ─── 1. Validate session exists ───
-        result = supabase.table("sessions").select("*").eq(
+        result = supabase.table("sessions").select("email, first_name").eq(
             "session_id", session_id
         ).execute()
 
@@ -959,52 +943,19 @@ async def generate_brief_endpoint(session_id: str, data: GenerateBriefRequest = 
             raise HTTPException(status_code=404, detail="Session not found")
 
         session = result.data[0]
+        email = data.email or session.get("email") or "test@example.com"
+        name = data.name or session.get("first_name") or "Test User"
 
-        # ─── 2. Payment check DISABLED — free during launch ───
-        # if session.get("purchase_status") != "paid":
-        #     raise HTTPException(status_code=403, detail="Session not paid. Complete purchase first.")
-
-        # ─── 3. Prevent duplicate generation ───
-        if session.get("pdf_generated"):
-            return {
-                "status": "already_generated",
-                "message": "Your Resolved Brief has already been generated and emailed.",
-                "session_id": session_id,
-            }
-
-        # ─── 4. Save answers from frontend if provided ───
-        if data.answers:
-            print(f"Saving {len(data.answers)} answers from frontend for session {session_id}")
-            supabase.table("sessions").update({
-                "answers_json": data.answers,
-                "walkthrough_completed": True,
-                "last_activity_at": now_iso(),
-            }).eq("session_id", session_id).execute()
-
-        # ─── 5. Pull email/name from session (or override for testing) ───
-        email = data.email or session.get("email")
-        name = data.name or session.get("first_name") or "Valued Customer"
-
-        if not email:
-            raise HTTPException(status_code=400, detail="No email found for this session. Please contact support.")
-
-        # ─── 6. Generate + email the PDF ───
-        print(f"Generating Resolved Brief for {email} (session: {session_id})")
         status = await generate_resolved_brief(session_id, email, name)
 
         return {
             "status": "success" if status else "error",
-            "message": "Your Resolved Brief is on its way to your inbox!" if status else "Generation failed — our team has been notified.",
             "pdf_status": status or "failed",
             "session_id": session_id,
         }
-
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Generate brief error: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 # ═══════════════════════════════════════════════════
 # SCORECARD REPORT EMAIL — Add to bottom of main.py
@@ -1035,124 +986,17 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
     gaps = data.gaps
     sections = data.section_scores
 
-    # Grade color — matches V2 scorecard tiers
-    if label in ("Excellent", "Strong", "Low Confusion"):
+    # Grade color
+    if label in ("Excellent", "Strong"):
         grade_color = "#10B981"
-    elif label in ("Fair", "Good", "Some Gaps"):
+    elif label in ("Fair", "Good"):
         grade_color = "#F59E0B"
     else:
         grade_color = "#EF4444"
 
-    # Enhanced action steps — detailed to-do checklists by question ID
-    # Maps to the 13-question V2 scorecard
-    ENHANCED_ACTIONS = {
-        1: [
-            "Write down the full name and phone number of the person who would step in if something happened to you tonight.",
-            "Tell that person they're the one — don't assume they know.",
-            "Give them a one-page summary: where your important docs are, who to call first, and what needs to happen in the first 48 hours.",
-            "If you don't have a clear answer, pick someone today. It doesn't have to be perfect — it has to exist.",
-        ],
-        2: [
-            "Write a simple 'First 24 Hours' sheet: bank to call, insurance company, employer HR, mortgage company, pediatrician.",
-            "Include account numbers or at least institution names so they're not guessing.",
-            "Put it in a sealed envelope and tell your person where it is.",
-            "If your answer was 'they'd figure it out' — that's not a plan. That's a hope.",
-        ],
-        3: [
-            "Name a backup person — someone outside your household who could step in if both you and your partner were out of the picture.",
-            "Talk to that person directly. Tell them what you'd need them to handle — kids, finances, medical decisions.",
-            "Make sure this person knows where your key documents are (or at least who to call).",
-            "If you have minor children, this is your future guardian conversation. Don't skip it.",
-        ],
-        4: [
-            "Have the conversation. Sit down with your designated person and say: 'If something happens to me, you're the one I'm counting on.'",
-            "Walk them through the basics — where to find your documents, who your attorney or financial advisor is, what accounts exist.",
-            "If you haven't told them, it doesn't count. A name on paper means nothing if they don't know they're on it.",
-        ],
-        5: [
-            "Write down your phone's passcode — PIN, pattern, or password — and store it in a sealed envelope.",
-            "If you use Face ID or fingerprint, the backup PIN still exists. Document it.",
-            "Consider adding a trusted family member's fingerprint or face to your phone's biometrics.",
-            "Note which authenticator app you use (Google Authenticator, Authy, etc.) — your family needs this for banking and email 2FA codes.",
-            "Your phone is the gateway to everything. If they can't unlock it, they're locked out of your entire digital life.",
-        ],
-        6: [
-            "Write down every email address you use, the provider (Gmail, Outlook, Yahoo), and the password or where it's stored.",
-            "Document how to get past 2FA — authenticator app, backup codes, or recovery phone number.",
-            "Set up Google's Inactive Account Manager or Apple's Legacy Contact — these give a designated person access after inactivity.",
-            "Your email is the master key. Almost every account can be reset through it. No email access = no access to anything.",
-        ],
-        7: [
-            "Pick a system: password manager (1Password, Bitwarden), a physical notebook, or an encrypted file.",
-            "If you use a password manager, write down the master password and store it separately from your devices.",
-            "Include recovery codes, backup emails, and security question answers for critical accounts.",
-            "Tell one trusted person where this information lives — not the passwords, just the location.",
-            "Test it: could someone who's never used your system actually get in? If not, add clearer instructions.",
-        ],
-        8: [
-            "Make a list of every digital account that matters — cloud storage, social media, subscriptions, photo libraries.",
-            "Note which ones have irreplaceable content (photos, legal docs, business files).",
-            "Set up shared folders or legacy contacts where platforms allow it (Google, Apple, Facebook).",
-            "If everything lives on your laptop and nobody has the password — it's gone. Document access now.",
-        ],
-        9: [
-            "List every bank account, credit union, and investment account. Include the institution, account type, and customer service number.",
-            "Note whether each account is individual, joint, or has a payable-on-death beneficiary.",
-            "Document any automatic payments coming out of each account — mortgage, utilities, insurance, subscriptions.",
-            "Check beneficiary designations — without them, your family may need probate court just to access basic funds.",
-            "Store this list in a sealed envelope and tell one person where it is.",
-        ],
-        10: [
-            "List every account: checking, savings, 401(k), IRA, brokerage, HSA, crypto, business accounts.",
-            "For each one, write down: institution name, approximate purpose, how to access it (website, phone, advisor).",
-            "Verify beneficiaries on every retirement and investment account — an outdated designation overrides your will.",
-            "If you've changed jobs, check for orphaned 401(k)s at former employers.",
-            "Your family doesn't need exact balances — they need to know the accounts exist and how to reach them.",
-        ],
-        11: [
-            "Confirm you have life insurance. Write down the company, policy number, death benefit amount, and type (term vs. whole).",
-            "Verify your beneficiary is current — divorce, remarriage, and new kids can make your existing designation outdated.",
-            "Locate the actual policy document or download it from your provider's website.",
-            "Write down the claims phone number. Life insurance doesn't pay automatically — someone has to call and file.",
-            "If you have employer coverage, confirm whether it ends when you leave or retire.",
-        ],
-        12: [
-            "Name your healthcare proxy — the person who makes medical decisions if you can't speak for yourself.",
-            "Have a real conversation with them: Do you want life support? Resuscitation? Long-term care if you're in a coma?",
-            "Write it down. Consider filing a Healthcare Power of Attorney (most states have free forms online).",
-            "Give a copy to your proxy, your spouse, and your primary care doctor.",
-            "Tell at least one other family member who your proxy is — hospitals move fast and won't wait for people to figure it out.",
-        ],
-        13: [
-            "Be honest with yourself about this answer. If it's not a confident 'yes' — you have work to do.",
-            "The Resolved Brief walks you through every area: finances, insurance, medical wishes, digital access, final instructions.",
-            "It takes about 20 minutes. You answer the questions, it builds the document.",
-            "Print a copy. Save it digitally. Tell one person where it is. That's it — you're done.",
-        ],
-    }
-
     # Build gap items HTML
     gap_items_html = ""
     for i, gap in enumerate(gaps):
-        gap_id = gap.get('id')
-        enhanced = ENHANCED_ACTIONS.get(gap_id)
-
-        if enhanced:
-            checklist_html = ""
-            for step in enhanced:
-                checklist_html += f'<li style="font-size: 14px; color: #4B5563; line-height: 1.6; margin-bottom: 6px; padding-left: 4px;">{step}</li>'
-            action_block = f"""
-            <div style="margin-left: 36px; margin-top: 8px; padding: 16px 20px; background: rgba(16,185,129,0.06); border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">
-                <p style="font-size: 13px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px;">✅ Your To-Do List</p>
-                <ol style="margin: 0; padding-left: 20px;">{checklist_html}</ol>
-            </div>"""
-        else:
-            action_block = f"""
-            <div style="margin-left: 36px; margin-top: 8px; padding: 12px 16px; background: rgba(16,185,129,0.06); border-radius: 6px; border: 1px solid rgba(16,185,129,0.2);">
-                <p style="font-size: 13px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">✅ What To Do</p>
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('actionStep', '')}</p>
-            </div>"""
-
         gap_items_html += f"""
         <div style="margin-bottom: 24px; padding: 20px 24px; background: #fff; border: 1.5px solid #E8E5DE; border-left: 4px solid #EF4444; border-radius: 8px;">
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
@@ -1162,7 +1006,7 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
             <div style="margin-left: 36px; padding: 12px 16px; background: #FEF9F0; border-radius: 6px; border: 1px solid rgba(212,145,59,0.2);">
                 <p style="font-size: 13px; font-weight: 700; color: #D4913B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">⚠ Why This Matters</p>
                 <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('gapTip', '')}</p>
-            </div>{action_block}
+            </div>
             <p style="font-size: 13px; color: #9CA3AF; margin: 8px 0 0 36px;">{gap.get('sectionIcon', '')} {gap.get('sectionTitle', '')}</p>
         </div>
         """
@@ -1235,16 +1079,19 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
                 <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
                 <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
                 <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
-                <a href="https://resolvedfamily.com/free/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
+                <a href="https://familycrisisplaybook.com/session/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — $49 →</a>
                 <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">20 minutes. One document. Done.</p>
             </div>
 
-            <!-- SHARE -->
+            <!-- SHARE COUPON -->
             <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Know someone who should take this? Share the scorecard — it takes 5 minutes and it could change everything for their family.</p>
+                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
+                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px; margin-bottom: 16px;">
+                    <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; letter-spacing: 1px;">SHARE50</span>
+                </div>
                 <div style="margin-top: 8px;">
-                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Fresolvedfamily.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
-                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Fresolvedfamily.com%2Fquick%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
+                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
+                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
                 </div>
             </div>
 
