@@ -245,7 +245,7 @@
             {
               "id": "Q12",
               "type": "yes_no",
-              "prompt": "Does this person know where your Resolved Brief is kept?",
+              "prompt": "When your Brief is delivered, will this person know where to find it?",
               "follow_up_tip": "The Brief only works if your point person can find it. Tell them the exact location — a drawer, a safe, a folder."
             }
           ]
@@ -885,7 +885,7 @@
               "type": "multiple_choice",
               "prompt": "Where are your 2FA backup / recovery codes stored?",
               "options": [
-                "Printed and sealed in the Companion Document",
+                "I'll add them to my Companion Document",
                 "Saved in my password manager",
                 "Stored on my phone (which they can access)",
                 "I haven't set up backup codes",
