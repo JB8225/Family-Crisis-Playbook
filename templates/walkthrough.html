@@ -338,7 +338,7 @@ function renderQuestion(q){
     if(!shouldShow(q))return"";
     const v=A[q.id]||"";
     let inp="";
-    if(q.type==="text")inp=`<input type="text" class="qi" value="${esc(v)}" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)"/>`;
+    if(q.type==="text"||q.type==="text_input")inp=`<input type="text" class="qi" value="${esc(v)}" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)"/>`;
     else if(q.type==="textarea")inp=`<textarea class="qi" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)">${esc(v)}</textarea>`;
     else if(q.type==="multiple_choice")inp=`<div class="mc">${(q.options||[]).map(o=>`<div class="mc-o${v===o?" sel":""}" onclick="mcClick(this,'${q.id}','${escA(o)}')">${o}</div>`).join("")}</div>`;
     else if(q.type==="multi_select"){const sel=v?v.split(","):[];inp=`<div class="ms">${(q.options||[]).map(o=>`<div class="ms-o${sel.includes(o)?" sel":""}" onclick="msClick(this,'${q.id}','${escA(o)}')">${o}</div>`).join("")}</div>`}
