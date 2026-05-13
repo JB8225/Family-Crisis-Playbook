@@ -597,22 +597,32 @@ INSTITUTION: [name] | PHONE: [number or "Call main line, ask for Estate Services
 
 Separate multiple institution blocks with a blank line.
 
-Return ONLY a JSON object with these exact keys:
+Return ONLY a JSON object with these exact keys (matching the v6 spec section structure):
 {{
-  "financial": {{"narrative": "...", "action_guide": "..."}},
-  "income": {{"narrative": "...", "action_guide": "..."}},
-  "insurance": {{"narrative": "...", "action_guide": "..."}},
-  "digital": {{"narrative": "...", "action_guide": "..."}},
-  "medical": {{"narrative": "...", "action_guide": "..."}},
-  "children": {{"narrative": "...", "action_guide": "..."}}
+  "foundation":     {{"narrative": "...", "action_guide": "..."}},
+  "key_people":     {{"narrative": "...", "action_guide": "..."}},
+  "children":       {{"narrative": "...", "action_guide": "..."}},
+  "money":          {{"narrative": "...", "action_guide": "..."}},
+  "insurance":      {{"narrative": "...", "action_guide": "..."}},
+  "digital":        {{"narrative": "...", "action_guide": "..."}},
+  "medical_wishes": {{"narrative": "...", "action_guide": "..."}}
 }}
 
-CHILDREN SECTION SPECIAL RULES:
-- The children section is SKIPPABLE. If Q61–Q67 are all empty, return: {{"narrative": "Not applicable — {first_name} did not have minor dependents at the time this Brief was prepared.", "action_guide": ""}}
-- If Q61–Q67 have data, the narrative should center on the temporary guardian (Q62) — they are the most important call. Mention the school pickup status (Q64), house key (Q63), and what the guardian needs to know (Q67) if filled in.
-- The action guide should include one block for the temporary guardian (use phone from Q62), one block for the school (use the school's main line phrasing if no school name was given), and one block for the permanent guardian (Q65) if named.
+SECTION CONTENT GUIDES:
+- foundation:     Will status/location/attorney (Q2–Q2F), Financial POA (Q3), Healthcare POA (Q4), document storage (Q5–Q5B), advisors (Q6).
+- key_people:     Primary point person (Q10–Q12), backup (Q14), role clarity (Q15–Q16), wishes awareness (Q17–Q18). NO action guide for personal contacts — write a "first contact" sequence instead.
+- children:       SKIPPABLE — see special rules below.
+- money:          Banking (Q30–Q32), retirement incl. orphaned 401(k)s (Q33–Q36), bills + autopay card (Q37–Q41), property (Q42), safe deposit (Q43/Q43A), business + advisor readiness (Q44–Q45).
+- insurance:      Life (Q50–Q55), other coverage (Q56–Q60), documents + agent (Q61–Q62).
+- digital:        Phone/devices (Q70–Q72), email + 2FA (Q73–Q76), passwords + cloud (Q77–Q80), financial apps + crypto (Q81–Q82A), subscriptions (Q83).
+- medical_wishes: Decisions (Q90=status, Q90A=proxy name, Q90B=proxy preparation level, Q90C=backup), specific medical wishes (Q91=life support, Q91A=directive document location, Q92=CPR, Q93=organ donation), medical info (Q94–Q98), funeral (Q100–Q104), legacy (Q105–Q107). Q105 and Q107 are personal letters — present them verbatim, do NOT summarize.
 
-DO NOT generate a "wishes" key. Wishes are presented verbatim.
+CHILDREN SECTION SPECIAL RULES:
+- The children section is SKIPPABLE. If Q20–Q29 are all empty, return: {{"narrative": "Not applicable — {first_name} did not have minor dependents at the time this Brief was prepared.", "action_guide": ""}}
+- If Q20–Q29 have data, the narrative should center on the temporary guardian (Q24) — they are the first call. Mention the home access type (Q25), vehicle access (Q26), school pickup status (Q27), and what the guardian needs to know (Q28–Q29) if filled in.
+- The action guide should include one block for the temporary guardian (use phone from Q24), one block for the school (use the school's main line phrasing if no school name was given), and one block for the permanent guardian (Q22) if named.
+
+DO NOT summarize Q105, Q106, or Q107 — those are personal letters and should appear verbatim in the rendered PDF, not in the AI narrative.
 No markdown, no backticks, just the JSON object."""
 
 
@@ -667,33 +677,37 @@ async def generate_ai_narratives(answers: dict, name: str) -> dict:
 
 
 def generate_fallback_narratives(answers: dict, name: str) -> dict:
-    """Basic narratives when AI is unavailable."""
+    """Basic narratives when AI is unavailable — keyed to v6 section IDs."""
     first = name.split()[0] if name else "your loved one"
-    guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
+    generic_guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
     return {
-        "financial": {
-            "narrative": f"If you are reading this, {first} wanted you to know exactly where the money is. Everything below documents the banks, accounts, and financial relationships that matter. Take your time with this section.",
-            "action_guide": guide,
+        "foundation": {
+            "narrative": f"This section captures the legal foundation {first} put in place — the will, powers of attorney, and where the documents live. Review what's documented; pending items will appear in your Action Plan.",
+            "action_guide": "INSTITUTION: Estate Attorney (named on the page above) | PHONE: See contact info | STEP 1: Confirm the will is current and on file | STEP 2: Review executor and guardian designations | STEP 3: Initiate any formalization needed for the Financial Power of Attorney | HAVE READY: Photo ID, death certificate, list of named parties | TIMELINE: Initial review 1-2 weeks | WATCH OUT: Powers of Attorney expire on death — they cover incapacity, not after",
         },
-        "income": {
-            "narrative": f"{first} mapped out where money comes in and where it goes each month so you would not have to figure it out alone. Review the details below to keep things running and cancel what's no longer needed.",
-            "action_guide": "INSTITUTION: Employer/Payroll | PHONE: Call HR department directly | STEP 1: Notify HR of the death and ask about final paycheck and any accrued benefits | STEP 2: Ask about life insurance through the employer | STEP 3: Request information about pension or 401k if applicable | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — freeze or cancel each one individually",
-        },
-        "insurance": {
-            "narrative": f"{first} made sure you would know what coverage is in place and how to access it. The policy details and contact information are documented below so you can file claims without searching.",
-            "action_guide": guide,
-        },
-        "digital": {
-            "narrative": f"This section covers how to access {first}'s accounts, devices, and digital life. Start with the primary email — it is the key to resetting everything else.",
-            "action_guide": "INSTITUTION: Primary Email Provider | PHONE: Use online support — Google: support.google.com/accounts, Apple: 1-800-275-2273 | STEP 1: Gain access to the primary email account first — all other resets flow through it | STEP 2: Use the email to reset passwords for financial accounts one at a time | STEP 3: Document each account as you go | HAVE READY: Death certificate for accounts that require it, your own ID | TIMELINE: Email access: immediate if you have password. Account-by-account resets: 1-2 weeks | WATCH OUT: Do not delete the email account — it may be needed to verify identity for other services",
-        },
-        "medical": {
-            "narrative": f"If you are working with doctors or a hospital, this section has what they need. {first} documented their medical information and preferences so the right people can speak on their behalf.",
-            "action_guide": "INSTITUTION: Primary Care Physician | PHONE: Call the office directly | STEP 1: Notify the practice of the death and request any outstanding referrals or prescriptions be closed | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID or insurance card | TIMELINE: Medical records requests: 30 days under HIPAA | WATCH OUT: Medicare and insurance may need separate notification — do not assume the doctor's office handles this",
+        "key_people": {
+            "narrative": f"The primary point person is the operational anchor — the one adult who steps in when {first} can't. The backup person handles it if the primary is unavailable. Role clarity matters as much as the names themselves.",
+            "action_guide": "INSTITUTION: Primary Point Person (named on the page above) | PHONE: See contact info | STEP 1: Call the primary point person first — they have been briefed and know where this Brief lives | STEP 2: They will coordinate the first 48 hours and route to the right next people | STEP 3: Connect them with the backup and executor as needed | HAVE READY: This Brief, photo ID | TIMELINE: First call within 1 hour | WATCH OUT: If the primary is also unavailable, route directly to the backup",
         },
         "children": {
-            "narrative": f"If {first} has minor dependents, the most important call to make first is the temporary guardian — the person who walks into the house and picks the kids up that day. The details below cover who that person is, the long-term guardian named in the will, and the routines and medical information whoever takes over needs to know.",
-            "action_guide": "INSTITUTION: Temporary Guardian (named on the page above) | PHONE: See the phone number listed | STEP 1: Call the temporary guardian first — before notifying schools, before paperwork. The kids are the priority | STEP 2: Confirm they have a key to the house and access to medications, emergency supplies, and routines documented in this Brief | STEP 3: Coordinate the next 24–48 hours: school pickup, sleep arrangements, food | HAVE READY: This Brief, photo ID, school contact information | TIMELINE: This call should happen within the first hour | WATCH OUT: If the temporary guardian was never told they were chosen, the conversation is harder. Be direct and brief — they will rise to it\n\nINSTITUTION: School / Daycare | PHONE: Main office number | STEP 1: Notify the school of the situation | STEP 2: Confirm the temporary guardian is on the authorized pickup list (they should be — see this Brief) | STEP 3: Coordinate dismissal and any school-provided counseling support | HAVE READY: Photo ID, your relationship to the children, this Brief | TIMELINE: Same-day | WATCH OUT: Schools require photo ID matching authorized pickup names — verbal authorization will not get a child released",
+            "narrative": f"If {first} had minor dependents, the most important first call is the temporary guardian — the person who can walk into the house and pick the kids up. The details below cover who that person is, the long-term guardian named in the will, and the routines and medical information whoever takes over needs to know.",
+            "action_guide": "INSTITUTION: Temporary Guardian (named on the page above) | PHONE: See phone number listed | STEP 1: Call the temporary guardian first — before notifying schools, before paperwork. The kids are the priority | STEP 2: Confirm they have access to the house, medications, emergency supplies, and routines documented in this Brief | STEP 3: Coordinate the next 24–48 hours: school pickup, sleep arrangements, food | HAVE READY: This Brief, photo ID, school contact information | TIMELINE: First call within the first hour | WATCH OUT: If the temporary guardian was never told they were chosen, the conversation is harder. Be direct and brief\n\nINSTITUTION: School / Daycare | PHONE: Main office number | STEP 1: Notify the school of the situation | STEP 2: Confirm the temporary guardian is on the authorized pickup list (they should be — see this Brief) | STEP 3: Coordinate dismissal and any school-provided counseling support | HAVE READY: Photo ID, your relationship to the children, this Brief | TIMELINE: Same-day | WATCH OUT: Schools require photo ID matching authorized pickup names — verbal authorization will not get a child released",
+        },
+        "money": {
+            "narrative": f"This section is the map of where {first}'s money lives — banks, retirement accounts, loans, and the autopay card that keeps the lights on. Old retirement accounts from previous employers are flagged separately because they are the most common gap.",
+            "action_guide": generic_guide,
+        },
+        "insurance": {
+            "narrative": f"{first} documented the policies in place: life, disability, long-term care, home, auto, and any others. The agent (if named) is the single contact who can help you navigate all of them at once.",
+            "action_guide": generic_guide,
+        },
+        "digital": {
+            "narrative": f"This section covers how to access {first}'s phone, email, computer, and accounts. Start with the primary email — it is the key to resetting everything else. If 2FA is enabled, the backup codes are in the Companion Document envelope.",
+            "action_guide": "INSTITUTION: Primary Email Provider | PHONE: Use online support — Google: support.google.com/accounts, Apple: 1-800-275-2273 | STEP 1: Gain access to the primary email first — all other resets flow through it | STEP 2: Retrieve the 2FA backup code from the Companion Document envelope if enabled | STEP 3: Use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate for accounts that require it, your own ID, Companion Document envelope | TIMELINE: With password + 2FA code in hand, immediate. Without both, 4-8 weeks via the provider's deceased user process | WATCH OUT: Do not delete the email account — it may hold 2FA codes and documents you'll need",
+        },
+        "medical_wishes": {
+            "narrative": f"This section covers two things: who makes medical decisions if {first} couldn't, and the funeral and legacy wishes they left for you. The healthcare proxy is the first call if {first} is alive but cannot speak. The funeral preferences and any personal letters appear in their own words below.",
+            "action_guide": "INSTITUTION: Healthcare Proxy (named on the page above) | PHONE: See phone number listed | STEP 1: If a medical decision is needed, the proxy is authorized to speak — they should be the first call to the hospital | STEP 2: The backup is on the page above if the proxy is unreachable | STEP 3: Specific wishes (life support, resuscitation, organ donation) are documented above | HAVE READY: This Brief, photo ID | TIMELINE: Immediate | WATCH OUT: Without the healthcare proxy document in hand, hospitals default to state rules even with a verbally-named proxy\n\nINSTITUTION: Primary Care Physician | PHONE: Call the office directly | STEP 1: Notify the practice | STEP 2: Request medical records for insurance/legal purposes | STEP 3: Cancel upcoming appointments | HAVE READY: Death certificate, patient ID or insurance card | TIMELINE: Records up to 30 days under HIPAA | WATCH OUT: Medicare and insurance must be notified separately — the doctor's office doesn't auto-report",
         },
     }
 

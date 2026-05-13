@@ -40,109 +40,160 @@ WATCH_OUT_BORDER = HexColor("#E6AC00")
 
 W, H = letter  # 612 x 792
 
-# ═══ MOCK DATA ═══
+# ═══ MOCK DATA (v6 IDs) ═══
 MOCK = {
     "name": "Michael Thompson",
     "date": datetime.now().strftime("%B %d, %Y"),
     "answers": {
-        "S1": "Yes", "S1A": "3-5 years ago", "S1B": "Yes",
-        "S1C": "Filing cabinet, top drawer (home office)",
-        "S1D": "John Smith, Smith & Associates — 312-555-0100",
-        "S1E": "James Thompson (brother) — 312-555-0142",
-        "S1F": "Mark and Rachel Davies — 214-555-0190",
-        "S1G": "No",
-        "S2": "Yes", "S3": "No", "S4": "Yes", "S5": "No",
-        "S7": "No", "S8": "With some digging",
-        "S11": "No", "S12": "No",
-        "S13": "Sarah Brennan (sister) — 312-555-0167",
-        "S14": "Yes",
-        "S15": "Yes",
-        "Q1": "Sarah Thompson (wife)", "Q2": "Yes", "Q3": "James Thompson (brother)",
-        "Q4": "High blood pressure, mild asthma", "Q5": "Lisinopril 10mg, Albuterol inhaler as needed",
-        "Q6": "Penicillin", "Q7": "Dr. Emily Chen, Northwestern Medical",
-        "Q8": "Dr. Raj Patel - cardiologist", "Q9": "Blue Cross Blue Shield through employer",
-        "Q10": "Wallet", "Q12": "Full resuscitation", "Q13": "Yes",
-        "Q14": "Chase (checking + savings), Ally (savings)", "Q15": "Checking,Savings,Money Market",
-        "Q16": "Sarah Thompson (joint on Chase)", "Q17": "401(k),Roth IRA",
-        "Q18": "Fidelity (401k through work), Vanguard (Roth IRA)",
-        "Q19": "Schwab brokerage account",
-        "Q19A": "401(k) from Acme Corp (worked there 2018-2021) — not sure where it was rolled over to. Old IRA from First Federal Bank, account opened ~2015.",
-        "Q20": "Wells Fargo mortgage", "Q21": "Toyota Financial (car loan)",
-        "Q22": "Chase Sapphire, Amex Blue Cash", "Q23": "Filing cabinet,Computer or cloud",
-        "Q24": "Yes",
-        "Q24A": "Chase Main St branch — spare key in top desk drawer",
-        "Q25": "Chase checking",
-        "Q27": "Employer paycheck",
-        "Q28": "Mortgage, electric (ComEd), internet (Xfinity), car insurance (State Farm), Netflix, Spotify",
-        "Q28A": "Chase Sapphire ending 4521",
-        "Q28B": "09/2027",
-        "Q29": "Water bill quarterly", "Q30": "Netflix, Spotify, NYT, gym, iCloud",
-        "Q31": "Property tax (June + Sept), car registration (October)",
-        "Q32": "Yes - both", "Q33": "MetLife (employer), Northwestern Mutual (private)",
-        "Q34": "$500K employer + $250K private", "Q35": "Sarah Thompson",
-        "Q35A": "Children equally per stirpes",
-        "Q35B": "1–3 years ago",
-        "Q36": "Yes - through employer", "Q37": "No", "Q38": "State Farm homeowners",
-        "Q39": "State Farm auto", "Q40": "$1M umbrella through State Farm",
-        "Q41": "Filing cabinet", "Q42": "John Davis, State Farm, 312-555-0847",
-        "Q43": "Password manager app", "Q44": "1Password",
-        "Q45": "In the sealed envelope",
-        "Q46": "michael.t@gmail.com",
-        "Q46A": "I'll write the master password on the sealed envelope sheet",
-        "Q46B": "Yes — authenticator app",
-        "Q46C": "Printed and sealed in the envelope",
-        "Q47": "Yes - someone knows the code",
-        "Q47A": "Yes — I'll add it",
-        "Q48": "No - only I can access it", "Q49": "Venmo,Zelle",
-        "Q50": "No", "Q50A": "",
-        "Q51": "iCloud,Google Photos", "Q52": "Google Drive,iCloud",
-        "Q52a": "Keep running: Xfinity Wi-Fi, Netflix, iCloud 2TB, Spotify Family, kids' Verizon line. Cancel: my Peloton, industry trade pub subs, my old Adobe CC.",
-        "Q53": "Cremation", "Q54": "Scatter ashes at Lake Michigan",
-        "Q55": "Celebration of life",
-        "Q56": "Play What a Wonderful World by Louis Armstrong. Keep it casual.",
-        "Q57": "College roommate Dave Brennan, old boss Linda Park",
-        "Q58": "Grandfather's watch to Jake, guitar collection to brother James",
-        "Q59": "Donate clothes to Goodwill, sell the boat",
-        "Q60": "To Sarah - you made every single day better. To Jake and Emma - be kind, work hard, and never stop being curious. I'm proud of who you're becoming.",
-        "Q61": "Jake (16), Emma (14)",
-        "Q62": "Sarah Brennan (sister) — 312-555-0167",
-        "Q63": "Yes — multiple ways in",
-        "Q63b": "Yes — both",
-        "Q64": "Yes",
-        "Q65": "Mark and Rachel Davies — 214-555-0190",
-        "Q66": "Yes",
-        "Q67": "Jake takes ADHD meds at 7am with food. Emma sleeps with the hallway light on. Both kids have peanut allergies — EpiPens are in the kitchen drawer next to the fridge. The dog needs his arthritis pill in peanut butter at bedtime. Their therapist is Dr. Kim — Tuesdays 4pm at Northwestern."
+        # ─── Foundation & Legal ───
+        "Q1":   "Pretty confident — but we haven't reviewed things in a while",
+        "Q2":   "Yes — but it's been a while since I reviewed it",
+        "Q2A":  "3-5 years ago",
+        "Q2B":  "Filing cabinet, top drawer (home office)",
+        "Q2C":  "Patricia Chen, 415-555-0142",
+        "Q2D":  "James Thompson (brother) — 312-555-0142",
+        "Q2E":  "Mark and Rachel Davies — 214-555-0190",
+        "Q2F":  "No",
+        "Q3":   "I think so, but it's not written down",
+        "Q4":   "Yes — formally named, but we haven't gotten into specifics",
+        "Q5":   "Mostly home filing cabinet, some scanned to cloud",
+        "Q5A":  "Home safe,Filing cabinet,Cloud (Google Drive)",
+        "Q5B":  "Yes — spouse and one trusted family member",
+        "Q6":   "Estate attorney,Financial advisor,CPA / tax preparer",
+        # ─── Key People & Decision Makers ───
+        "Q10":  "Sarah Brennan (sister) — 312-555-0167",
+        "Q11":  "Yes — we've talked through it",
+        "Q12":  "Yes",
+        "Q13":  "Yes — we've talked through the first 48 hours",
+        "Q14":  "James Thompson (brother) — 312-555-0142",
+        "Q15":  "Yes — clarity exists",
+        "Q16":  "Mostly clear — Sarah handles logistics, James handles legal",
+        "Q17":  "Yes — they know where the Brief is and what's in it",
+        "Q18":  "Mostly — we've covered the big stuff",
+        # ─── Children & Dependents ───
+        "Q20":  "Jake (16), Emma (14)",
+        "Q21":  "Yes — documented and discussed",
+        "Q22":  "Mark and Rachel Davies — 214-555-0190",
+        "Q23":  "Yes",
+        "Q24":  "Sarah Brennan (sister) — 312-555-0167",
+        "Q25":  "Yes — multiple ways in",
+        "Q26":  "Yes — both",
+        "Q27":  "Yes",
+        "Q28":  "Jake takes ADHD meds at 7am with food. Kids have peanut allergies; EpiPens in kitchen drawer next to the fridge. Their therapist is Dr. Kim, Tuesdays 4pm at Northwestern.",
+        "Q29":  "Annual family camping trip. Sunday morning pancakes. Keep music in the house.",
+        # ─── Money, Assets & Obligations ───
+        "Q30":  "Spouse has joint access — could cover at least 60 days",
+        "Q31":  "Chase, Ally",
+        "Q32":  "Checking,Savings,Money Market,Joint Account",
+        "Q33":  "401(k),Roth IRA",
+        "Q34":  "Fidelity (401k through work), Vanguard (Roth IRA)",
+        "Q35":  "401(k) from Acme Corp (worked there 2018-2021) — not sure where it was rolled over to. Old IRA from First Federal Bank, account opened ~2015.",
+        "Q36":  "Schwab brokerage account",
+        "Q37":  "W-2 Employment,Investments/dividends",
+        "Q38":  "Mortgage, electric (ComEd), internet (Xfinity), car insurance (State Farm), Netflix, Spotify — Chase Sapphire ending 4521",
+        "Q38A": "Property taxes (June & September), quarterly estimated taxes, condo fees on the Arlington rental, annual umbrella policy premium",
+        "Q39":  "Chase Sapphire ending 4521",
+        "Q40":  "09/2027",
+        "Q41":  "Wells Fargo mortgage, Toyota Financial (car loan)",
+        "Q42":  "Home + 1 rental (Arlington), 2 vehicles, art collection",
+        "Q43":  "Yes",
+        "Q43A": "Chase Main St branch — spare key in top desk drawer",
+        "Q44":  "No",
+        "Q45":  "Mostly — spouse knows the big picture",
+        # ─── Insurance & Protection ───
+        "Q50":  "Both",
+        "Q51":  "MetLife (employer), Northwestern Mutual (private)",
+        "Q52":  "$500K employer + $250K private",
+        "Q53":  "Sarah Thompson",
+        "Q54":  "Children equally per stirpes",
+        "Q55":  "1–3 years ago",
+        "Q56":  "Yes — through employer",
+        "Q57":  "No",
+        "Q58":  "State Farm homeowners",
+        "Q59":  "State Farm auto",
+        "Q60":  "$1M umbrella through State Farm",
+        "Q61":  "Filing cabinet",
+        "Q62":  "John Davis, State Farm, 312-555-0847",
+        # ─── Digital Life & Access ───
+        "Q70":  "Yes — they know the passcode",
+        "Q71":  "Yes — I'll add it",
+        "Q72":  "No — only I can access it",
+        "Q73":  "Primary: michael.t@gmail.com  ·  Recovery: m.thompson.backup@gmail.com",
+        "Q74":  "I'll write the master password on the Companion Document sheet",
+        "Q75":  "Yes — authenticator app",
+        "Q76":  "Printed and sealed in the Companion envelope",
+        "Q77":  "Password manager app",
+        "Q77A": "1Password",
+        "Q78":  "Written in the Companion Document envelope",
+        "Q79":  "iPhone/iCloud,Google Photos",
+        "Q80":  "Google Drive,iCloud",
+        "Q81":  "Bank app,Venmo/Zelle/CashApp",
+        "Q82":  "No",
+        "Q82A": "",
+        "Q83":  "Keep running: Xfinity Wi-Fi, Netflix, iCloud 2TB, Spotify Family, kids' Verizon line. Cancel: my Peloton, industry trade pub subs, my old Adobe CC.",
+        # ─── Medical & Final Wishes ───
+        "Q90":  "Yes — formally named, and we've discussed what I'd want",
+        "Q90A": "Sarah Thompson (wife) — 312-555-0188",
+        "Q90B": "Yes — we've talked through specifics",
+        "Q90C": "James Thompson (brother) — 312-555-0142",
+        "Q91":  "Comfort care only — no extraordinary measures",
+        "Q91A": "Home safe (combination is in the Companion Document envelope)",
+        "Q92":  "Full resuscitation",
+        "Q93":  "Yes — registered organ donor",
+        "Q94":  "Dr. Emily Chen, Northwestern Medical, 312-555-0410",
+        "Q95":  "Dr. Raj Patel — cardiologist (Northwestern)",
+        "Q96":  "Blue Cross Blue Shield through employer",
+        "Q97":  "In my wallet",
+        "Q98":  "Yes — spouse can recite conditions, meds, allergies",
+        "Q100": "Cremation",
+        "Q100A":"Scatter ashes at Lake Michigan",
+        "Q101": "Celebration of life",
+        "Q102": "No long church service. No open casket.",
+        "Q103": "Play 'What a Wonderful World' by Louis Armstrong. Keep it casual. Have Dave Brennan speak.",
+        "Q104": "College roommate Dave Brennan, old boss Linda Park, my Tuesday running group.",
+        "Q105": "I want to be remembered as the man who showed up. For Sarah, for the kids, for the people who needed a steady presence.",
+        "Q106": "Grandfather's watch to Jake. Guitar collection to brother James. The journals are for Emma — only when she's ready.",
+        "Q107": "To Sarah — you made every single day better. To Jake and Emma — be kind, work hard, and never stop being curious. I'm proud of who you're becoming."
     },
-    "homework": ["S3", "S5", "S7", "S11", "S12", "S15", "Q48"],
+    "homework": ["Q3", "Q5", "Q18", "Q44", "Q72"],
     "ai_narratives": {}
 }
 
 def generate_sample_narratives(data):
+    """Sample narratives keyed to v6 section IDs.
+
+    Used when ai_narratives is empty (local testing / fallback path).
+    Real production narratives come from main.py → Claude API → ENHANCED_AI_PROMPT.
+    """
     A = data["answers"]
     return {
-        "financial": {
-            "narrative": "Michael's primary banking is consolidated through Chase, with a joint checking account shared with Sarah and a separate savings account at Ally. Retirement planning is well-structured across a Fidelity 401(k) and Vanguard Roth IRA, with additional investments at Schwab. Financial documents are split between a filing cabinet and cloud storage.",
-            "action_guide": "INSTITUTION: Chase Bank | PHONE: 1-888-356-0023 | STEP 1: Call the Estate Services line and identify yourself as next of kin or executor | STEP 2: Request information on all accounts held under the deceased's name | STEP 3: Ask about joint account access for Sarah Thompson and next steps for transferring ownership | HAVE READY: Death certificate (certified copy), your photo ID, Social Security number of deceased | TIMELINE: Joint account access is typically immediate. Individual account transfers take 2-4 weeks | WATCH OUT: Do not close joint accounts until you speak with an estate attorney — tax implications vary\n\nINSTITUTION: Fidelity (401k) | PHONE: 1-800-343-3548 | STEP 1: Call Fidelity and report the death — ask for the Beneficiary Services team | STEP 2: Request the beneficiary claim packet — Sarah Thompson is the named beneficiary | STEP 3: Complete and return the packet with a certified death certificate | HAVE READY: Death certificate, beneficiary's ID, beneficiary's Social Security number | TIMELINE: Beneficiary claims typically process in 30-60 days | WATCH OUT: Do not roll over the 401k until you understand the inherited IRA rules — a mistake here can trigger significant taxes\n\nINSTITUTION: Vanguard (Roth IRA) | PHONE: 1-800-662-7447 | STEP 1: Call Vanguard and notify them of the death | STEP 2: Ask for the inherited IRA options for the named beneficiary | STEP 3: Complete the transfer paperwork | HAVE READY: Death certificate, beneficiary ID | TIMELINE: 30-60 days | WATCH OUT: Inherited Roth IRA rules differ from traditional IRA — withdrawals may still be tax-free but timing rules apply",
+        "foundation": {
+            "narrative": "Michael's foundation is partially in place. A will exists but it's been a few years since it was reviewed — and the executor named (his brother James) is still the right person. Estate attorney Patricia Chen is on file. Financial Power of Attorney is informal, which is the most pressing item to formalize. Healthcare proxy is named but specifics haven't been fully discussed. Key documents live in a filing cabinet at home with cloud backups.",
+            "action_guide": "INSTITUTION: Patricia Chen (Estate Attorney) | PHONE: 415-555-0142 | STEP 1: Contact Patricia and confirm the will is current and on file | STEP 2: Review the executor and guardian designations | STEP 3: Initiate formalization of the Financial Power of Attorney | HAVE READY: Photo ID, death certificate, list of named parties | TIMELINE: Initial review 1-2 weeks, formal updates 2-4 weeks | WATCH OUT: Powers of Attorney expire on death — they only help during incapacity, not after",
         },
-        "income": {
-            "narrative": "Income flows primarily through Chase checking via employer paycheck. Most recurring bills are on autopay, which is ideal — but those autopay cards must stay active or bills will start bouncing. The water bill is paid manually on a quarterly basis. Key annual payments to watch: property tax in June and September, car registration in October.",
-            "action_guide": "INSTITUTION: Employer / HR Department | PHONE: Call HR directly | STEP 1: Notify HR of the death and ask about the final paycheck | STEP 2: Ask about any accrued PTO payout and life insurance through the employer | STEP 3: Request information about pension or 401k continuation | HAVE READY: Death certificate, employee ID if known | TIMELINE: Final paycheck typically issued within 1-2 pay cycles | WATCH OUT: Autopay bills will keep charging — go through the autopay list and cancel or transfer each one individually. Do not cancel cards until autopays are moved",
-        },
-        "insurance": {
-            "narrative": "Michael's insurance coverage is stronger than most. Life insurance totals $750,000 across MetLife (employer) and Northwestern Mutual (private), with Sarah as beneficiary on both. Disability coverage exists through the employer. All policies are filed in the filing cabinet, and agent John Davis at State Farm handles home, auto, and umbrella.",
-            "action_guide": "INSTITUTION: MetLife (Life Insurance — Employer Policy) | PHONE: 1-800-638-5433 | STEP 1: Call MetLife and ask for the Life Insurance Claims department | STEP 2: Provide the policy number if available, or identify through the employer | STEP 3: Complete and return the beneficiary claim form | HAVE READY: Death certificate (certified), beneficiary ID, policy number if available | TIMELINE: Life insurance claims typically pay within 30-60 days | WATCH OUT: If the death was within 2 years of the policy start date, the insurer may contest the claim — this is called the contestability period\n\nINSTITUTION: Northwestern Mutual (Private Life Insurance) | PHONE: 1-800-388-8123 | STEP 1: Call Northwestern Mutual and request the Claims department | STEP 2: Provide the policy number (located in the filing cabinet) | STEP 3: Submit the claim with a certified death certificate | HAVE READY: Death certificate, beneficiary ID, policy documents | TIMELINE: 30-60 days | WATCH OUT: Keep the policy in force (premium paid) until the claim is processed — a lapsed policy can complicate the claim\n\nINSTITUTION: State Farm (Home, Auto, Umbrella) | PHONE: 1-800-732-5246 | STEP 1: Call agent John Davis directly at 312-555-0847 | STEP 2: Notify State Farm of the death and discuss policy continuation | STEP 3: Transfer home and auto policies to the surviving spouse if applicable | HAVE READY: Death certificate, policy numbers | TIMELINE: Policy transfers are typically completed within 1-2 weeks | WATCH OUT: Do not let home or auto insurance lapse — coverage gaps can leave you unprotected and affect future rates",
-        },
-        "digital": {
-            "narrative": "Password management is handled through 1Password, with the master password stored in the sealed envelope — good setup. Michael's primary email is a Gmail account. The main gap is computer access — only Michael can currently get in. Financial apps include Venmo and Zelle. Photos are backed up across iCloud and Google Photos.",
-            "action_guide": "INSTITUTION: Gmail / Google Account | PHONE: No direct phone — use google.com/accounts/recovery | STEP 1: Start with the primary email account — it is the key to resetting everything else | STEP 2: Use Google's Inactive Account process or submit a deceased user request at support.google.com | STEP 3: Once in, use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate (digital copy), your own photo ID | TIMELINE: Google's deceased user process takes 4-8 weeks | WATCH OUT: Do not delete the Google account — it may hold 2-factor authentication codes, documents, and photos that you will need\n\nINSTITUTION: 1Password (Password Manager) | PHONE: No phone — use 1password.com/support | STEP 1: Retrieve the master password from the sealed envelope | STEP 2: Log in to 1Password and export the vault or access credentials one by one | STEP 3: Use the stored passwords to access financial accounts, email, and other services | HAVE READY: Master password from sealed envelope | TIMELINE: Immediate once you have the master password | WATCH OUT: The Emergency Kit (account key + master password) is required — without both, the vault is unrecoverable",
+        "key_people": {
+            "narrative": "Sarah Brennan (Michael's sister) is the operational primary point person. She knows she's been chosen, she knows where the Brief lives, and she's been walked through the first 48 hours. James (brother) is the backup. Role clarity is established: Sarah handles logistics, James handles legal. The wishes have been discussed broadly with the family.",
+            "action_guide": "INSTITUTION: Primary Point Person (Sarah Brennan) | PHONE: 312-555-0167 | STEP 1: Call Sarah first — she has been briefed and knows where the Brief lives | STEP 2: She will coordinate the first 48 hours and route to the right next people | STEP 3: Connect her with James Thompson (backup) and the executor as needed | HAVE READY: This Brief, photo ID | TIMELINE: First call within 1 hour | WATCH OUT: If Sarah is also unavailable, route to James — he is the named backup",
         },
         "children": {
-            "narrative": "Jake (16) and Emma (14) are Michael's dependents. Sarah Brennan, Michael's sister, is the temporary guardian — she has a house key and is on the school's authorized pickup list. Mark and Rachel Davies are the permanent guardians per the will, and they've agreed to it. Critical to know: both kids have peanut allergies (EpiPens in kitchen drawer), Jake takes ADHD meds at 7am, and their therapist is Dr. Kim on Tuesdays.",
-            "action_guide": "INSTITUTION: Sarah Brennan (Temporary Guardian) | PHONE: 312-555-0167 | STEP 1: Call Sarah immediately — she is the first call for the kids | STEP 2: She has a house key and is on the school's authorized pickup list | STEP 3: She has been briefed on routines, medications, and allergies — the full list is on this page | HAVE READY: This Brief, school contact info, EpiPens (kitchen drawer) | TIMELINE: She can be at the house within 30 minutes | WATCH OUT: Do NOT delay this call to handle other logistics first — the kids are the priority\n\nINSTITUTION: School (Authorized Pickup) | PHONE: Call the school's main office | STEP 1: Notify the school of the situation | STEP 2: Confirm Sarah Brennan is on the authorized pickup list (she should be) | STEP 3: Coordinate dismissal time | HAVE READY: Photo ID, your relationship to the children | TIMELINE: Same-day | WATCH OUT: Schools require ID matching — verbal authorization is not enough",
+            "narrative": "Jake (16) and Emma (14) are Michael's dependents. Sarah Brennan is the temporary guardian — she has multiple ways into the house, is on the school's authorized pickup list, and is permitted to drive the family vehicles. Mark and Rachel Davies are the permanent guardians per the will, and they've agreed. Routines, medications, and allergies are documented; their Tuesday therapist (Dr. Kim) is on the page.",
+            "action_guide": "INSTITUTION: Temporary Guardian (Sarah Brennan) | PHONE: 312-555-0167 | STEP 1: Call Sarah first — before notifying anyone else. The kids are the priority | STEP 2: Confirm access to the house, medications, and routines documented in this Brief | STEP 3: Coordinate the next 24-48 hours: school pickup, sleep arrangements, food | HAVE READY: This Brief, photo ID, school contact information | TIMELINE: First call within the first hour | WATCH OUT: If the temporary guardian was never told they were chosen, the conversation is harder. Sarah has been told\n\nINSTITUTION: School / Daycare | PHONE: Main office number | STEP 1: Notify the school of the situation | STEP 2: Confirm the temporary guardian is on the authorized pickup list (she is) | STEP 3: Coordinate dismissal | HAVE READY: Photo ID, your relationship to the children, this Brief | TIMELINE: Same-day | WATCH OUT: Schools require photo ID matching the authorized name",
         },
-        "medical": {
-            "narrative": "Sarah Thompson is the medical decision maker and she knows she's been chosen. James Thompson serves as backup. Michael has high blood pressure and mild asthma — Lisinopril and Albuterol. Critical allergy: penicillin. Dr. Emily Chen at Northwestern Medical is primary care, Dr. Raj Patel handles cardiology. The gap: no living will or advance directive exists.",
-            "action_guide": "INSTITUTION: Blue Cross Blue Shield (Health Insurance) | PHONE: Call the member services number on the insurance card | STEP 1: Notify BCBS of the death and ask about any outstanding claims | STEP 2: Ask about COBRA continuation coverage if dependents need continued coverage | STEP 3: Cancel the policy once all claims are settled | HAVE READY: Death certificate, member ID number, insurance card | TIMELINE: Outstanding claims are typically resolved within 60-90 days | WATCH OUT: Do not cancel health insurance until all outstanding medical bills are resolved — some claims arrive months after treatment\n\nINSTITUTION: Dr. Emily Chen — Primary Care (Northwestern Medical) | PHONE: Call the practice directly | STEP 1: Notify the practice of the death | STEP 2: Request medical records if needed for insurance claims or legal purposes | STEP 3: Cancel any upcoming appointments | HAVE READY: Death certificate, patient ID | TIMELINE: Medical records requests take up to 30 days under HIPAA | WATCH OUT: Medicare and insurance companies need to be notified separately — the doctor's office does not automatically report the death to either",
+        "money": {
+            "narrative": "Banking is concentrated at Chase and Ally with joint access. Retirement is well-organized across Fidelity (401k) and Vanguard (Roth IRA), with an old 401(k) from Acme Corp flagged as unresolved. Schwab holds a separate brokerage. The Wells Fargo mortgage and Toyota auto loan are the active obligations. Autopay runs off the Chase Sapphire card (expires 09/2027). One safe deposit box at Chase Main St; spare key in the home office.",
+            "action_guide": "INSTITUTION: Chase Bank | PHONE: 1-888-356-0023 | STEP 1: Call the Estate Services line and identify yourself as next of kin or executor | STEP 2: Request information on all accounts held under the deceased's name | STEP 3: Ask about joint access for Sarah Thompson and steps for ownership transfer | HAVE READY: Death certificate (certified copy), your photo ID, deceased's SSN | TIMELINE: Joint account access typically immediate; individual transfers 2-4 weeks | WATCH OUT: Do not close joint accounts until you speak with the estate attorney\n\nINSTITUTION: Fidelity (401k) | PHONE: 1-800-343-3548 | STEP 1: Call and report the death — ask for Beneficiary Services | STEP 2: Request the beneficiary claim packet (Sarah Thompson named) | STEP 3: Return with certified death certificate | HAVE READY: Death certificate, beneficiary ID, SSN | TIMELINE: 30-60 days | WATCH OUT: Do not roll over inherited 401(k) until you understand inherited IRA rules\n\nINSTITUTION: Vanguard (Roth IRA) | PHONE: 1-800-662-7447 | STEP 1: Call and notify of death | STEP 2: Ask for inherited IRA options | STEP 3: Complete transfer paperwork | HAVE READY: Death certificate, beneficiary ID | TIMELINE: 30-60 days | WATCH OUT: Inherited Roth IRA timing rules apply even though withdrawals may be tax-free",
+        },
+        "insurance": {
+            "narrative": "Insurance coverage is strong. Life insurance totals $750,000 across MetLife (employer) and Northwestern Mutual (private), with Sarah as primary beneficiary and children per stirpes as contingent. Disability through the employer; no long-term care policy. State Farm covers home, auto, and a $1M umbrella, with agent John Davis as the single contact across all three.",
+            "action_guide": "INSTITUTION: MetLife (Life — Employer) | PHONE: 1-800-638-5433 | STEP 1: Call MetLife Claims department | STEP 2: Provide the policy number or identify through the employer | STEP 3: Complete and return the beneficiary claim form | HAVE READY: Death certificate (certified), beneficiary ID, policy number if available | TIMELINE: 30-60 days | WATCH OUT: If death was within 2 years of policy start, the contestability period applies\n\nINSTITUTION: Northwestern Mutual (Private Life) | PHONE: 1-800-388-8123 | STEP 1: Call Claims department | STEP 2: Provide policy number (located in filing cabinet) | STEP 3: Submit claim with certified death certificate | HAVE READY: Death certificate, beneficiary ID, policy documents | TIMELINE: 30-60 days | WATCH OUT: Keep premium paid until claim processes — a lapsed policy complicates the claim\n\nINSTITUTION: State Farm (Home / Auto / Umbrella) | PHONE: 1-800-732-5246 | STEP 1: Call agent John Davis directly at 312-555-0847 | STEP 2: Notify of death; discuss policy continuation | STEP 3: Transfer home and auto policies to surviving spouse | HAVE READY: Death certificate, policy numbers | TIMELINE: 1-2 weeks | WATCH OUT: Do not let coverage lapse — gaps affect future rates",
+        },
+        "digital": {
+            "narrative": "Password management runs through 1Password with the master password sealed in the Companion Document envelope. Primary email is michael.t@gmail.com with 2FA enabled (authenticator app) and backup codes printed in the envelope. Phone passcode will be added to the envelope. Computer access is the lone gap — only Michael can currently get in. No crypto. Photos across iCloud and Google Photos. Subscriptions documented for survivor triage.",
+            "action_guide": "INSTITUTION: Gmail / Google Account | PHONE: No direct phone — use google.com/accounts/recovery | STEP 1: Start with the primary email — it resets every other account | STEP 2: Retrieve the password from the Companion Document envelope, plus the 2FA backup code | STEP 3: Use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate (digital), your photo ID, Companion Document | TIMELINE: With password + 2FA code in hand, immediate; without, 4-8 weeks via Google's deceased user process | WATCH OUT: Do not delete the Google account — it may hold 2FA codes and documents you'll need\n\nINSTITUTION: 1Password (Password Manager) | PHONE: No phone — use 1password.com/support | STEP 1: Retrieve the master password from the Companion Document envelope | STEP 2: Log in and export the vault or access credentials one by one | STEP 3: Use stored passwords to access remaining accounts | HAVE READY: Master password (in envelope) AND the 1Password Emergency Kit (account key) | TIMELINE: Immediate once both pieces are in hand | WATCH OUT: 1Password requires BOTH the master password and the account key — neither alone is sufficient",
+        },
+        "medical_wishes": {
+            "narrative": "Sarah Thompson is the medical decision maker and she knows she's been chosen. James Thompson (brother) serves as backup. Specific directives: comfort care only if machines are keeping him alive with no realistic recovery; full resuscitation if the heart stops in an otherwise survivable event; registered organ donor. Dr. Emily Chen at Northwestern is primary care; Dr. Raj Patel handles cardiology. Insurance card lives in his wallet. Funeral preference: cremation, ashes scattered at Lake Michigan, celebration of life. Specific personal bequests are documented; a letter to Sarah, Jake, and Emma is on the final page.",
+            "action_guide": "INSTITUTION: Sarah Thompson (Healthcare Proxy) | PHONE: 312-555-0188 | STEP 1: If Michael is unconscious in an ER, Sarah is the first call — she is authorized to speak for him | STEP 2: She knows his specific wishes for life support and resuscitation | STEP 3: James Thompson is the backup if Sarah is unreachable | HAVE READY: This Brief, photo ID | TIMELINE: Immediate | WATCH OUT: Without the healthcare proxy documentation in hand, hospitals default to state rules even with a verbally-named proxy\n\nINSTITUTION: Blue Cross Blue Shield (Health Insurance) | PHONE: Number on the insurance card | STEP 1: Notify BCBS and ask about outstanding claims | STEP 2: Ask about COBRA continuation for dependents | STEP 3: Cancel the policy once all claims are settled | HAVE READY: Death certificate, member ID, insurance card | TIMELINE: 60-90 days for outstanding claims | WATCH OUT: Do not cancel until all medical bills are resolved — some arrive months after treatment\n\nINSTITUTION: Dr. Emily Chen (Primary Care, Northwestern) | PHONE: 312-555-0410 | STEP 1: Notify the practice | STEP 2: Request medical records for insurance/legal purposes | STEP 3: Cancel upcoming appointments | HAVE READY: Death certificate, patient ID | TIMELINE: Records up to 30 days under HIPAA | WATCH OUT: Medicare and insurance must be notified separately — the doctor's office doesn't auto-report",
         },
     }
 
@@ -220,7 +271,8 @@ class ResolvedBriefBuilder:
 
     def _get(self, qid, default=""):
         val = self.A.get(qid, default)
-        if val and "," in val and qid in ("Q15","Q17","Q23","Q27","Q44","Q49","Q51","Q52"):
+        # v6 multi_select IDs: format CSV-like values with spaces after commas
+        if val and "," in val and qid in ("Q5A","Q6","Q32","Q33","Q37","Q79","Q80","Q81"):
             val = val.replace(",", ", ")
         return val or default
 
@@ -464,8 +516,8 @@ class ResolvedBriefBuilder:
         c.setFillColor(MID_GRAY)
         c.drawCentredString(W/2, H * 0.295, self.date)
 
-        sections_left = ["Financial Overview", "Insurance & Benefits", "Medical & Emergency", "Family & Children", "Family Emergency Card"]
-        sections_right = ["Income & Bills", "Digital Life & Access", "Final Wishes", "Follow-Up Checklist"]
+        sections_left = ["Foundation & Legal", "Key People", "Family & Children", "Money & Obligations", "Family Emergency Card"]
+        sections_right = ["Insurance & Protection", "Digital Life & Access", "Medical & Final Wishes", "Follow-Up Checklist"]
         y_start = H * 0.22
         c.setFont("Helvetica", 11)
         max_rows = max(len(sections_left), len(sections_right))
@@ -687,188 +739,218 @@ class ResolvedBriefBuilder:
 
         c.showPage()
 
-        # ═══ PAGE 3: FINANCIAL OVERVIEW ═══
-        self.build_section_page(c, "Financial Overview",
-            "Where the money lives \u2014 banks, investments, and debts", 1, "financial",
+        # ═══ PAGE 3: FOUNDATION & LEGAL ═══
+        self.build_section_page(c, "Foundation & Legal",
+            "The documents that determine whether your wishes are followed.", 1, "foundation",
             [
                 ("Will & Estate", [
-                    ("Will Location", self._get("S1C")),
-                    ("Last Updated", self._get("S1A")),
-                    ("Estate Attorney", self._get("S1D")),
-                    ("Named Executor", self._get("S1E")),
-                    ("Named Guardian (in will)", self._get("S1F")),
+                    ("Will status", self._get("Q2")),
+                    ("Last updated", self._get("Q2A")),
+                    ("Will location", self._get("Q2B")),
+                    ("Estate attorney", self._get("Q2C")),
+                    ("Named executor", self._get("Q2D")),
+                    ("Named guardian (in will)", self._get("Q2E")),
+                    ("Still the right people?", self._get("Q2F")),
                 ]),
-                ("Bank Accounts", [
-                    ("Primary Bank", self._get("Q14")),
-                    ("Account Types", self._get("Q15")),
-                    ("Joint Account Holder", self._get("Q16")),
+                ("Powers of Attorney", [
+                    ("Financial POA", self._get("Q3")),
+                    ("Healthcare POA / medical proxy", self._get("Q4")),
                 ]),
-                ("Investments & Retirement", [
-                    ("Retirement Accounts", self._get("Q17")),
-                    ("Held At", self._get("Q18")),
-                    ("Brokerage Accounts", self._get("Q19")),
-                    ("Old / Orphaned 401(k)s (Previous Employers)", self._get("Q19A")),
+                ("Document Storage", [
+                    ("Where documents live", self._get("Q5")),
+                    ("Locations involved", self._get("Q5A")),
+                    ("Physical access (keys/codes)", self._get("Q5B")),
                 ]),
-                ("Debts & Documents", [
-                    ("Mortgage/Rent", self._get("Q20")),
-                    ("Loans", self._get("Q21")),
-                    ("Credit Cards", self._get("Q22")),
-                    ("Documents Location", self._get("Q23")),
-                    ("Safe Deposit Box", self._get("Q24")),
-                    ("Safe Deposit Box \u2014 Bank & Key", self._get("Q24A")),
+                ("Advisors", [
+                    ("Current advisors", self._get("Q6")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 4: INCOME & BILLS ═══
-        self.build_section_page(c, "Income & Bills",
-            "What comes in, what goes out \u2014 so nothing gets missed", 2, "income",
+        # ═══ PAGE 4: KEY PEOPLE & DECISION MAKERS ═══
+        self.build_section_page(c, "Key People & Decision Makers",
+            "The people who would step in — and what they know.", 2, "key_people",
             [
-                ("Income Sources", [
-                    ("Primary Account", self._get("Q25")),
-                    ("Income Sources", self._get("Q27")),
+                ("Primary Point Person", [
+                    ("Primary point person", self._get("Q10")),
+                    ("Have you told them?", self._get("Q11")),
+                    ("Do they know where the Brief is?", self._get("Q12")),
                 ]),
-                ("Bills & Payments", [
-                    ("Bills on Autopay", self._get("Q28")),
-                    ("Primary Autopay Card", self._get("Q28A")),
-                    ("Card Expires", self._get("Q28B")),
-                    ("Manual Bills", self._get("Q29")),
-                    ("Annual Payments", self._get("Q31")),
+                ("First 48 Hours", [
+                    ("First-48 readiness", self._get("Q13")),
                 ]),
-                ("Subscriptions & Memberships", [
-                    ("Active Subscriptions", self._get("Q30")),
+                ("Backup & Role Clarity", [
+                    ("Backup person", self._get("Q14")),
+                    ("Clarity if both parents are gone", self._get("Q15")),
+                    ("Role-by-domain clarity", self._get("Q16")),
                 ]),
-            ])
-        c.showPage()
-
-        # ═══ PAGE 5: INSURANCE & BENEFITS ═══
-        self.build_section_page(c, "Insurance & Benefits",
-            "Your safety net \u2014 what's covered and where the policies are", 3, "insurance",
-            [
-                ("Life Insurance", [
-                    ("Provider", self._get("Q33")),
-                    ("Coverage Amount", self._get("Q34")),
-                    ("Policy Type", self._get("Q32")),
-                    ("Primary Beneficiary", self._get("Q35")),
-                    ("Contingent Beneficiary", self._get("Q35A")),
-                    ("Beneficiary Last Reviewed", self._get("Q35B")),
-                ]),
-                ("Other Coverage", [
-                    ("Disability Insurance", self._get("Q36")),
-                    ("Long-Term Care", self._get("Q37")),
-                    ("Home/Renters", self._get("Q38")),
-                    ("Auto Insurance", self._get("Q39")),
-                ]),
-                ("Policy Locations", [
-                    ("Documents Kept At", self._get("Q41")),
-                    ("Agent/Broker", self._get("Q42")),
-                    ("Other Policies", self._get("Q40")),
+                ("Wishes Awareness", [
+                    ("Family awareness of your wishes", self._get("Q17")),
+                    ("Could they speak for your specific wishes?", self._get("Q18")),
                 ]),
             ])
         c.showPage()
 
-        # ═══ PAGE 6: DIGITAL LIFE & ACCESS ═══
-        self.build_section_page(c, "Digital Life & Access",
-            "How your family gets into your accounts when they need to", 4, "digital",
-            [
-                ("Passwords & Access", [
-                    ("Password Manager", self._get("Q44", self._get("Q43"))),
-                    ("Master Password Location", self._get("Q45")),
-                    ("Primary Email", self._get("Q46")),
-                    ("Email Access Plan", self._get("Q46A")),
-                    ("Email 2FA Method", self._get("Q46B")),
-                    ("2FA Backup Codes Stored", self._get("Q46C")),
-                ]),
-                ("Device Access", [
-                    ("Phone Access", self._get("Q47")),
-                    ("Phone Passcode in Envelope", self._get("Q47A")),
-                    ("Computer Access", self._get("Q48")),
-                    ("Financial Apps", self._get("Q49")),
-                ]),
-                ("Digital Assets & Storage", [
-                    ("Cryptocurrency", self._get("Q50")),
-                    ("Crypto Platform & Recovery", self._get("Q50A")),
-                    ("Photos Stored At", self._get("Q51")),
-                    ("Cloud Storage", self._get("Q52")),
-                    ("Household Subscriptions", self._get("Q52a")),
-                ]),
-            ])
-        c.showPage()
-
-        # ═══ PAGE 7: MEDICAL & EMERGENCY ═══
-        self.build_section_page(c, "Medical & Emergency",
-            "Who makes decisions and what they need to know", 5, "medical",
-            [
-                ("Decision Makers", [
-                    ("Healthcare Proxy", self._get("Q1")),
-                    ("This Person Knows", self._get("Q2")),
-                    ("Backup Contact", self._get("Q3")),
-                ]),
-                ("Medical Information", [
-                    ("Conditions", self._get("Q4")),
-                    ("Medications", self._get("Q5")),
-                    ("Allergies", self._get("Q6")),
-                    ("Primary Doctor", self._get("Q7")),
-                    ("Specialists", self._get("Q8")),
-                ]),
-                ("Insurance & Documents", [
-                    ("Health Insurance", self._get("Q9")),
-                    ("Insurance Card Location", self._get("Q10")),
-                    ("Living Will / Advance Directive", self._get("Q11")),
-                ]),
-                ("End-of-Life Preferences", [
-                    ("Resuscitation Preference", self._get("Q12")),
-                    ("Organ Donor", self._get("Q13")),
-                ]),
-            ])
-        c.showPage()
-
-        # ═══ PAGE 8: FAMILY & CHILDREN ═══
-        # Only renders if at least one Q61–Q67 field is filled (skippable for non-parents)
-        has_children_data = any(self._get(qid) for qid in ["Q61", "Q62", "Q63", "Q64", "Q65", "Q66", "Q67"])
+        # ═══ PAGE 5: FAMILY & CHILDREN ═══
+        # Skippable — only renders if at least one Q20–Q29 field is filled.
+        has_children_data = any(self._get(qid) for qid in ["Q20","Q21","Q22","Q23","Q24","Q25","Q26","Q27","Q28","Q29"])
         if has_children_data:
             self.build_section_page(c, "Family & Children",
-                "The people who depend on you — and who steps in for them", 6, "children",
+                "The people who depend on you — and who steps in for them.", 3, "children",
                 [
                     ("Your Dependents", [
-                        ("Names & Ages", self._get("Q61")),
+                        ("Names & ages", self._get("Q20")),
                     ]),
-                    ("Tonight: Who Picks Them Up", [
-                        ("Temporary Guardian", self._get("Q62")),
-                        ("Temp Guardian Access", self._get("Q63")),
-                        ("Vehicle Access", self._get("Q63b")),
-                        ("On School Pickup List", self._get("Q64")),
+                    ("Long-Term Guardianship", [
+                        ("Documented plan?", self._get("Q21")),
+                        ("Permanent guardian (per will)", self._get("Q22")),
+                        ("Have they agreed?", self._get("Q23")),
                     ]),
-                    ("Long-Term Guardian (Per Will)", [
-                        ("Permanent Guardian", self._get("Q65")),
-                        ("Has Agreed to It", self._get("Q66")),
+                    ("Tonight & Tomorrow", [
+                        ("Temporary guardian", self._get("Q24")),
+                        ("Home access", self._get("Q25")),
+                        ("Vehicle access", self._get("Q26")),
+                        ("On school pickup list", self._get("Q27")),
                     ]),
-                    ("What They Need to Know", [
-                        ("Routines, Medications, Comforts", self._get("Q67")),
+                    ("What They’d Need to Know", [
+                        ("Routines, medications, comforts", self._get("Q28")),
+                        ("Values & traditions to carry forward", self._get("Q29")),
                     ]),
                 ])
             c.showPage()
 
-        # ═══ PAGE 9: FINAL WISHES ═══
-        self.build_section_page(c, "Final Wishes",
-            "These are the exact words and wishes they left for you.", 7, "wishes",
+        # ═══ PAGE 6: MONEY, ASSETS & OBLIGATIONS ═══
+        self.build_section_page(c, "Money, Assets & Obligations",
+            "Where the money lives — and what needs to keep moving.", 4, "money",
             [
-                ("Arrangements", [
-                    ("Burial / Cremation", self._get("Q53")),
-                    ("Specific Wishes", self._get("Q54")),
+                ("Banking & Cash Access", [
+                    ("First-week cash access", self._get("Q30")),
+                    ("Banks / credit unions", self._get("Q31")),
+                    ("Account types", self._get("Q32")),
                 ]),
-                ("Service & Celebration", [
-                    ("Type of Service", self._get("Q55")),
-                    ("Specific Requests", self._get("Q56")),
-                    ("People to Notify", self._get("Q57")),
+                ("Investments & Retirement", [
+                    ("Retirement accounts", self._get("Q33")),
+                    ("Held at", self._get("Q34")),
+                    ("Old / orphaned 401(k)s", self._get("Q35")),
+                    ("Brokerage / outside retirement", self._get("Q36")),
                 ]),
-                ("Personal Belongings", [
-                    ("Items for Specific People", self._get("Q58")),
-                    ("Donate / Sell / Destroy", self._get("Q59")),
+                ("Income, Bills & Obligations", [
+                    ("Income sources", self._get("Q37")),
+                    ("Bills on autopay", self._get("Q38")),
+                    ("Bills paid manually", self._get("Q38A")),
+                    ("Primary autopay card", self._get("Q39")),
+                    ("Card expires", self._get("Q40")),
+                    ("Loans", self._get("Q41")),
+                ]),
+                ("Property & Documents", [
+                    ("Property / vehicles / valuables", self._get("Q42")),
+                    ("Safe deposit box", self._get("Q43")),
+                    ("Safe deposit — bank & key", self._get("Q43A")),
+                ]),
+                ("Business & Advisors", [
+                    ("Business interests / IP", self._get("Q44")),
+                    ("Spouse / executor readiness", self._get("Q45")),
+                ]),
+            ])
+        c.showPage()
+
+        # ═══ PAGE 7: INSURANCE & PROTECTION ═══
+        self.build_section_page(c, "Insurance & Protection",
+            "Your safety net — what's covered and where the policies are.", 5, "insurance",
+            [
+                ("Life Insurance", [
+                    ("Policy type", self._get("Q50")),
+                    ("Provider(s)", self._get("Q51")),
+                    ("Coverage amount", self._get("Q52")),
+                    ("Primary beneficiary", self._get("Q53")),
+                    ("Contingent beneficiary", self._get("Q54")),
+                    ("Beneficiary last reviewed", self._get("Q55")),
+                ]),
+                ("Other Coverage", [
+                    ("Disability insurance", self._get("Q56")),
+                    ("Long-term care", self._get("Q57")),
+                    ("Home / renters", self._get("Q58")),
+                    ("Auto", self._get("Q59")),
+                    ("Other (umbrella / business)", self._get("Q60")),
+                ]),
+                ("Documents & Advisors", [
+                    ("Insurance documents location", self._get("Q61")),
+                    ("Agent / broker", self._get("Q62")),
+                ]),
+            ])
+        c.showPage()
+
+        # ═══ PAGE 8: DIGITAL LIFE & ACCESS ═══
+        self.build_section_page(c, "Digital Life & Access",
+            "How your family gets into your accounts when they need to.", 6, "digital",
+            [
+                ("Phone & Devices", [
+                    ("Phone access", self._get("Q70")),
+                    ("Phone passcode in Companion Document", self._get("Q71")),
+                    ("Computer access", self._get("Q72")),
+                ]),
+                ("Email Accounts", [
+                    ("Email accounts", self._get("Q73")),
+                    ("Email access plan", self._get("Q74")),
+                    ("Email 2FA method", self._get("Q75")),
+                    ("2FA backup codes stored", self._get("Q76")),
+                ]),
+                ("Passwords & Cloud", [
+                    ("Password management", self._get("Q77")),
+                    ("Password manager", self._get("Q77A")),
+                    ("Master password location", self._get("Q78")),
+                    ("Photos stored at", self._get("Q79")),
+                    ("Cloud storage", self._get("Q80")),
+                ]),
+                ("Financial Apps & Crypto", [
+                    ("Financial apps", self._get("Q81")),
+                    ("Cryptocurrency", self._get("Q82")),
+                    ("Crypto platform & recovery", self._get("Q82A")),
+                ]),
+                ("Subscriptions", [
+                    ("Household subscriptions", self._get("Q83")),
+                ]),
+            ])
+        c.showPage()
+
+        # ═══ PAGE 9: MEDICAL & FINAL WISHES ═══
+        self.build_section_page(c, "Medical & Final Wishes",
+            "Who speaks for you, what you’d want, and the words you’d leave.", 7, "medical_wishes",
+            [
+                ("Medical Decisions", [
+                    ("Decision-maker status", self._get("Q90")),
+                    ("Healthcare proxy", self._get("Q90A")),
+                    ("Proxy preparation level", self._get("Q90B")),
+                    ("Backup", self._get("Q90C")),
+                ]),
+                ("Specific Medical Wishes", [
+                    ("Life support / extraordinary measures", self._get("Q91")),
+                    ("Living will / directive location", self._get("Q91A")),
+                    ("CPR / resuscitation", self._get("Q92")),
+                    ("Organ donation", self._get("Q93")),
+                ]),
+                ("Medical Information", [
+                    ("Primary care doctor", self._get("Q94")),
+                    ("Specialists", self._get("Q95")),
+                    ("Health insurance", self._get("Q96")),
+                    ("Insurance card location", self._get("Q97")),
+                    ("ER-ready summary in place?", self._get("Q98")),
+                ]),
+                ("Funeral & Memorial", [
+                    ("Disposition (burial / cremation)", self._get("Q100")),
+                    ("Specific location", self._get("Q100A")),
+                    ("Service type", self._get("Q101")),
+                    ("Specifically don’t want", self._get("Q102")),
+                    ("Specifically do want", self._get("Q103")),
+                    ("Notify list", self._get("Q104")),
+                ]),
+                ("Legacy & Final Message", [
+                    ("How you want to be remembered", self._get("Q105")),
+                    ("Specific items for specific people", self._get("Q106")),
                 ]),
             ])
 
-        msg = self._get("Q60")
+        msg = self._get("Q107")
         if msg:
             c.setFillColor(GOLD)
             c.setFont("Times-Bold", 12)
@@ -907,32 +989,33 @@ class ResolvedBriefBuilder:
         y -= 30
 
         steps_24 = []
-        # Step 1: The Emergency Captain (S13) — the operational person, not the medical proxy
-        captain = self._get("S13", "")
-        if captain:
-            steps_24.append(f"1.  Call your Emergency Captain: {captain}")
+        # Step 1: Primary Point Person (Q10) — the operational person, not the medical proxy
+        point_person = self._get("Q10", "")
+        if point_person:
+            steps_24.append(f"1.  Call your primary point person: {point_person}")
         else:
-            steps_24.append(f"1.  Call {self._get('Q1', '(primary emergency contact)')}")
-        steps_24.append(f"{len(steps_24)+1}.  Locate the Resolved Brief and the sealed envelope")
-        # If there are kids, the temp guardian is the very next call
-        temp_guardian = self._get("Q62", "")
+            steps_24.append("1.  Call your primary point person (not documented)")
+        steps_24.append(f"{len(steps_24)+1}.  Locate the Resolved Brief and the Companion Document envelope")
+        # If there are kids, the temp guardian is the very next call (Q24)
+        temp_guardian = self._get("Q24", "")
         if temp_guardian:
             steps_24.append(f"{len(steps_24)+1}.  Call temporary guardian for the kids: {temp_guardian}")
-        # Healthcare proxy if different from captain
-        proxy = self._get("Q1", "")
-        if proxy and proxy != captain:
+        # Healthcare proxy (Q90A) if different from point person
+        proxy = self._get("Q90A", "")
+        if proxy and proxy != point_person:
             steps_24.append(f"{len(steps_24)+1}.  Notify healthcare proxy: {proxy}")
-        agent = self._get("Q42", "")
+        agent = self._get("Q62", "")
         if agent:
             steps_24.append(f"{len(steps_24)+1}.  Call insurance agent: {agent}")
-        if self._get("Q44", self._get("Q43", "")):
-            steps_24.append(f"{len(steps_24)+1}.  Access password manager using sealed envelope instructions")
-        income = self._get("Q27", "")
-        if "employer" in income.lower():
+        # Password manager (Q77A primary, Q77 fallback)
+        if self._get("Q77A", self._get("Q77", "")):
+            steps_24.append(f"{len(steps_24)+1}.  Access password manager using Companion Document instructions")
+        income = self._get("Q37", "")
+        if "employ" in income.lower() or "w-2" in income.lower():
             steps_24.append(f"{len(steps_24)+1}.  Contact employer / HR")
-        elif "self" in income.lower():
+        elif "self" in income.lower() or "business" in income.lower():
             steps_24.append(f"{len(steps_24)+1}.  Notify business clients / partners")
-        doctor = self._get("Q7", "")
+        doctor = self._get("Q94", "")
         if doctor:
             steps_24.append(f"{len(steps_24)+1}.  Contact primary doctor: {doctor}")
 
@@ -959,16 +1042,16 @@ class ResolvedBriefBuilder:
         y -= 28
 
         contacts = [
-            ("Emergency Captain:", self._get("S13")),
-            ("Temp Guardian (Kids):", self._get("Q62")),
-            ("Healthcare Proxy:", self._get("Q1")),
-            ("Insurance Agent:", self._get("Q42")),
+            ("Primary Point Person:", self._get("Q10")),
+            ("Temp Guardian (Kids):", self._get("Q24")),
+            ("Healthcare Proxy:", self._get("Q90A")),
+            ("Insurance Agent:", self._get("Q62")),
         ]
         access = [
-            ("Phone Passcode:", self._get("Q47")),
-            ("Computer Password:", self._get("Q48")),
-            ("Email Access:", self._get("Q46")),
-            ("Password Manager:", self._get("Q44", self._get("Q43"))),
+            ("Phone Access:", self._get("Q70")),
+            ("Computer Access:", self._get("Q72")),
+            ("Email Accounts:", self._get("Q73")),
+            ("Password Manager:", self._get("Q77A", self._get("Q77"))),
         ]
 
         for i, ((cl, cv), (al, av)) in enumerate(zip(contacts, access)):
