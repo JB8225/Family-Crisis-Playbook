@@ -74,7 +74,7 @@
             {
               "id": "Q2C",
               "type": "text_input",
-              "prompt": "Who is your estate attorney? (Name + phone)",
+              "prompt": "Who is your estate attorney, if you have one? (Name + phone)",
               "placeholder": "e.g. Patricia Chen, 415-555-0142",
               "condition": {
                 "question_id": "Q2",
@@ -84,7 +84,7 @@
             {
               "id": "Q2D",
               "type": "text_input",
-              "prompt": "Who is currently named as the executor in your will? (Name + phone)",
+              "prompt": "Who is currently named as the executor in your will, if you've named one? (Name + phone)",
               "placeholder": "e.g. James Thompson, brother — 312-555-0142",
               "condition": {
                 "question_id": "Q2",
