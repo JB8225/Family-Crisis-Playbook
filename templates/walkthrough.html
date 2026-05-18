@@ -520,7 +520,7 @@ function rSummary(){
 
 <div style="text-align:center;margin-bottom:28px">
 <div id="priceDisplay"><span class="old">$${u.price_original}</span><span class="new">$${u.price_sale}</span></div>
-<button class="ubtn" id="unlockBtn" onclick="handleCheckout()"+(SESSION_ID?'?session_id='+SESSION_ID:''),'_blank')">${u.cta} \u2192</button>
+<button class="ubtn" id="unlockBtn" onclick="handleCheckout()">${u.cta} \u2192</button>
 <p class="trust">\uD83D\uDD12 Secure checkout \u00B7 ${u.guarantee}</p>
 </div>
 
@@ -608,10 +608,23 @@ const _origShowSum=showSum;showSum=function(){saveWalkthroughComplete();_origSho
 const _origStartW=startW;startW=function(){if(!SESSION_ID){startSession().then(()=>{_origStartW();});}else{_origStartW();}};
 
 async function handleCheckout(){
-    if(SESSION_ID){
-        window.open('https://thescamhotline.mysamcart.com/familycrisis?session_id='+SESSION_ID,'_blank');
-    } else {
-        window.open('https://thescamhotline.mysamcart.com/familycrisis','_blank');
+    // FOUNDING 50 FREE PATH — calls the PDF generation API directly instead of SamCart.
+    // When we switch back to paid mode, restore SamCart logic and pass session_id through.
+    if(!SESSION_ID){alert('Session error — please refresh and try again.');return;}
+    const btn=document.getElementById('unlockBtn');
+    if(btn){btn.disabled=true;btn.innerHTML='Generating your Brief...';}
+    try{
+        const res=await fetch(API_BASE+'/api/session/'+SESSION_ID+'/generate-brief',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        const data=await res.json();
+        if(data.status==='success'){
+            document.body.innerHTML='<div style="max-width:560px;margin:80px auto;padding:48px 32px;text-align:center;font-family:var(--sans)"><div style="font-size:64px;margin-bottom:24px">✉️</div><h1 style="font-family:var(--serif);font-size:34px;color:var(--gold);margin-bottom:16px">Your Brief is on its way.</h1><p style="font-size:17px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:24px">Check your inbox in the next 2-3 minutes. We just sent your complete Resolved Brief, Family Emergency Card, and Follow-Up Checklist as a PDF.</p><p style="font-size:14px;color:rgba(255,255,255,.4)">Not in your inbox? Check spam, then email <a href="mailto:jb@resolvedfamily.com" style="color:var(--gold)">jb@resolvedfamily.com</a>.</p></div>';
+        } else {
+            if(btn){btn.disabled=false;btn.innerHTML='Try Again →';}
+            alert('Something went wrong generating your Brief. Please email jb@resolvedfamily.com and we will send it manually.');
+        }
+    }catch(e){
+        if(btn){btn.disabled=false;btn.innerHTML='Try Again →';}
+        alert('Network error. Please try again in a moment.');
     }
 }// SHARE FUNCTIONS
 const SHARE_URL = "https://familycrisisplaybook.com/quick-landing/";
