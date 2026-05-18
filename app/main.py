@@ -992,6 +992,7 @@ class ScorecardReportRequest(BaseModel):
 
 def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
     """Build the personalized scorecard report HTML email."""
+    from urllib.parse import quote
     first = data.first_name
     score = data.score
     max_score = data.max_score
@@ -999,6 +1000,8 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
     label = data.grade_label
     gaps = data.gaps
     sections = data.section_scores
+    # Founding 50: hand off first_name+email to /free/ so it skips the form.
+    cta_link = f"https://resolvedfamily.com/free/?name={quote(first or '')}&email={quote(data.email or '')}"
 
     # Grade color
     if label in ("Excellent", "Strong"):
@@ -1093,8 +1096,8 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
                 <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
                 <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
                 <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
-                <a href="https://familycrisisplaybook.com/session/" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — $49 →</a>
-                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">20 minutes. One document. Done.</p>
+                <a href="{cta_link}" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
+                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">Founding 50 — free while it lasts. 20 minutes. One document. Done.</p>
             </div>
 
             <!-- SHARE COUPON -->
