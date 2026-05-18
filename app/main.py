@@ -6,6 +6,7 @@ Phase 1: Walkthrough + Supabase session persistence
 
 import os
 import json
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 from contextlib import asynccontextmanager
@@ -247,15 +248,23 @@ async def walkthrough(request: Request):
 @app.post("/api/session/start")
 async def session_start(data: SessionStart):
     try:
+        # Generate session_id client-side — don't rely on Supabase default which may not exist
+        session_id = str(uuid.uuid4())
         result = supabase.table("sessions").insert({
+            "session_id": session_id,
             "email": data.email,
             "first_name": data.first_name,
             "last_activity_at": now_iso(),
         })
-        session = result.data[0]
-        return {"session_id": session["session_id"], "status": "created"}
+        # Some Supabase configs return the inserted row; if not, fall back to the id we just generated
+        try:
+            returned = result.data[0]
+            return {"session_id": returned.get("session_id", session_id), "status": "created"}
+        except (IndexError, TypeError, AttributeError):
+            return {"session_id": session_id, "status": "created"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
+        print(f"ERROR in /api/session/start: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create session: {type(e).__name__}: {str(e)}")
 
 
 @app.get("/api/session/{session_id}")
