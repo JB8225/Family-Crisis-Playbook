@@ -6,7 +6,7 @@
 <title>Resolved Family — Guided Walkthrough</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-:root{--navy:#1B2D4F;--deep:#0F1923;--gold:#C9A84C;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+:root{--navy:#1B2D4F;--deep:#0F1923;--gold:#C9A84C;--gold-bright:#FFD96B;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:var(--sans);background:var(--deep);color:#fff;min-height:100vh;-webkit-font-smoothing:antialiased}
 
@@ -76,17 +76,17 @@ body{font-family:var(--sans);background:var(--deep);color:#fff;min-height:100vh;
 .qi::placeholder{color:rgba(255,255,255,.25)}
 textarea.qi{resize:vertical;min-height:80px}
 .mc{display:flex;flex-direction:column;gap:8px}
-.mc-o{padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:17px;line-height:1.4}
-.mc-o:hover{border-color:rgba(201,168,76,.9);background:rgba(201,168,76,.22);transform:translateY(-2px);color:#FFE9A8}
-.mc-o.sel{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.12);color:var(--gold)}
+.mc-o{padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:17px;line-height:1.4}
+.mc-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.015) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.mc-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.22);color:var(--gold-bright);font-weight:600}
 .ms{display:flex;flex-wrap:wrap;gap:8px}
-.ms-o{padding:12px 18px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:16px}
-.ms-o:hover{border-color:rgba(201,168,76,.9);background:rgba(201,168,76,.22);transform:translateY(-2px);color:#FFE9A8}
-.ms-o.sel{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.15);color:var(--gold)}
+.ms-o{padding:12px 18px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:16px}
+.ms-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.03) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.ms-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.24);color:var(--gold-bright);font-weight:600}
 .yn{display:flex;gap:10px}
-.yn-o{flex:1;padding:15px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .3s ease;font-size:17px;text-align:center;font-weight:600}
-.yn-o:hover{border-color:rgba(201,168,76,.9);background:rgba(201,168,76,.22);transform:translateY(-2px);color:#FFE9A8}
-.yn-o.sel{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.12);color:var(--gold)}
+.yn-o{flex:1;padding:15px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:17px;text-align:center;font-weight:600}
+.yn-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.02) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.yn-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.22);color:var(--gold-bright);font-weight:700}
 
 /* FOLLOW-UP BUTTON */
 .fu{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;border-radius:8px;background:none;border:1px dashed rgba(255,255,255,.1);color:rgba(255,255,255,.3);font-family:var(--sans);font-size:15px;cursor:pointer;transition:all .2s ease}
@@ -258,11 +258,11 @@ body>*{position:relative;z-index:1}
 .welcome-page .journey { margin: 44px 0; padding: 28px 24px 24px; background: #FFFCF5; border: 1px dashed rgba(212,145,59,0.35); border-radius: 12px; }
 .welcome-page .journey-label { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #B57A2D; margin-bottom: 18px; }
 .welcome-page .pips { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; position: relative; }
-.welcome-page .pips::before { content: ''; position: absolute; left: 18px; right: 18px; top: 18px; height: 2px; background: linear-gradient(90deg, rgba(212,145,59,0.35), #D4913B, rgba(212,145,59,0.35)); z-index: 0; }
+.welcome-page .pips::before { content: ''; position: absolute; left: 36px; right: 36px; top: 36px; height: 2px; background: linear-gradient(90deg, rgba(212,145,59,0.35), #D4913B, rgba(212,145,59,0.35)); z-index: 0; }
 .welcome-page .pip { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
-.welcome-page .pip-dot { width: 36px; height: 36px; background: #FAF6EE; border: 2px solid #D4913B; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 6px; transition: all 0.25s ease; }
+.welcome-page .pip-dot { width: 72px; height: 72px; background: #FAF6EE; border: 2.5px solid #D4913B; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; margin-bottom: 10px; transition: all 0.25s ease; box-shadow: 0 2px 8px rgba(212,145,59,0.15); }
 .welcome-page .pip:hover .pip-dot { background: rgba(212,145,59,0.10); transform: scale(1.08); }
-.welcome-page .pip-label { font-size: 9.5px; font-weight: 600; color: #1B3A5C; opacity: 0.75; text-align: center; letter-spacing: 0.3px; line-height: 1.2; }
+.welcome-page .pip-label { font-size: 12px; font-weight: 600; color: #1B3A5C; opacity: 0.80; text-align: center; letter-spacing: 0.3px; line-height: 1.25; }
 .welcome-page .env-quote { position: relative; margin: 44px 0 16px; padding: 32px 36px 32px 80px; background: linear-gradient(135deg, rgba(212,145,59,0.10), rgba(212,145,59,0.06)); border-left: 3px solid #D4913B; border-radius: 0 12px 12px 0; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 18.5px; color: #1B3A5C; line-height: 1.55; }
 .welcome-page .env-quote .env-icon { position: absolute; left: 24px; top: 30px; width: 36px; height: 36px; opacity: 0.85; }
 .welcome-page .env-quote .env-icon svg { width: 100%; height: 100%; }
@@ -296,7 +296,24 @@ const ICONS={clipboard:"📋",hospital:"🏥",money:"💰",document:"📄",shiel
 let A={},H={},view="welcome",si=0,ci=0;
 
 // SCORECARD TRANSFER
-const SCORECARD_MAP={"1":"S3","2":"S5","3":"S6","4":"S10","5":"S2","6":"S8","7":"S4","8":"S12","9":"S11","10":"S12"};
+// v6.0 SCORECARD MAP \u2014 translates the 10 scorecard answers into v6 walkthrough question IDs + option strings.
+// Each mapping has: qid (target v6 question), and the 3 possible scorecard answer values
+// (documented/partial/gap) mapped to the exact option string the v6 question expects.
+// Questions where the scorecard signal doesn't map cleanly to a single v6 option are omitted.
+const SCORECARD_MAP={
+    // sc1: Phone passcode \u2192 Q70 phone access
+    "1":{qid:"Q70",documented:"Yes \u2014 at least one trusted person has the passcode",partial:"Probably \u2014 but it's never been tested",gap:"No \u2014 only I can unlock it"},
+    // sc2: Primary email access \u2192 Q74 email access
+    "2":{qid:"Q74",documented:"They have the password",partial:"They'd use the provider's recovery process",gap:"They'd be locked out"},
+    // sc6: Will current/updated \u2192 Q2A will last updated
+    "6":{qid:"Q2A",documented:"Within the past year",partial:"1-3 years ago",gap:"5+ years ago"},
+    // sc7: Life insurance beneficiary fresh \u2192 Q55 beneficiary review
+    "7":{qid:"Q55",documented:"Within the past year",partial:"1\u20133 years ago",gap:"3+ years ago"},
+    // sc9: One document/consolidated \u2192 Q5 document storage location
+    "9":{qid:"Q5",documented:"One consolidated location (home safe, attorney's office, etc.)",partial:"Mostly in one place but a few are scattered",gap:"Scattered across multiple locations"}
+    // sc3, sc4, sc5, sc8, sc10 deliberately omitted \u2014 they don't map cleanly to single v6 options
+    // (free-text Qs, multi_select Qs, or 5-option Qs). User answers those fresh.
+};
 
 function loadScorecardAnswers(){
     const params=new URLSearchParams(window.location.search);
@@ -304,21 +321,14 @@ function loadScorecardAnswers(){
     for(let i=1;i<=10;i++){
         const val=params.get('sc'+i);
         if(!val)continue;
-        const snapshotId=SCORECARD_MAP[String(i)];
-        if(!snapshotId)continue;
-        const answer=(val==='documented')?'Yes':'No';
-        if(snapshotId==='S6'){
-            if(val==='documented')A['S6']='2\u20133';
-            else A['S6']='Not sure';
-        }else if(snapshotId==='S8'){
-            if(val==='documented')A['S8']='Easily';
-            else A['S8']='Probably not';
-        }else{
-            A[snapshotId]=answer;
-        }
+        const mapping=SCORECARD_MAP[String(i)];
+        if(!mapping)continue;
+        const optionString=mapping[val];
+        if(!optionString)continue;
+        A[mapping.qid]=optionString;
         transferred++;
     }
-    if(transferred>0)console.log('Transferred '+transferred+' scorecard answers');
+    if(transferred>0)console.log('Transferred '+transferred+' scorecard answers (v6)');
     return transferred;
 }
 
@@ -368,12 +378,27 @@ function checkConditionals(qid){
     const hasConditional=allQ().some(q=>q.condition&&q.condition.question_id===qid);
     if(hasConditional){
         // Small delay so the selection animation plays first
-        setTimeout(()=>{const sy=window.scrollY;render();window.scrollTo(0,sy);},150);
+        setTimeout(()=>{
+            window.__skipScrollTop=true;
+            render();
+            window.__skipScrollTop=false;
+            // Scroll the question they just clicked into view (instead of using a stale scrollY)
+            requestAnimationFrame(()=>{
+                const el=document.querySelector('[data-qid="'+qid+'"]');
+                if(el){
+                    el.scrollIntoView({block:'start',behavior:'instant'});
+                    window.scrollBy(0,-80); // small offset so the progress bar doesn't overlap the question
+                }
+            });
+        },150);
     }
 }
 
 // RENDER ENGINE
-function render(){window.scrollTo(0,0);document.body.innerHTML="";
+function render(){
+if(!window.__skipScrollTop) window.scrollTo(0,0);
+// Note: don't wipe body.innerHTML here — the r*() functions assign innerHTML directly,
+// which atomically replaces content. Wiping first caused a visible blank flash.
 if(view==="welcome")rWelcome();
 else if(view==="section-intro")rSIntro();
 else if(view==="encourage")rEncourage();
@@ -387,7 +412,7 @@ function renderPBar(){const s=SECTIONS[si];return`<div class="pbar"><div class="
 
 function rWelcome(){
     const transferred=loadScorecardAnswers();
-    const transferNote=transferred>0?'<div class="transfer-banner">\u2705 We imported <strong>'+transferred+'</strong> answers from your scorecard \u2014 you\'re already ahead.</div>':'';
+    const transferNote=transferred>0?'<div class="transfer-banner">\u2705 We pre-filled <strong>'+transferred+'</strong> answer'+(transferred===1?'':'s')+' from your scorecard \u2014 keep going.</div>':'';
     document.body.innerHTML=`<div class="welcome-page fade"><div class="wp">
       <div class="hero">
         <div class="seal"><svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="wax" cx="40%" cy="35%" r="65%"><stop offset="0%" stop-color="#A8334A"/><stop offset="60%" stop-color="#8B2635"/><stop offset="100%" stop-color="#6E1D2A"/></radialGradient><radialGradient id="waxHi" cx="35%" cy="30%" r="20%"><stop offset="0%" stop-color="rgba(255,255,255,0.45)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><path d="M44 4 L52 8 L60 6 L65 13 L72 15 L74 22 L80 26 L80 34 L84 41 L82 49 L84 56 L78 62 L76 70 L69 73 L64 80 L56 80 L49 84 L41 82 L33 84 L26 78 L19 76 L16 69 L10 64 L8 56 L4 49 L6 41 L4 34 L10 28 L12 21 L19 18 L24 12 L32 11 L37 6 Z" fill="url(#wax)"/><path d="M44 4 L52 8 L60 6 L65 13 L72 15 L74 22 L80 26 L80 34 L84 41 L82 49 L84 56 L78 62 L76 70 L69 73 L64 80 L56 80 L49 84 L41 82 L33 84 L26 78 L19 76 L16 69 L10 64 L8 56 L4 49 L6 41 L4 34 L10 28 L12 21 L19 18 L24 12 L32 11 L37 6 Z" fill="url(#waxHi)"/><text x="44" y="58" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="44" font-weight="700" fill="#F5E6CC" letter-spacing="-1">R</text></svg></div>
@@ -466,7 +491,7 @@ function renderQuestion(q){
     const hwBtn=q.follow_up_tip?`<div class="hw${hw?" hw-on":""}" onclick="tH('${q.id}')" style="text-align:right;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;padding:4px 0;margin-top:2px">${hw?"\u2705 On your follow-up list":"Address Later \u2192"}</div>`:"";
     const hint=q.hint?`<p class="hint">${q.hint}</p>`:"";
     const tip=(q.follow_up_tip&&hw)?`<p class="tip">${q.follow_up_tip}</p>`:"";
-    return`<div class="q"><label class="ql">${q.prompt}</label>${hint}${inp}${hwBtn}${tip}</div>`;
+    return`<div class="q" data-qid="${q.id}"><label class="ql">${q.prompt}</label>${hint}${inp}${hwBtn}${tip}</div>`;
 }
 
 function rCard(){const s=SECTIONS[si],c=s.cards[ci];
@@ -519,22 +544,17 @@ function rSummary(){
 </div>
 
 <div style="text-align:center;margin-bottom:28px">
-<div id="priceDisplay"><span class="old">$${u.price_original}</span><span class="new">$${u.price_sale}</span></div>
-<button class="ubtn" id="unlockBtn" onclick="handleCheckout()">${u.cta} \u2192</button>
-<p class="trust">\uD83D\uDD12 Secure checkout \u00B7 ${u.guarantee}</p>
+<div style="margin-bottom:18px;text-align:center"><div style="display:inline-block;padding:8px 18px;border-radius:100px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);color:#C9A84C;font-size:11px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase">\u2605 Founding 50 \u2014 Free Forever \u2605</div></div>
+<button class="ubtn" id="unlockBtn" onclick="handleCheckout()">Send Me My Resolved Brief \u2192</button>
+<p class="trust" style="margin-top:14px">\uD83D\uDCE7 Delivered to your inbox in 2\u20133 minutes \u00B7 No payment \u00B7 Yours forever</p>
 </div>
 
-<div style="max-width:420px;margin:0 auto 24px;padding:20px 24px;border-radius:12px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.12)">
-<p style="font-size:16px;font-weight:700;color:#10B981;margin-bottom:6px;text-align:center">\uD83C\uDF81 Share & Save 50%</p>
-<p style="font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:16px">Share The Resolved Brief with someone who needs it.<br/>The price drops to <strong style="color:#10B981">$29</strong> instantly.</p>
+<div style="max-width:420px;margin:0 auto 24px;padding:22px 24px;border-radius:12px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.12)">
+<p style="font-size:16px;font-weight:700;color:#10B981;margin-bottom:6px;text-align:center">\uD83C\uDF81 Give a Founding 50 Spot</p>
+<p style="font-size:14px;color:rgba(255,255,255,.55);text-align:center;margin-bottom:16px;line-height:1.55">There are still spots open. If you have a parent, sibling, or friend who needs this \u2014 send them yours.<br/>They\u2019ll get the Brief free, too.</p>
 <div style="display:flex;gap:10px;justify-content:center">
 <button onclick="shareText()" style="flex:1;max-width:170px;padding:14px 16px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10B981;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">\uD83D\uDCF1 Text a Friend</button>
 <button onclick="shareLink()" style="flex:1;max-width:170px;padding:14px 16px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10B981;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">\uD83D\uDD17 Copy Link</button>
-</div>
-<div id="shareCode" style="display:none;text-align:center;padding:14px;margin-top:14px;border-radius:10px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25)">
-<p style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">Your 50% off code:</p>
-<p style="font-size:28px;font-weight:700;color:#10B981;letter-spacing:3px">SHARE50</p>
-<p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Enter this at checkout</p>
 </div>
 </div>
 
@@ -627,8 +647,8 @@ async function handleCheckout(){
         alert('Network error. Please try again in a moment.');
     }
 }// SHARE FUNCTIONS
-const SHARE_URL = "https://familycrisisplaybook.com/quick-landing/";
-const SHARE_TEXT = "I came across this and realized my family wouldn\'t know what to do if something happened to me. This fixes that. Check it out.";
+const SHARE_URL = "https://resolvedfamily.com/quick/";
+const SHARE_TEXT = "I just did this — it's the first thing that actually made me think about what my family would need if something happened to me. The first 50 families get it free. Take the 60-second scorecard:";
 
 function shareText(){
     const msg = SHARE_TEXT + " " + SHARE_URL;
