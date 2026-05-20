@@ -1,1181 +1,687 @@
-"""
-Resolved Family — FastAPI Backend
-=========================================
-Phase 1: Walkthrough + Supabase session persistence
-"""
-
-import os
-import json
-import uuid
-from datetime import datetime, timezone
-from typing import Optional
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# ═══ SUPABASE REST CLIENT ═══
-import httpx as _httpx
-
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY environment variables")
-
-print(f"SUPABASE_URL = {SUPABASE_URL}")
-print(f"SUPABASE_KEY length = {len(SUPABASE_KEY)}, starts with = {SUPABASE_KEY[:15]}...")
-
-class SupabaseREST:
-    def __init__(self, url, key):
-        self.base = url.rstrip("/") + "/rest/v1"
-        self.headers = {
-            "apikey": key,
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-            "Prefer": "return=representation",
-        }
-    def table(self, name):
-        return TableRef(self.base, self.headers, name)
-
-class TableRef:
-    def __init__(self, base, headers, table):
-        self.url = f"{base}/{table}"
-        self.headers = headers
-        self._filters = []
-        self._select_cols = "*"
-        self._order_col = None
-        self._order_desc = False
-        self._limit_n = None
-        self._pending_update = None
-
-    def select(self, cols="*"):
-        self._select_cols = cols
-        return self
-
-    def eq(self, col, val):
-        self._filters.append(f"{col}=eq.{val}")
-        return self
-
-    def order(self, col, desc=False):
-        self._order_col = col
-        self._order_desc = desc
-        return self
-
-    def limit(self, n):
-        self._limit_n = n
-        return self
-
-    def insert(self, data):
-        r = _httpx.post(self.url, headers=self.headers, json=data, timeout=10)
-        r.raise_for_status()
-        return type("R", (), {"data": r.json()})()
-
-    def update(self, data):
-        self._pending_update = data
-        return self
-
-    def execute(self):
-        if self._pending_update is not None:
-            params = "&".join(self._filters)
-            url = f"{self.url}?{params}" if params else self.url
-            h = {**self.headers, "Prefer": "return=representation"}
-            r = _httpx.patch(url, headers=h, json=self._pending_update, timeout=10)
-            r.raise_for_status()
-            self._pending_update = None
-            return type("R", (), {"data": r.json()})()
-        else:
-            params = []
-            if self._select_cols != "*":
-                params.append(f"select={self._select_cols}")
-            else:
-                params.append("select=*")
-            params.extend(self._filters)
-            if self._order_col:
-                direction = "desc" if self._order_desc else "asc"
-                params.append(f"order={self._order_col}.{direction}")
-            if self._limit_n:
-                params.append(f"limit={self._limit_n}")
-            url = f"{self.url}?{'&'.join(params)}"
-            r = _httpx.get(url, headers=self.headers, timeout=10)
-            r.raise_for_status()
-            return type("R", (), {"data": r.json()})()
-
-# Test connection
-try:
-    _test = _httpx.get(
-        f"{SUPABASE_URL}/rest/v1/sessions?select=session_id&limit=1",
-        headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"},
-        timeout=5,
-    )
-    print(f"Supabase connection test: status={_test.status_code}")
-    if _test.status_code == 200:
-        print("Supabase connected successfully!")
-    else:
-        print(f"Supabase warning: {_test.text[:200]}")
-except Exception as _e:
-    print(f"Supabase connection failed: {_e}")
-
-supabase = SupabaseREST(SUPABASE_URL, SUPABASE_KEY)
-
-# ═══ WALKTHROUGH DEFINITION ═══
-WALKTHROUGH_PATH = os.path.join(os.path.dirname(__file__), "walkthrough_definition.json")
-with open(WALKTHROUGH_PATH, "r") as f:
-    WALKTHROUGH = json.load(f)
-
-SECTIONS = WALKTHROUGH["sections"]
-ALL_QUESTION_IDS = []
-for section in SECTIONS:
-    for card in section["cards"]:
-        for q in card["questions"]:
-            ALL_QUESTION_IDS.append(q["id"])
-
-TOTAL_QUESTIONS = len(ALL_QUESTION_IDS)
-
-
-# ═══ PYDANTIC MODELS ═══
-class SessionStart(BaseModel):
-    email: Optional[str] = None
-    first_name: Optional[str] = None
-
-class AnswerSubmit(BaseModel):
-    answers: dict
-
-class HomeworkToggle(BaseModel):
-    question_id: str
-
-class SectionComplete(BaseModel):
-    section_id: str
-
-
-# ═══ HELPERS ═══
-def calculate_progress(answers: dict, homework: list) -> int:
-    done = 0
-    for qid in ALL_QUESTION_IDS:
-        if qid in answers and answers[qid] and str(answers[qid]).strip():
-            done += 1
-        elif qid in homework:
-            done += 1
-    return min(100, round((done / TOTAL_QUESTIONS) * 100)) if TOTAL_QUESTIONS > 0 else 0
-
-def now_iso():
-    return datetime.now(timezone.utc).isoformat()
-
-
-# ═══ APP ═══
-app = FastAPI(title="Resolved Family", version="3.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://familycrisisplaybook.com",
-        "https://www.familycrisisplaybook.com",
-        "https://resolvedfamily.com",
-        "https://www.resolvedfamily.com",
-        "http://localhost:3000",
-        "http://localhost:8080",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
-if os.path.exists(static_dir):
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-import glob as _glob
-print(f"CWD: {os.getcwd()}")
-print(f"__file__: {os.path.abspath(__file__)}")
-_found = _glob.glob("/app/**/walkthrough.html", recursive=True)
-print(f"All walkthrough.html files found: {_found}")
-
-_template_dirs = [
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates"),
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"),
-    "/app/templates",
-    "templates",
-    os.path.join(os.getcwd(), "templates"),
-]
-_template_dir = None
-for _d in _template_dirs:
-    _full = os.path.join(_d, "walkthrough.html")
-    exists = os.path.exists(_full)
-    print(f"  Checking: {os.path.abspath(_d)} -> {exists}")
-    if exists and not _template_dir:
-        _template_dir = _d
-        print(f"  USING: {os.path.abspath(_d)}")
-if not _template_dir:
-    if _found:
-        _template_dir = os.path.dirname(_found[0])
-        print(f"  FALLBACK to: {_template_dir}")
-    else:
-        _template_dir = "templates"
-        print(f"  NO TEMPLATE FOUND - defaulting to: templates")
-templates = Jinja2Templates(directory=_template_dir)
-
-
-# ═══ ROUTES: FRONTEND ═══
-
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("walkthrough.html", {
-        "request": request,
-        "walkthrough": json.dumps(WALKTHROUGH),
-        "supabase_url": SUPABASE_URL,
-        "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
-    })
-
-@app.get("/walkthrough", response_class=HTMLResponse)
-async def walkthrough(request: Request):
-    return templates.TemplateResponse("walkthrough.html", {
-        "request": request,
-        "walkthrough": json.dumps(WALKTHROUGH),
-        "supabase_url": SUPABASE_URL,
-        "supabase_anon_key": os.getenv("SUPABASE_ANON_KEY", ""),
-    })
-
-
-# ═══ ROUTES: SESSION API ═══
-
-@app.post("/api/session/start")
-async def session_start(data: SessionStart):
-    try:
-        # Generate session_id client-side — don't rely on Supabase default which may not exist
-        session_id = str(uuid.uuid4())
-        result = supabase.table("sessions").insert({
-            "session_id": session_id,
-            "email": data.email,
-            "first_name": data.first_name,
-            "last_activity_at": now_iso(),
-        })
-        # Some Supabase configs return the inserted row; if not, fall back to the id we just generated
-        try:
-            returned = result.data[0]
-            return {"session_id": returned.get("session_id", session_id), "status": "created"}
-        except (IndexError, TypeError, AttributeError):
-            return {"session_id": session_id, "status": "created"}
-    except Exception as e:
-        print(f"ERROR in /api/session/start: {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to create session: {type(e).__name__}: {str(e)}")
-
-
-@app.get("/api/session/{session_id}")
-async def session_get(session_id: str):
-    try:
-        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-        session = result.data[0]
-        return {
-            "session_id": session["session_id"],
-            "email": session["email"],
-            "first_name": session["first_name"],
-            "progress_percent": session["progress_percent"],
-            "last_section_completed": session["last_section_completed"],
-            "answers": session["answers_json"],
-            "homework": session["homework_items"],
-            "homework_count": session["homework_count"],
-            "snapshot_results": session["snapshot_results"],
-            "walkthrough_completed": session["walkthrough_completed"],
-            "purchase_status": session["purchase_status"],
-            "pdf_generated": session["pdf_generated"],
-            "pdf_url": session["pdf_url"],
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/session/{session_id}/answer")
-async def session_answer(session_id: str, data: AnswerSubmit):
-    try:
-        result = supabase.table("sessions").select(
-            "answers_json, homework_items"
-        ).eq("session_id", session_id).execute()
-
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        current = result.data[0]
-        answers = current["answers_json"] or {}
-        homework = current["homework_items"] or []
-
-        for qid, value in data.answers.items():
-            answers[qid] = value
-            if qid in homework and value and str(value).strip():
-                homework.remove(qid)
-
-        snapshot = {qid: value for qid, value in answers.items() if qid.startswith("S")}
-        progress = calculate_progress(answers, homework)
-
-        # ─── FIX 1: Sync Q46 (primary email) to the email column ───
-        update_payload = {
-            "answers_json": answers,
-            "homework_items": homework,
-            "homework_count": len(homework),
-            "snapshot_results": snapshot,
-            "progress_percent": progress,
-            "last_activity_at": now_iso(),
-        }
-        if "Q46" in data.answers and data.answers["Q46"] and str(data.answers["Q46"]).strip():
-            update_payload["email"] = data.answers["Q46"].strip()
-            print(f"Synced Q46 email to session column: {data.answers['Q46'].strip()}")
-
-        supabase.table("sessions").update(update_payload).eq("session_id", session_id).execute()
-
-        return {
-            "status": "saved",
-            "progress_percent": progress,
-            "homework_count": len(homework),
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/session/{session_id}/homework")
-async def session_homework(session_id: str, data: HomeworkToggle):
-    try:
-        result = supabase.table("sessions").select(
-            "answers_json, homework_items"
-        ).eq("session_id", session_id).execute()
-
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        current = result.data[0]
-        answers = current["answers_json"] or {}
-        homework = current["homework_items"] or []
-
-        qid = data.question_id
-        if qid in homework:
-            homework.remove(qid)
-        else:
-            homework.append(qid)
-            answers[qid] = ""
-
-        progress = calculate_progress(answers, homework)
-
-        supabase.table("sessions").update({
-            "answers_json": answers,
-            "homework_items": homework,
-            "homework_count": len(homework),
-            "progress_percent": progress,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
-
-        return {
-            "status": "toggled",
-            "question_id": qid,
-            "is_homework": qid in homework,
-            "progress_percent": progress,
-            "homework_count": len(homework),
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/session/{session_id}/section-complete")
-async def section_complete(session_id: str, data: SectionComplete):
-    try:
-        result = supabase.table("sessions").select(
-            "answers_json, homework_items"
-        ).eq("session_id", session_id).execute()
-
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        current = result.data[0]
-        answers = current["answers_json"] or {}
-        homework = current["homework_items"] or []
-        progress = calculate_progress(answers, homework)
-
-        supabase.table("sessions").update({
-            "last_section_completed": data.section_id,
-            "progress_percent": progress,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
-
-        return {
-            "status": "section_completed",
-            "section_id": data.section_id,
-            "progress_percent": progress,
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/session/{session_id}/complete")
-async def walkthrough_complete(session_id: str):
-    try:
-        result = supabase.table("sessions").select(
-            "answers_json, homework_items"
-        ).eq("session_id", session_id).execute()
-
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        current = result.data[0]
-        answers = current["answers_json"] or {}
-        homework = current["homework_items"] or []
-        progress = calculate_progress(answers, homework)
-
-        supabase.table("sessions").update({
-            "walkthrough_completed": True,
-            "progress_percent": progress,
-            "last_activity_at": now_iso(),
-        }).eq("session_id", session_id).execute()
-
-        return {
-            "status": "walkthrough_completed",
-            "progress_percent": progress,
-            "homework_count": len(homework),
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/api/session/{session_id}/summary")
-async def session_summary(session_id: str):
-    try:
-        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        session = result.data[0]
-        answers = session["answers_json"] or {}
-        homework = session["homework_items"] or []
-
-        section_stats = []
-        for section in SECTIONS:
-            section_qids = [q["id"] for card in section["cards"] for q in card["questions"]]
-            done = sum(
-                1 for qid in section_qids
-                if (qid in answers and answers[qid] and str(answers[qid]).strip()) or qid in homework
-            )
-            pct = round((done / len(section_qids)) * 100) if section_qids else 0
-            section_stats.append({
-                "section_id": section["section_id"],
-                "title": section["title"],
-                "icon": section["icon"],
-                "percent": pct,
-            })
-
-        hw_details = []
-        for qid in homework:
-            for section in SECTIONS:
-                for card in section["cards"]:
-                    for q in card["questions"]:
-                        if q["id"] == qid:
-                            hw_details.append({
-                                "id": qid,
-                                "prompt": q["prompt"],
-                                "tip": q.get("follow_up_tip", ""),
-                                "section": section["title"],
-                            })
-
-        answered_count = sum(
-            1 for qid in ALL_QUESTION_IDS
-            if qid in answers and answers[qid] and str(answers[qid]).strip() and qid not in homework
-        )
-
-        return {
-            "answered": answered_count,
-            "homework_count": len(homework),
-            "total_sections": len(SECTIONS),
-            "progress_percent": session["progress_percent"],
-            "sections": section_stats,
-            "homework_details": hw_details,
-            "walkthrough_completed": session["walkthrough_completed"],
-            "purchase_status": session["purchase_status"],
-            "pdf_generated": session["pdf_generated"],
-            "pdf_url": session["pdf_url"],
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ═══ HEALTH CHECK ═══
-
-@app.get("/health")
-async def health():
-    return {"status": "ok", "version": "3.0", "product": "Resolved Family"}
-
-
-# ═══ RUN ═══
-
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=True)
-
-
-# ═══════════════════════════════════════════════════
-# PHASE 3: SAMCART WEBHOOK + PDF GENERATION + EMAIL
-# ═══════════════════════════════════════════════════
-
-import httpx
-import tempfile
-import base64
-
-# ═══ CLAUDE API — ENHANCED NARRATIVE + ACTION GUIDE GENERATION ═══
-
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-
-# Known bereavement/estate department numbers (verified)
-KNOWN_BEREAVEMENT_NUMBERS = {
-    "chase": "1-888-356-0023",
-    "bank of america": "1-800-432-1000 (ask for Estate Services)",
-    "wells fargo": "1-800-869-3557 (ask for Estate Services)",
-    "fidelity": "1-800-343-3548",
-    "vanguard": "1-800-662-7447",
-    "charles schwab": "1-800-435-4000 (ask for Estate Services)",
-    "schwab": "1-800-435-4000 (ask for Estate Services)",
-    "social security": "1-800-772-1213",
-    "ssa": "1-800-772-1213",
-    "medicare": "1-800-633-4227",
-    "metlife": "1-800-638-5433",
-    "northwestern mutual": "1-800-388-8123",
-    "state farm": "1-800-732-5246",
-    "allstate": "1-800-255-7828",
-    "tiaa": "1-800-842-2252",
-    "nationwide": "1-877-669-6877",
-    "prudential": "1-800-778-2255",
-    "irs": "1-800-829-1040",
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resolved Family — Guided Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{--navy:#1B2D4F;--deep:#0F1923;--gold:#C9A84C;--gold-bright:#FFD96B;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--deep);color:#fff;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* PROGRESS */
+.pbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,25,35,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+.pbar-in{max-width:600px;margin:0 auto;padding:14px 24px}
+.pbar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pbar-sec{font-size:15px;font-weight:600;color:var(--gold)}
+.pbar-pct{font-size:15px;color:rgba(255,255,255,.4)}
+.pbar-track{height:4px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--gold),#E2B96A);border-radius:100px;transition:width .5s ease}
+
+/* WELCOME */
+.welcome{max-width:560px;margin:0 auto;padding:80px 24px;text-align:center}
+.welcome h1{font-family:var(--serif);font-size:clamp(30px,5vw,42px);font-weight:700;line-height:1.15;margin-bottom:20px}
+.welcome h1 span{color:var(--gold)}
+.welcome .quote{font-family:var(--serif);font-size:clamp(22px,3.5vw,28px);font-weight:700;color:var(--gold);font-style:italic;margin:20px auto;max-width:400px;line-height:1.3}
+.welcome .body{font-size:18px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:32px;max-width:460px;margin-left:auto;margin-right:auto}
+.w-steps{display:flex;flex-direction:column;gap:12px;max-width:400px;margin:0 auto 36px;text-align:left}
+.w-step{display:flex;gap:12px;align-items:center;padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.w-step-n{width:32px;height:32px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--gold);flex-shrink:0}
+.w-step-t{font-size:16px;color:rgba(255,255,255,.6)}
+.w-time{display:flex;gap:20px;justify-content:center;margin-bottom:36px;flex-wrap:wrap}
+.w-time span{font-size:15px;color:rgba(255,255,255,.4)}
+.w-time strong{color:rgba(255,255,255,.7)}
+
+/* SECTION INTRO */
+.sintro{text-align:center;padding:120px 24px 60px;max-width:520px;margin:0 auto}
+.sintro .icon{font-size:48px;margin-bottom:16px}
+.sintro h2{font-family:var(--serif);font-size:clamp(28px,5vw,36px);font-weight:700;margin-bottom:12px;line-height:1.2}
+.sintro .sub{font-size:18px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px}
+.sintro .reassure{font-size:16px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:24px}
+.sintro .privacy{display:inline-flex;gap:8px;align-items:center;padding:10px 18px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:15px;color:rgba(255,255,255,.4);margin-bottom:32px}
+.sintro .meta{font-size:15px;color:rgba(255,255,255,.25);margin-top:12px}
+
+/* SECTION COMPLETE */
+.sdone{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.sdone .chk{width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,.15);border:2px solid rgba(16,185,129,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px}
+.sdone h2{font-family:var(--serif);font-size:26px;font-weight:700;margin-bottom:8px}
+.sdone .pct{font-size:17px;color:rgba(255,255,255,.45);margin-bottom:32px}
+.halfway{display:inline-block;padding:10px 22px;border-radius:10px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);font-size:16px;font-weight:600;color:var(--gold);margin-bottom:24px}
+
+/* ENCOURAGEMENT */
+.encourage{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.encourage h2{font-family:var(--serif);font-size:clamp(24px,4vw,30px);font-weight:700;margin-bottom:16px;color:var(--gold)}
+.encourage p{font-size:17px;color:rgba(255,255,255,.45);margin-bottom:28px}
+
+/* CARD */
+.card-w{max-width:580px;margin:0 auto;padding:100px 24px 120px}
+.card-t{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.card-h{font-size:16px;color:rgba(255,255,255,.35);margin-bottom:24px}
+
+/* QUESTION */
+.qb{margin-bottom:28px}.qb:last-child{margin-bottom:0}
+.ql{font-family:var(--sans);font-size:18px;font-weight:600;line-height:1.5;margin-bottom:12px}
+.qhint{font-size:15px;color:rgba(255,255,255,.35);margin-bottom:10px;line-height:1.5}
+
+/* GROUPED */
+.grouped{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:20px 18px}
+.grouped .qb{margin-bottom:16px}.grouped .qb:last-child{margin-bottom:0}
+.grouped .ql{font-size:17px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:8px}
+.gtitle{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:16px}
+
+/* INPUTS */
+.qi{width:100%;font-family:var(--sans);font-size:17px;padding:16px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;outline:none;transition:all .3s ease}
+.qi:focus{border-color:rgba(201,168,76,.5);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.qi::placeholder{color:rgba(255,255,255,.25)}
+textarea.qi{resize:vertical;min-height:80px}
+.mc{display:flex;flex-direction:column;gap:8px}
+.mc-o{padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:17px;line-height:1.4}
+.mc-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.015) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.mc-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.22);color:var(--gold-bright);font-weight:600}
+.ms{display:flex;flex-wrap:wrap;gap:8px}
+.ms-o{padding:12px 18px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:16px}
+.ms-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.03) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.ms-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.24);color:var(--gold-bright);font-weight:600}
+.yn{display:flex;gap:10px}
+.yn-o{flex:1;padding:15px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .25s ease;font-size:17px;text-align:center;font-weight:600}
+.yn-o:hover{border-color:var(--gold-bright);background:linear-gradient(135deg,rgba(255,217,107,.32),rgba(201,168,76,.22));transform:scale(1.02) translateY(-2px);color:var(--gold-bright);filter:brightness(1.06)}
+.yn-o.sel{border-color:var(--gold-bright);background:rgba(255,217,107,.22);color:var(--gold-bright);font-weight:700}
+
+/* FOLLOW-UP BUTTON */
+.fu{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;border-radius:8px;background:none;border:1px dashed rgba(255,255,255,.1);color:rgba(255,255,255,.3);font-family:var(--sans);font-size:15px;cursor:pointer;transition:all .2s ease}
+.fu:hover{border-color:rgba(201,168,76,.3);color:rgba(255,255,255,.5)}
+.fu.on{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06);color:#F59E0B;border-style:solid}
+
+/* CONDITIONAL CHILD */
+.cond{margin-top:12px;padding-left:16px;border-left:2px solid rgba(201,168,76,.2)}
+
+/* NAV */
+.nav{display:flex;gap:12px;margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06)}
+.nb{flex:1;padding:18px 24px;border-radius:10px;font-family:var(--sans);font-size:17px;font-weight:700;cursor:pointer;transition:all .3s ease;border:none;letter-spacing:.3px}
+.nb-back{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
+.nb-back:hover{background:rgba(255,255,255,.1)}
+.nb-next{background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy)}
+.nb-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,.3)}
+
+/* CTA BTN */
+.cta{display:inline-block;padding:18px 44px;border-radius:10px;background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy);font-family:var(--sans);font-size:17px;font-weight:700;border:none;cursor:pointer;transition:all .3s ease;letter-spacing:.5px}
+.cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.35)}
+
+/* EMOTIONAL CLOSE */
+.emo{text-align:center;padding:120px 24px 60px;max-width:480px;margin:0 auto}
+.emo h2{font-family:var(--serif);font-size:clamp(26px,5vw,34px);font-weight:700;line-height:1.3;margin-bottom:16px}
+.emo p{font-size:17px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:12px}
+
+/* SUMMARY */
+.sum{max-width:580px;margin:0 auto;padding:100px 24px 80px;text-align:center}
+.sum-badge{display:inline-block;padding:6px 18px;border-radius:100px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);font-size:15px;font-weight:700;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.sum h1{font-family:var(--serif);font-size:clamp(28px,5vw,38px);font-weight:700;margin-bottom:12px}
+.sum h1 span{color:var(--gold)}
+.sum .sub{font-size:17px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:40px;max-width:440px;margin-left:auto;margin-right:auto}
+.stats{display:flex;gap:16px;justify-content:center;margin-bottom:40px;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;max-width:160px;padding:20px 16px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.stat-n{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--gold)}
+.stat-l{font-size:16px;color:rgba(255,255,255,.4);margin-top:4px}
+.ss{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:8px;text-align:left}
+.ss-i{font-size:20px;flex-shrink:0}.ss-n{font-size:17px;font-weight:600;color:rgba(255,255,255,.7);flex:1}.ss-p{font-size:17px;font-weight:700}
+.hwl{text-align:left;margin:32px auto;max-width:480px}
+.hwl-t{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:16px;color:#F59E0B}
+.hwi{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:10px;background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.15);margin-bottom:8px}
+.hwi-i{font-size:15px;color:#F59E0B;margin-top:2px;flex-shrink:0}
+.hwi-t{font-size:17px;color:rgba(255,255,255,.6);line-height:1.5}
+.hwi-tip{font-size:15px;color:rgba(255,255,255,.3);margin-top:4px}
+
+/* UNLOCK */
+.unlock{background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.02));border:2px solid rgba(201,168,76,.35);border-radius:16px;padding:40px 28px;text-align:center;margin:40px auto;max-width:440px}
+.unlock .old{font-family:var(--serif);font-size:24px;font-weight:700;color:rgba(255,255,255,.3);text-decoration:line-through;margin-right:12px}
+.unlock .new{font-family:var(--serif);font-size:48px;font-weight:700;color:var(--gold)}
+.unlock .limit{display:inline-block;padding:6px 16px;border-radius:100px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);font-size:15px;font-weight:700;color:var(--red);margin:8px 0 12px}
+.unlock .usub{font-size:17px;color:rgba(255,255,255,.4);margin-bottom:24px}
+.unlock .ubtn{width:100%;padding:18px 32px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--gold),#C4933F);color:var(--navy);font-family:var(--sans);font-size:17px;font-weight:700;cursor:pointer;transition:all .3s ease;letter-spacing:.5px}
+.unlock .ubtn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.4)}
+.unlock .trust{font-size:15px;color:rgba(255,255,255,.3);margin-top:14px}
+.unlock .saved{font-size:16px;color:rgba(255,255,255,.4);margin-top:20px;line-height:1.6}
+
+.fade{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){.stats{gap:10px}.stat{min-width:100px;padding:16px 12px}.nav{flex-direction:column}.nb-back{order:2}}
+
+/* ═══ VISUAL EFFECTS ═══ */
+/* 3D Tilt on cards */
+.tilt-card{transition:transform .3s ease,box-shadow .3s ease;transform-style:preserve-3d;will-change:transform}
+.tilt-card:hover{box-shadow:0 12px 40px rgba(0,0,0,.3)}
+
+/* Glow effects on hover */
+.mc-o:hover{box-shadow:0 6px 28px rgba(201,168,76,.5),0 0 0 1px rgba(201,168,76,.35)}
+.mc-o.sel{box-shadow:0 0 25px rgba(201,168,76,.15)}
+.ms-o:hover{box-shadow:0 6px 24px rgba(201,168,76,.45),0 0 0 1px rgba(201,168,76,.35)}
+.ms-o.sel{box-shadow:0 0 20px rgba(201,168,76,.12)}
+.yn-o:hover{box-shadow:0 6px 28px rgba(201,168,76,.5),0 0 0 1px rgba(201,168,76,.35)}
+.yn-o.sel{box-shadow:0 0 25px rgba(201,168,76,.15)}
+.qi:focus{box-shadow:0 0 0 3px rgba(201,168,76,.1),0 0 25px rgba(201,168,76,.08)}
+.grouped:hover{border-color:rgba(201,168,76,.15);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.grouped{transition:all .3s ease}
+
+/* CTA glow */
+.cta{position:relative;overflow:hidden}
+.cta:hover{box-shadow:0 8px 35px rgba(201,168,76,.4),0 0 60px rgba(201,168,76,.15)}
+.cta::after{content:'';position:absolute;top:50%;left:50%;width:120px;height:120px;background:radial-gradient(circle,rgba(255,255,255,.25) 0%,transparent 70%);border-radius:50%;transform:translate(-50%,-50%) scale(0);opacity:0;transition:transform .4s ease,opacity .4s ease;pointer-events:none}
+.cta:hover::after{transform:translate(-50%,-50%) scale(1);opacity:1}
+
+/* Nav button glow */
+.nb-next:hover{box-shadow:0 6px 25px rgba(201,168,76,.35),0 0 50px rgba(201,168,76,.12)}
+.nb-back:hover{box-shadow:0 4px 20px rgba(255,255,255,.06)}
+
+/* Section icon float animation */
+.float-icon{animation:iconFloat 3s ease-in-out infinite}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* Welcome step cards entrance */
+.w-step{transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.w-step:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.2);border-color:rgba(201,168,76,.2)}
+
+/* Section complete check pulse */
+.sdone .chk{animation:checkPulse 2s ease-in-out infinite}
+@keyframes checkPulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.2)}50%{box-shadow:0 0 0 12px rgba(16,185,129,0)}}
+
+/* Encouragement icon bounce */
+.encourage-icon{animation:gentleBounce 2s ease-in-out infinite}
+@keyframes gentleBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* Summary stat cards */
+.stat{transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+.stat:hover{transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,0,0,.2);border-color:rgba(201,168,76,.15)}
+
+/* Unlock card glow */
+.unlock{transition:box-shadow .3s ease}
+.unlock:hover{box-shadow:0 0 60px rgba(201,168,76,.1),0 20px 50px rgba(0,0,0,.3)}
+.unlock .ubtn{position:relative;overflow:hidden;transition:all .3s ease}
+.unlock .ubtn:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(201,168,76,.4),0 0 60px rgba(201,168,76,.15)}
+
+/* Progress bar shimmer */
+.pbar-fill{background:linear-gradient(90deg,var(--gold),#E2B96A,var(--gold));background-size:200% 100%;animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* Halfway callout glow */
+.halfway{animation:halfwayPulse 2.5s ease-in-out infinite}
+@keyframes halfwayPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.15)}50%{box-shadow:0 0 20px rgba(201,168,76,.1)}}
+
+/* Emotional close dove float */
+.emo-dove{animation:doveFloat 4s ease-in-out infinite}
+@keyframes doveFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* Subtle background grain texture */
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+
+/* ═══════ WELCOME PAGE — REDESIGN (cream theme, scoped) ═════ */
+.welcome-page {
+  position: fixed; inset: 0; overflow-y: auto;
+  background: radial-gradient(ellipse at top, rgba(212,145,59,0.04) 0%, transparent 50%), #FAF6EE;
+  color: #1B3A5C; font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6; -webkit-font-smoothing: antialiased; z-index: 5;
+}
+.welcome-page::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; opacity: 0.4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.23  0 0 0 0 0.36  0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  background-size: 200px 200px; mix-blend-mode: multiply; z-index: 0;
+}
+.welcome-page .wp { max-width: 680px; margin: 0 auto; padding: 56px 32px 96px; position: relative; z-index: 1; }
+.welcome-page .hero { text-align: center; margin-bottom: 28px; }
+.welcome-page .seal { width: 88px; height: 88px; margin: 0 auto 24px; filter: drop-shadow(0 4px 12px rgba(139,38,53,0.35)); }
+.welcome-page .seal svg { width: 100%; height: 100%; display: block; }
+.welcome-page .brand-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #B57A2D; margin-bottom: 14px; }
+.welcome-page h1.brief-title { font-family: 'Playfair Display', Georgia, serif; color: #1B3A5C; font-size: clamp(40px, 6vw, 56px); font-weight: 700; line-height: 1.05; margin-bottom: 16px; letter-spacing: -0.5px; }
+.welcome-page .ornament { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px auto 36px; }
+.welcome-page .ornament .o-line { width: 56px; height: 1px; background: linear-gradient(90deg, transparent, #D4913B 50%, transparent); }
+.welcome-page .ornament .o-d { width: 6px; height: 6px; background: #D4913B; transform: rotate(45deg); }
+.welcome-page .ornament .o-d.small { width: 4px; height: 4px; opacity: 0.6; }
+.welcome-page .lead { font-size: 19px; color: #1B3A5C; font-weight: 500; margin-bottom: 20px; line-height: 1.5; }
+.welcome-page .body-p { font-size: 17px; color: #1B3A5C; opacity: 0.82; margin-bottom: 36px; }
+.welcome-page .section-label { display: flex; align-items: center; gap: 14px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #B57A2D; margin-top: 40px; margin-bottom: 20px; }
+.welcome-page .section-label::before, .welcome-page .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,145,59,0.35)); }
+.welcome-page .section-label::after { background: linear-gradient(90deg, rgba(212,145,59,0.35), transparent); }
+.welcome-page .bullets-card { background: #FFFCF5; border: 1px solid rgba(27,58,92,0.10); border-radius: 12px; padding: 22px 26px; margin-bottom: 12px; }
+.welcome-page .wp-bullets { list-style: none; padding: 0; margin: 0; }
+.welcome-page .wp-bullets li { font-size: 15.5px; color: #1B3A5C; opacity: 0.85; margin-bottom: 14px; padding-left: 26px; position: relative; line-height: 1.55; }
+.welcome-page .wp-bullets li:last-child { margin-bottom: 0; }
+.welcome-page .wp-bullets li::before { content: "\2192"; position: absolute; left: 0; top: -1px; color: #D4913B; font-weight: 700; font-size: 17px; }
+.welcome-page .deliverables { margin-bottom: 8px; }
+.welcome-page .deliv { display: flex; gap: 18px; padding: 20px 22px; background: #FFFCF5; border: 1px solid rgba(27,58,92,0.10); border-left: 3px solid #D4913B; border-radius: 0 10px 10px 0; margin-bottom: 14px; transition: all 0.25s ease; }
+.welcome-page .deliv:hover { border-left-color: #B57A2D; box-shadow: 0 6px 22px rgba(27,58,92,0.08); transform: translateX(2px); }
+.welcome-page .deliv-icon { flex-shrink: 0; width: 44px; height: 44px; background: rgba(212,145,59,0.10); border: 1px solid rgba(212,145,59,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.welcome-page .deliv-icon svg { width: 22px; height: 22px; }
+.welcome-page .deliv-body { flex: 1; }
+.welcome-page .deliv-name { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #B57A2D; margin-bottom: 6px; }
+.welcome-page .deliv-desc { font-size: 15px; color: #1B3A5C; opacity: 0.85; line-height: 1.55; }
+.welcome-page .journey { margin: 44px 0; padding: 28px 24px 24px; background: #FFFCF5; border: 1px dashed rgba(212,145,59,0.35); border-radius: 12px; }
+.welcome-page .journey-label { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #B57A2D; margin-bottom: 18px; }
+.welcome-page .pips { display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; position: relative; }
+.welcome-page .pips::before { content: ''; position: absolute; left: 36px; right: 36px; top: 36px; height: 2px; background: linear-gradient(90deg, rgba(212,145,59,0.35), #D4913B, rgba(212,145,59,0.35)); z-index: 0; }
+.welcome-page .pip { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.welcome-page .pip-dot { width: 72px; height: 72px; background: #FAF6EE; border: 2.5px solid #D4913B; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; margin-bottom: 10px; transition: all 0.25s ease; box-shadow: 0 2px 8px rgba(212,145,59,0.15); }
+.welcome-page .pip:hover .pip-dot { background: rgba(212,145,59,0.10); transform: scale(1.08); }
+.welcome-page .pip-label { font-size: 12px; font-weight: 600; color: #1B3A5C; opacity: 0.80; text-align: center; letter-spacing: 0.3px; line-height: 1.25; }
+.welcome-page .env-quote { position: relative; margin: 44px 0 16px; padding: 32px 36px 32px 80px; background: linear-gradient(135deg, rgba(212,145,59,0.10), rgba(212,145,59,0.06)); border-left: 3px solid #D4913B; border-radius: 0 12px 12px 0; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 18.5px; color: #1B3A5C; line-height: 1.55; }
+.welcome-page .env-quote .env-icon { position: absolute; left: 24px; top: 30px; width: 36px; height: 36px; opacity: 0.85; }
+.welcome-page .env-quote .env-icon svg { width: 100%; height: 100%; }
+.welcome-page .cta-wrap { text-align: center; margin-top: 48px; }
+.welcome-page .wp-cta { display: inline-block; min-width: 320px; padding: 20px 44px; background: linear-gradient(180deg, #D4913B, #B57A2D); color: #FFFCF5; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; text-align: center; box-shadow: 0 8px 22px rgba(212,145,59,0.35), inset 0 1px 0 rgba(255,255,255,0.2); transition: all 0.25s ease; }
+.welcome-page .wp-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(212,145,59,0.5), inset 0 1px 0 rgba(255,255,255,0.2); }
+.welcome-page .print-line { text-align: center; font-size: 13.5px; color: #9E978E; margin-top: 14px; margin-bottom: 36px; max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.5; font-style: italic; }
+.welcome-page .footer-strip { display: flex; justify-content: center; align-items: center; gap: 22px; padding: 22px 16px; border-top: 1px solid rgba(27,58,92,0.10); flex-wrap: wrap; }
+.welcome-page .foot-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #6B6560; letter-spacing: 0.5px; font-weight: 500; }
+.welcome-page .foot-item svg { width: 14px; height: 14px; opacity: 0.7; }
+.welcome-page .transfer-banner { text-align: center; margin: 0 0 28px; padding: 14px 20px; background: rgba(212,145,59,0.10); border: 1px solid rgba(212,145,59,0.35); border-radius: 10px; font-size: 14px; color: #1B3A5C; font-weight: 500; }
+.welcome-page .transfer-banner strong { color: #B57A2D; }
+@media (max-width: 480px) {
+  .welcome-page .wp { padding: 40px 20px 60px; }
+  .welcome-page .pip-label { display: none; }
+  .welcome-page .env-quote { padding: 24px 22px 24px 22px; }
+  .welcome-page .env-quote .env-icon { display: none; }
+  .welcome-page .deliv { padding: 16px 18px; gap: 14px; }
+  .welcome-page .deliv-icon { width: 38px; height: 38px; }
+  .welcome-page .deliv-icon svg { width: 18px; height: 18px; }
+  .welcome-page .wp-cta { min-width: 0; width: 100%; padding: 18px 24px; }
+}
+</style>
+</head>
+<body>
+<script>
+const META={"title": "Resolved Family", "version": "3.0", "estimated_time": "~20 minutes", "total_sections": 7, "homework_label": "Add to Follow-Up List", "privacy_note": "No passwords, PINs, or account numbers are collected. Those go in your Master File.", "welcome": {"headline": "Your family needs a plan. Let's build it together.", "quote": "There's an envelope in my desk.", "body": "In the next 20 minutes, you'll walk through a guided session built around YOUR life \u2014 your accounts, your coverage, your wishes. Every answer builds a personalized document your family can use if something happens tomorrow. Most people say they'll get to this someday. You're doing it right now.", "steps": ["Walk through your personalized session \u2014 most answers are just a tap", "Skip anything you're not sure about \u2014 hit Address Later and we'll flag it for you", "Get your Resolved Brief \u2014 a professional, personalized document delivered to your inbox"], "stats": ["~20 min", "7 sections", "Private"], "cta": "LET'S DO THIS"}, "emotional_close": {"headline": "Take a breath.", "body": "You just did what most families avoid for years. Everything you entered is organized, structured, and waiting for you.", "quote": "There's an envelope in my desk.", "sub": "You're one click away from being able to say that.", "cta": "SEE MY RESULTS"}, "unlock": {"price_original": 149, "price_sale": 49, "includes": ["Your Complete Resolved Brief", "Family Emergency Card", "Follow-up checklist with action steps", "Sealed envelope instructions"], "guarantee": "30-day money-back guarantee", "cta": "FINISH MY RESOLVED BRIEF", "checkout_url": "https://thescamhotline.mysamcart.com/familycrisis"}, "encouragement_screens": {"after_section_3": {"show": true, "text": "You're over halfway done."}, "after_section_5": {"show": true, "text": "That was the trickiest section, and you just handled it."}}};
+const SECTIONS=({{ walkthrough | safe }}).sections;
+const ICONS={clipboard:"📋",hospital:"🏥",money:"💰",document:"📄",shield:"🛡️",phone:"📱",heart:"💛",baby:"👶",laptop:"💻",stethoscope:"🩺"};
+
+let A={},H={},view="welcome",si=0,ci=0;
+
+// SCORECARD TRANSFER
+// v6.0 SCORECARD MAP \u2014 translates the 10 scorecard answers into v6 walkthrough question IDs + option strings.
+// Each mapping has: qid (target v6 question), and the 3 possible scorecard answer values
+// (documented/partial/gap) mapped to the exact option string the v6 question expects.
+// Questions where the scorecard signal doesn't map cleanly to a single v6 option are omitted.
+const SCORECARD_MAP={
+    // sc1: Phone passcode \u2192 Q70 phone access
+    "1":{qid:"Q70",documented:"Yes \u2014 at least one trusted person has the passcode",partial:"Probably \u2014 but it's never been tested",gap:"No \u2014 only I can unlock it"},
+    // sc2: Primary email access \u2192 Q74 email access
+    "2":{qid:"Q74",documented:"They have the password",partial:"They'd use the provider's recovery process",gap:"They'd be locked out"},
+    // sc6: Will current/updated \u2192 Q2A will last updated
+    "6":{qid:"Q2A",documented:"Within the past year",partial:"1-3 years ago",gap:"5+ years ago"},
+    // sc7: Life insurance beneficiary fresh \u2192 Q55 beneficiary review
+    "7":{qid:"Q55",documented:"Within the past year",partial:"1\u20133 years ago",gap:"3+ years ago"},
+    // sc9: One document/consolidated \u2192 Q5 document storage location
+    "9":{qid:"Q5",documented:"One consolidated location (home safe, attorney's office, etc.)",partial:"Mostly in one place but a few are scattered",gap:"Scattered across multiple locations"}
+    // sc3, sc4, sc5, sc8, sc10 deliberately omitted \u2014 they don't map cleanly to single v6 options
+    // (free-text Qs, multi_select Qs, or 5-option Qs). User answers those fresh.
+};
+
+function loadScorecardAnswers(){
+    const params=new URLSearchParams(window.location.search);
+    let transferred=0;
+    for(let i=1;i<=10;i++){
+        const val=params.get('sc'+i);
+        if(!val)continue;
+        const mapping=SCORECARD_MAP[String(i)];
+        if(!mapping)continue;
+        const optionString=mapping[val];
+        if(!optionString)continue;
+        A[mapping.qid]=optionString;
+        transferred++;
+    }
+    if(transferred>0)console.log('Transferred '+transferred+' scorecard answers (v6)');
+    return transferred;
 }
 
-ENHANCED_AI_PROMPT = """You are writing the personalized content for "The Resolved Brief" — a printed family crisis document prepared by {name}.
+// CONDITIONAL LOGIC
+function shouldShow(q){
+    if(!q.condition)return true;
+    const cond=q.condition;
+    const val=A[cond.question_id];
+    if(!val)return false;
+    if(cond.show_if&&Array.isArray(cond.show_if)){return cond.show_if.includes(val);}
+    return true;
+}
+function visibleQuestions(card){return card.questions.filter(q=>shouldShow(q));}
 
-A grieving family member will open this document, possibly at a hospital, possibly overwhelmed, possibly with a lawyer on the phone. Every section must be immediately actionable — not just informative. Warm tone, plain English, zero jargon.
-
-CRITICAL RULES:
-1. Address the FAMILY MEMBER reading this. Refer to {first_name} by first name.
-2. ONLY reference institutions and details that appear in {first_name}'s answers below. Never invent.
-3. If an answer is empty, say "this was not documented."
-4. For phone numbers: use ONLY the verified numbers listed below for institutions {first_name} actually named. For any institution NOT on this list, write: "Call their main customer service line and ask for the Estate Services or Bereavement department."
-5. This is a legal document. Accuracy matters more than completeness.
-
-VERIFIED BEREAVEMENT NUMBERS (only use for institutions {first_name} actually named):
-- Chase Bank: 1-888-356-0023
-- Bank of America: 1-800-432-1000 (ask for Estate Services)
-- Wells Fargo: 1-800-869-3557 (ask for Estate Services)
-- Fidelity: 1-800-343-3548
-- Vanguard: 1-800-662-7447
-- Charles Schwab: 1-800-435-4000 (ask for Estate Services)
-- Social Security Administration: 1-800-772-1213
-- Medicare: 1-800-633-4227
-- MetLife (life insurance): 1-800-638-5433
-- Northwestern Mutual: 1-800-388-8123
-- State Farm: 1-800-732-5246
-- Allstate: 1-800-255-7828
-- TIAA: 1-800-842-2252
-- Nationwide: 1-877-669-6877
-- Prudential: 1-800-778-2255
-- IRS (deceased taxpayer line): 1-800-829-1040
-
-{first_name}'s answers:
-{answers_json}
-
-For each section, produce TWO parts:
-
-PART A — NARRATIVE (3-4 sentences):
-Warm, calm. Summarize what {first_name} set up. Gently flag anything missing.
-
-PART B — ACTION GUIDE:
-For each institution or account {first_name} named, produce one action block formatted EXACTLY like this — use the pipe character | as a field separator:
-
-INSTITUTION: [name] | PHONE: [number or "Call main line, ask for Estate Services"] | STEP 1: [first action] | STEP 2: [second action] | STEP 3: [third action] | HAVE READY: [documents/info needed] | TIMELINE: [realistic timeframe] | WATCH OUT: [one common pitfall]
-
-Separate multiple institution blocks with a blank line.
-
-Return ONLY a JSON object with these exact keys (matching the v6 spec section structure):
-{{
-  "foundation":     {{"narrative": "...", "action_guide": "..."}},
-  "key_people":     {{"narrative": "...", "action_guide": "..."}},
-  "children":       {{"narrative": "...", "action_guide": "..."}},
-  "money":          {{"narrative": "...", "action_guide": "..."}},
-  "insurance":      {{"narrative": "...", "action_guide": "..."}},
-  "digital":        {{"narrative": "...", "action_guide": "..."}},
-  "medical_wishes": {{"narrative": "...", "action_guide": "..."}}
-}}
-
-SECTION CONTENT GUIDES:
-- foundation:     Will status/location/attorney (Q2–Q2F), Financial POA (Q3), Healthcare POA (Q4), document storage (Q5–Q5B), advisors (Q6).
-- key_people:     Primary point person (Q10–Q12), backup (Q14), role clarity (Q15–Q16), wishes awareness (Q17–Q18). NO action guide for personal contacts — write a "first contact" sequence instead.
-- children:       SKIPPABLE — see special rules below.
-- money:          Banking (Q30–Q32), retirement incl. orphaned 401(k)s (Q33–Q36), bills + autopay card (Q37–Q41), property (Q42), safe deposit (Q43/Q43A), business + advisor readiness (Q44–Q45).
-- insurance:      Life (Q50–Q55), other coverage (Q56–Q60), documents + agent (Q61–Q62).
-- digital:        Phone/devices (Q70–Q72), email + 2FA (Q73–Q76), passwords + cloud (Q77–Q80), financial apps + crypto (Q81–Q82A), subscriptions (Q83).
-- medical_wishes: Decisions (Q90=status, Q90A=proxy name, Q90B=proxy preparation level, Q90C=backup), specific medical wishes (Q91=life support, Q91A=directive document location, Q92=CPR, Q93=organ donation), medical info (Q94–Q98), funeral (Q100–Q104), legacy (Q105–Q107). Q105 and Q107 are personal letters — present them verbatim, do NOT summarize.
-
-CHILDREN SECTION SPECIAL RULES:
-- The children section is SKIPPABLE. If Q20–Q29 are all empty, return: {{"narrative": "Not applicable — {first_name} did not have minor dependents at the time this Brief was prepared.", "action_guide": ""}}
-- If Q20–Q29 have data, the narrative should center on the temporary guardian (Q24) — they are the first call. Mention the home access type (Q25), vehicle access (Q26), school pickup status (Q27), and what the guardian needs to know (Q28–Q29) if filled in.
-- The action guide should include one block for the temporary guardian (use phone from Q24), one block for the school (use the school's main line phrasing if no school name was given), and one block for the permanent guardian (Q22) if named.
-
-DO NOT summarize Q105, Q106, or Q107 — those are personal letters and should appear verbatim in the rendered PDF, not in the AI narrative.
-No markdown, no backticks, just the JSON object."""
+// CORE
+function allQ(){const q=[];SECTIONS.forEach(s=>s.cards.forEach(c=>c.questions.forEach(x=>{q.push(x);})));return q}
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):""}
+function escA(s){return s?s.replace(/'/g,"\\'"):""}
+function pPct(){const q=allQ();const d=q.filter(x=>(A[x.id]&&String(A[x.id]).length>0)||H[x.id]).length;return q.length>0?Math.round(d/q.length*100):0}
+function sPct(i){const ids=[];SECTIONS[i].cards.forEach(c=>c.questions.forEach(q=>{ids.push(q.id)}));const d=ids.filter(id=>(A[id]&&String(A[id]).length>0)||H[id]).length;return ids.length>0?Math.round(d/ids.length*100):0}
+function sA(id,v){A[id]=v}
+function tH(id){if(H[id])delete H[id];else{H[id]=true;delete A[id]}render()}
+function tMS(id,opt){let cur=A[id]?A[id].split(",").filter(x=>x):[];if(cur.includes(opt))cur=cur.filter(x=>x!==opt);else cur.push(opt);A[id]=cur.join(",");render()}
+function findQ(id){for(const s of SECTIONS)for(const c of s.cards)for(const q of c.questions)if(q.id===id)return q;return null}
 
 
-async def generate_ai_narratives(answers: dict, name: str) -> dict:
-    """Call Claude API to generate personalized narratives + action guides."""
-    if not ANTHROPIC_API_KEY:
-        print("WARNING: No ANTHROPIC_API_KEY set, using fallback narratives")
-        return generate_fallback_narratives(answers, name)
-
-    first_name = name.split()[0] if name else "your loved one"
-    prompt = ENHANCED_AI_PROMPT.format(
-        name=name,
-        first_name=first_name,
-        answers_json=json.dumps(answers, indent=2),
-    )
-
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 4000,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-            )
-
-            if response.status_code != 200:
-                print(f"Claude API error: {response.status_code} {response.text}")
-                return generate_fallback_narratives(answers, name)
-
-            data = response.json()
-            text = data["content"][0]["text"].strip()
-
-            # Strip any accidental markdown fences
-            if text.startswith("```"):
-                text = text.split("\n", 1)[1]
-                text = text.rsplit("```", 1)[0]
-
-            narratives = json.loads(text)
-            print(f"Enhanced AI narratives generated for {name}")
-            return narratives
-
-    except Exception as e:
-        print(f"Claude API failed: {e}, using fallback")
-        return generate_fallback_narratives(answers, name)
-
-
-def generate_fallback_narratives(answers: dict, name: str) -> dict:
-    """Basic narratives when AI is unavailable — keyed to v6 section IDs."""
-    first = name.split()[0] if name else "your loved one"
-    generic_guide = "INSTITUTION: See documented accounts above | PHONE: Call main line, ask for Estate Services | STEP 1: Gather certified copies of the death certificate (order at least 10) | STEP 2: Call the institution and identify yourself as the next of kin or executor | STEP 3: Ask what their estate/bereavement process requires and follow up in writing | HAVE READY: Death certificate, your photo ID, account info if available | TIMELINE: Varies by institution — bank accounts 1-4 weeks, retirement accounts 30-90 days | WATCH OUT: Do not close joint accounts until you understand the tax and legal implications"
-    return {
-        "foundation": {
-            "narrative": f"This section captures the legal foundation {first} put in place — the will, powers of attorney, and where the documents live. Review what's documented; pending items will appear in your Action Plan.",
-            "action_guide": "INSTITUTION: Estate Attorney (named on the page above) | PHONE: See contact info | STEP 1: Confirm the will is current and on file | STEP 2: Review executor and guardian designations | STEP 3: Initiate any formalization needed for the Financial Power of Attorney | HAVE READY: Photo ID, death certificate, list of named parties | TIMELINE: Initial review 1-2 weeks | WATCH OUT: Powers of Attorney expire on death — they cover incapacity, not after",
-        },
-        "key_people": {
-            "narrative": f"The primary point person is the operational anchor — the one adult who steps in when {first} can't. The backup person handles it if the primary is unavailable. Role clarity matters as much as the names themselves.",
-            "action_guide": "INSTITUTION: Primary Point Person (named on the page above) | PHONE: See contact info | STEP 1: Call the primary point person first — they have been briefed and know where this Brief lives | STEP 2: They will coordinate the first 48 hours and route to the right next people | STEP 3: Connect them with the backup and executor as needed | HAVE READY: This Brief, photo ID | TIMELINE: First call within 1 hour | WATCH OUT: If the primary is also unavailable, route directly to the backup",
-        },
-        "children": {
-            "narrative": f"If {first} had minor dependents, the most important first call is the temporary guardian — the person who can walk into the house and pick the kids up. The details below cover who that person is, the long-term guardian named in the will, and the routines and medical information whoever takes over needs to know.",
-            "action_guide": "INSTITUTION: Temporary Guardian (named on the page above) | PHONE: See phone number listed | STEP 1: Call the temporary guardian first — before notifying schools, before paperwork. The kids are the priority | STEP 2: Confirm they have access to the house, medications, emergency supplies, and routines documented in this Brief | STEP 3: Coordinate the next 24–48 hours: school pickup, sleep arrangements, food | HAVE READY: This Brief, photo ID, school contact information | TIMELINE: First call within the first hour | WATCH OUT: If the temporary guardian was never told they were chosen, the conversation is harder. Be direct and brief\n\nINSTITUTION: School / Daycare | PHONE: Main office number | STEP 1: Notify the school of the situation | STEP 2: Confirm the temporary guardian is on the authorized pickup list (they should be — see this Brief) | STEP 3: Coordinate dismissal and any school-provided counseling support | HAVE READY: Photo ID, your relationship to the children, this Brief | TIMELINE: Same-day | WATCH OUT: Schools require photo ID matching authorized pickup names — verbal authorization will not get a child released",
-        },
-        "money": {
-            "narrative": f"This section is the map of where {first}'s money lives — banks, retirement accounts, loans, and the autopay card that keeps the lights on. Old retirement accounts from previous employers are flagged separately because they are the most common gap.",
-            "action_guide": generic_guide,
-        },
-        "insurance": {
-            "narrative": f"{first} documented the policies in place: life, disability, long-term care, home, auto, and any others. The agent (if named) is the single contact who can help you navigate all of them at once.",
-            "action_guide": generic_guide,
-        },
-        "digital": {
-            "narrative": f"This section covers how to access {first}'s phone, email, computer, and accounts. Start with the primary email — it is the key to resetting everything else. If 2FA is enabled, the backup codes are in the Companion Document envelope.",
-            "action_guide": "INSTITUTION: Primary Email Provider | PHONE: Use online support — Google: support.google.com/accounts, Apple: 1-800-275-2273 | STEP 1: Gain access to the primary email first — all other resets flow through it | STEP 2: Retrieve the 2FA backup code from the Companion Document envelope if enabled | STEP 3: Use the email to reset passwords for financial accounts one at a time | HAVE READY: Death certificate for accounts that require it, your own ID, Companion Document envelope | TIMELINE: With password + 2FA code in hand, immediate. Without both, 4-8 weeks via the provider's deceased user process | WATCH OUT: Do not delete the email account — it may hold 2FA codes and documents you'll need",
-        },
-        "medical_wishes": {
-            "narrative": f"This section covers two things: who makes medical decisions if {first} couldn't, and the funeral and legacy wishes they left for you. The healthcare proxy is the first call if {first} is alive but cannot speak. The funeral preferences and any personal letters appear in their own words below.",
-            "action_guide": "INSTITUTION: Healthcare Proxy (named on the page above) | PHONE: See phone number listed | STEP 1: If a medical decision is needed, the proxy is authorized to speak — they should be the first call to the hospital | STEP 2: The backup is on the page above if the proxy is unreachable | STEP 3: Specific wishes (life support, resuscitation, organ donation) are documented above | HAVE READY: This Brief, photo ID | TIMELINE: Immediate | WATCH OUT: Without the healthcare proxy document in hand, hospitals default to state rules even with a verbally-named proxy\n\nINSTITUTION: Primary Care Physician | PHONE: Call the office directly | STEP 1: Notify the practice | STEP 2: Request medical records for insurance/legal purposes | STEP 3: Cancel upcoming appointments | HAVE READY: Death certificate, patient ID or insurance card | TIMELINE: Records up to 30 days under HIPAA | WATCH OUT: Medicare and insurance must be notified separately — the doctor's office doesn't auto-report",
-        },
+// SMOOTH CLICK HANDLERS (no full re-render)
+function mcClick(el,qid,val){
+    sA(qid,val);
+    el.parentNode.querySelectorAll(".mc-o").forEach(o=>o.classList.remove("sel"));
+    el.classList.add("sel");
+    // Check if this answer triggers conditional questions
+    checkConditionals(qid);
+}
+function ynClick(el,qid,val){
+    sA(qid,val);
+    el.parentNode.querySelectorAll(".yn-o").forEach(o=>o.classList.remove("sel"));
+    el.classList.add("sel");
+    checkConditionals(qid);
+}
+function msClick(el,qid,val){
+    tMS(qid,val);
+    el.classList.toggle("sel");
+}
+function checkConditionals(qid){
+    // If any question depends on this answer, we need to re-render to show/hide them
+    const hasConditional=allQ().some(q=>q.condition&&q.condition.question_id===qid);
+    if(hasConditional){
+        // Small delay so the selection animation plays first
+        setTimeout(()=>{
+            window.__skipScrollTop=true;
+            render();
+            window.__skipScrollTop=false;
+            // Scroll the question they just clicked into view (instead of using a stale scrollY)
+            requestAnimationFrame(()=>{
+                const el=document.querySelector('[data-qid="'+qid+'"]');
+                if(el){
+                    el.scrollIntoView({block:'start',behavior:'instant'});
+                    window.scrollBy(0,-80); // small offset so the progress bar doesn't overlap the question
+                }
+            });
+        },150);
     }
+}
+
+// RENDER ENGINE
+function render(){
+if(!window.__skipScrollTop) window.scrollTo(0,0);
+// Note: don't wipe body.innerHTML here — the r*() functions assign innerHTML directly,
+// which atomically replaces content. Wiping first caused a visible blank flash.
+if(view==="welcome")rWelcome();
+else if(view==="section-intro")rSIntro();
+else if(view==="encourage")rEncourage();
+else if(view==="card")rCard();
+else if(view==="section-complete")rSDone();
+else if(view==="emotional-close")rEmo();
+else if(view==="summary")rSummary();
+}
+
+function renderPBar(){const s=SECTIONS[si];return`<div class="pbar"><div class="pbar-in"><div class="pbar-top"><span class="pbar-sec">${ICONS[s.icon]||""} Section ${si+1} of ${SECTIONS.length}</span><span class="pbar-pct">${pPct()}% complete</span></div><div class="pbar-track"><div class="pbar-fill" style="width:${pPct()}%"></div></div></div></div>`}
+
+function rWelcome(){
+    const transferred=loadScorecardAnswers();
+    const transferNote=transferred>0?'<div class="transfer-banner">\u2705 We pre-filled <strong>'+transferred+'</strong> answer'+(transferred===1?'':'s')+' from your scorecard \u2014 keep going.</div>':'';
+    document.body.innerHTML=`<div class="welcome-page fade"><div class="wp">
+      <div class="hero">
+        <div class="seal"><svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="wax" cx="40%" cy="35%" r="65%"><stop offset="0%" stop-color="#A8334A"/><stop offset="60%" stop-color="#8B2635"/><stop offset="100%" stop-color="#6E1D2A"/></radialGradient><radialGradient id="waxHi" cx="35%" cy="30%" r="20%"><stop offset="0%" stop-color="rgba(255,255,255,0.45)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><path d="M44 4 L52 8 L60 6 L65 13 L72 15 L74 22 L80 26 L80 34 L84 41 L82 49 L84 56 L78 62 L76 70 L69 73 L64 80 L56 80 L49 84 L41 82 L33 84 L26 78 L19 76 L16 69 L10 64 L8 56 L4 49 L6 41 L4 34 L10 28 L12 21 L19 18 L24 12 L32 11 L37 6 Z" fill="url(#wax)"/><path d="M44 4 L52 8 L60 6 L65 13 L72 15 L74 22 L80 26 L80 34 L84 41 L82 49 L84 56 L78 62 L76 70 L69 73 L64 80 L56 80 L49 84 L41 82 L33 84 L26 78 L19 76 L16 69 L10 64 L8 56 L4 49 L6 41 L4 34 L10 28 L12 21 L19 18 L24 12 L32 11 L37 6 Z" fill="url(#waxHi)"/><text x="44" y="58" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="44" font-weight="700" fill="#F5E6CC" letter-spacing="-1">R</text></svg></div>
+        <div class="brand-eyebrow">Resolved Family</div>
+        <h1 class="brief-title">The Resolved Brief</h1>
+        <div class="ornament"><span class="o-line"></span><span class="o-d small"></span><span class="o-d"></span><span class="o-d small"></span><span class="o-line"></span></div>
+      </div>
+      ${transferNote}
+      <p class="lead">Welcome. You\'ve done the hardest part already \u2014 deciding to do this.</p>
+      <p class="body-p">The next 30\u201345 minutes are about capturing what your family would actually need to know. We\'ll walk through seven sections together. Some questions will be quick. Some will take a minute to think through. That\'s normal.</p>
+      <p class="section-label">A few things to know</p>
+      <div class="bullets-card"><ul class="wp-bullets">
+        <li>Your progress saves automatically. Close the tab, come back tomorrow, you\'ll pick up where you left off.</li>
+        <li>If you don\'t know an answer, hit \"Address Later.\" We\'ll flag it in your action plan, not stop the interview.</li>
+        <li>We never ask for passwords, account numbers, or anything sensitive. Those go in a separate document only you ever see.</li>
+        <li>The final section is the most personal. Take your time with it, or come back to it later if you need to.</li>
+      </ul></div>
+      <p class="section-label">What you\'ll have when you\'re done</p>
+      <div class="deliverables">
+        <div class="deliv"><div class="deliv-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="3" width="16" height="18" rx="2" stroke="#1B3A5C" stroke-width="1.6"/><line x1="7" y1="8" x2="17" y2="8" stroke="#1B3A5C" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="12" x2="17" y2="12" stroke="#1B3A5C" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="16" x2="13" y2="16" stroke="#1B3A5C" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="18" r="3" fill="#D4913B"/><path d="M16.5 18l1 1 2-2" stroke="#FFFCF5" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="deliv-body"><div class="deliv-name">The Resolved Brief</div><div class="deliv-desc">A professional document your family could actually use if something happened tomorrow. Names, contacts, account locations, medical wishes, a First 48 Hours guide. Delivered to your inbox as a PDF the moment you finish.</div></div></div>
+        <div class="deliv"><div class="deliv-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="11" width="14" height="10" rx="2" stroke="#1B3A5C" stroke-width="1.6"/><path d="M8 11V8a4 4 0 018 0v3" stroke="#1B3A5C" stroke-width="1.6"/><circle cx="12" cy="16" r="1.5" fill="#D4913B"/></svg></div><div class="deliv-body"><div class="deliv-name">Your Companion Document</div><div class="deliv-desc">A separate document for the sensitive specifics \u2014 passwords, account numbers, recovery codes. Yours. Private. Never sees our servers.</div></div></div>
+        <div class="deliv"><div class="deliv-icon"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="14" height="17" rx="2" stroke="#1B3A5C" stroke-width="1.6"/><path d="M9 3h6v3H9z" stroke="#1B3A5C" stroke-width="1.6" fill="#FFFCF5"/><path d="M8.5 11l1.5 1.5 3-3" stroke="#D4913B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="11" x2="16.5" y2="11" stroke="#1B3A5C" stroke-width="1.6" stroke-linecap="round"/><path d="M8.5 16l1.5 1.5 3-3" stroke="#D4913B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><line x1="14" y1="16" x2="16.5" y2="16" stroke="#1B3A5C" stroke-width="1.6" stroke-linecap="round"/></svg></div><div class="deliv-body"><div class="deliv-name">Your Action Plan</div><div class="deliv-desc">The gaps we surface during the interview, with the path forward for each one. Some are 5-minute fixes. Some are worth a phone call.</div></div></div>
+      </div>
+      <div class="journey">
+        <div class="journey-label">The 7 sections you\'ll walk through</div>
+        <div class="pips">
+          <div class="pip"><div class="pip-dot">\u{1F4DC}</div><div class="pip-label">Foundation</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F465}</div><div class="pip-label">Key People</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F476}</div><div class="pip-label">Children</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F4B0}</div><div class="pip-label">Money</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F6E1}\uFE0F</div><div class="pip-label">Insurance</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F4F1}</div><div class="pip-label">Digital</div></div>
+          <div class="pip"><div class="pip-dot">\u{1F49B}</div><div class="pip-label">Medical & Wishes</div></div>
+        </div>
+      </div>
+      <div class="env-quote">
+        <div class="env-icon"><svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="30" height="22" rx="2" fill="#FFFCF5" stroke="#1B3A5C" stroke-width="1.6"/><path d="M3 10l15 11L33 10" stroke="#1B3A5C" stroke-width="1.6" stroke-linejoin="round"/><circle cx="18" cy="22" r="4.5" fill="#8B2635"/><text x="18" y="25" text-anchor="middle" font-family="Playfair Display, serif" font-size="6" font-weight="700" fill="#F5E6CC">R</text></svg></div>
+        This is the document you\'ll seal in an envelope and keep somewhere safe \u2014 a desk drawer, a home safe, a safe deposit box. One trusted person will know where to find it. They never have to open it. But if they do \u2014 you\'ve given your family the most important gift you could leave behind.
+      </div>
+      <div class="cta-wrap">
+        <button class="wp-cta" onclick="startW()">Begin the Interview \u2192</button>
+        <p class="print-line">Want a printed, bound copy you can hold? Reply to your delivery email anytime and we\'ll send one out.</p>
+      </div>
+      <div class="footer-strip">
+        <div class="foot-item"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#6B6560" stroke-width="1.4"/><path d="M8 4.5V8l2.5 1.5" stroke="#6B6560" stroke-width="1.4" stroke-linecap="round"/></svg>30\u201345 minutes</div>
+        <div class="foot-item"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#6B6560" stroke-width="1.4"/><line x1="2" y1="6.5" x2="14" y2="6.5" stroke="#6B6560" stroke-width="1.4"/></svg>7 sections</div>
+        <div class="foot-item"><svg viewBox="0 0 16 16" fill="none"><path d="M4 8l2.5 2.5L12 5" stroke="#6B6560" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Progress saves automatically</div>
+        <div class="foot-item"><svg viewBox="0 0 16 16" fill="none"><rect x="3.5" y="7" width="9" height="6.5" rx="1" stroke="#6B6560" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="#6B6560" stroke-width="1.4"/></svg>Private</div>
+      </div>
+    </div></div>`;
+}
+
+function rSIntro(){const s=SECTIONS[si];const ic=ICONS[s.icon]||"";
+    const sub=s.subtitle||"";const intro=s.intro_message||"";
+    const priv=s.privacy_note?`<div class="privacy">\uD83D\uDD12 ${s.privacy_note}</div>`:"";
+    let prefill="";
+    if(s.section_id==="snapshot"){
+        const preCount=Object.keys(A).filter(k=>k.startsWith("S")).length;
+        if(preCount>0){prefill='<p style="font-size:15px;color:var(--gold);margin:16px 0;padding:10px 14px;border-radius:8px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.12)">'+preCount+' answers pre-filled from your scorecard. Just confirm or change them.</p>';}
+    }
+    document.body.innerHTML=`${renderPBar()}<div class="sintro fade"><div class="icon">${ic}</div><h2>${s.title}</h2><p class="sub">${sub}</p><p class="reassure">${intro}</p>${priv}${prefill}<button class="cta" onclick="beginS()">BEGIN \u2192</button><p class="meta">${s.cards.length} screens</p></div>`
+}
+
+function rEncourage(){const s=SECTIONS[si];const txt=s.pre_section_encouragement?s.pre_section_encouragement.text:"You're doing great.";document.body.innerHTML=`${renderPBar()}<div class="encourage fade"><div style="font-size:48px;margin-bottom:20px">\uD83D\uDCAA</div><h2>${txt}</h2><p>The next section is quick. You've got this.</p><button class="cta" onclick="view='section-intro';render()">KEEP GOING \u2192</button></div>`}
+
+function renderQuestion(q){
+    if(!shouldShow(q))return"";
+    const v=A[q.id]||"";
+    let inp="";
+    if(q.type==="text"||q.type==="text_input")inp=`<input type="text" class="qi" value="${esc(v)}" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)"/>`;
+    else if(q.type==="textarea")inp=`<textarea class="qi" placeholder="${q.placeholder||""}" oninput="sA('${q.id}',this.value)">${esc(v)}</textarea>`;
+    else if(q.type==="multiple_choice")inp=`<div class="mc">${(q.options||[]).map(o=>`<div class="mc-o${v===o?" sel":""}" onclick="mcClick(this,'${q.id}','${escA(o)}')">${o}</div>`).join("")}</div>`;
+    else if(q.type==="multi_select"){const sel=v?v.split(","):[];inp=`<div class="ms">${(q.options||[]).map(o=>`<div class="ms-o${sel.includes(o)?" sel":""}" onclick="msClick(this,'${q.id}','${escA(o)}')">${o}</div>`).join("")}</div>`}
+    else if(q.type==="yes_no")inp=`<div class="yn"><div class="yn-o${v==="Yes"?" sel":""}" onclick="ynClick(this,'${q.id}','Yes')">Yes</div><div class="yn-o${v==="No"?" sel":""}" onclick="ynClick(this,'${q.id}','No')">No</div></div>`;
+    const hw=H[q.id];
+    const hwBtn=q.follow_up_tip?`<div class="hw${hw?" hw-on":""}" onclick="tH('${q.id}')" style="text-align:right;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;padding:4px 0;margin-top:2px">${hw?"\u2705 On your follow-up list":"Address Later \u2192"}</div>`:"";
+    const hint=q.hint?`<p class="hint">${q.hint}</p>`:"";
+    const tip=(q.follow_up_tip&&hw)?`<p class="tip">${q.follow_up_tip}</p>`:"";
+    return`<div class="q" data-qid="${q.id}"><label class="ql">${q.prompt}</label>${hint}${inp}${hwBtn}${tip}</div>`;
+}
+
+function rCard(){const s=SECTIONS[si],c=s.cards[ci];
+    const visQs=visibleQuestions(c);
+    let inner=visQs.map(q=>renderQuestion(q)).join("");
+    if(visQs.length===0){goN();return;}
+    const cardTitle=c.card_title||c.headline||"";
+    const cardHelper=c.helper_text||"";
+    const isFirst=si===0&&ci===0,isLast=ci>=s.cards.length-1,isLastS=si>=SECTIONS.length-1;
+    const nl=isLast?(isLastS?"FINISH \u2192":"NEXT SECTION \u2192"):"NEXT \u2192";
+    document.body.innerHTML=`${renderPBar()}<div class="card-w fade"><div class="card-t">${cardTitle}</div><div class="card-h">${cardHelper}</div>${inner}<div class="nav">${!isFirst?'<button class="nb nb-back" onclick="goB()">\u2190 BACK</button>':""}<button class="nb nb-next" onclick="goN()">${nl}</button></div></div>`
+}
+
+function rSDone(){const s=SECTIONS[si],p=sPct(si);
+    const hw=Object.keys(H).filter(id=>{for(const c of s.cards)for(const q of c.questions)if(q.id===id)return true;return false});
+    let extra="";if(hw.length>0)extra=`<div class="hw-sum"><p>${hw.length} item${hw.length>1?"s":""} to address later. No rush \u2014 they will be on your follow-up list when you are ready.</p></div>`;
+    document.body.innerHTML=`${renderPBar()}<div class="sdone fade"><div class="chk">\u2713</div><h2>${ICONS[s.icon]||""} ${s.title} \u2014 done.</h2><p class="pct">${p}% of this section completed.</p>${extra}<button class="cta" onclick="nextS()">CONTINUE \u2192</button></div>`
+}
+
+function rEmo(){const m=META.emotional_close;document.body.innerHTML=`<div class="emo fade"><h2>${m.headline}</h2><div style="font-size:48px;margin:24px 0">\uD83D\uDD4A\uFE0F</div><p class="body">${m.body}</p><p class="quote">"${m.quote}"</p><p class="sub">${m.sub}</p><button class="cta" onclick="showSum()">${m.cta} \u2192</button></div>`}
+
+function rSummary(){
+    const q=allQ();const a=q.filter(x=>A[x.id]&&String(A[x.id]).length>0&&!H[x.id]).length;const h=Object.keys(H).length;
+    const u=META.unlock;
+    let sc="";SECTIONS.forEach((s,i)=>{const p=sPct(i),cl=p>=80?"var(--green)":p>=50?"var(--amber)":"var(--red)";sc+=`<div class="ss"><span class="ss-i">${ICONS[s.icon]||""}</span><span class="ss-n">${s.title}</span><span class="ss-p" style="color:${cl}">${p}%</span></div>`});
+    const followUpNote=h>0?'<p style="font-size:15px;color:rgba(255,255,255,.5);margin-top:8px">with '+h+' item'+(h>1?'s':'')+' flagged to address later</p>':'';
+    document.body.innerHTML=`<div class="sum fade"><div class="sum-badge">YOUR RESOLVED BRIEF IS READY</div><h1 style="font-size:28px;line-height:1.3">You just did something<br/><span>most families never do.</span></h1><p style="font-size:16px;color:rgba(255,255,255,.55);line-height:1.7;max-width:480px;margin:0 auto 24px;padding:0 16px">In the last 20 minutes, you mapped out your medical wishes, your financial accounts, your insurance coverage, your digital life, and the personal messages that matter most. You covered things most families don't address until it's too late \u2014 and by then, nobody can.</p><div class="stats"><div class="stat"><div class="stat-n">${SECTIONS.length}</div><div class="stat-l">Sections<br/>Completed</div></div><div class="stat"><div class="stat-n">${a}</div><div class="stat-l">Questions<br/>Answered</div></div></div>${followUpNote}<div style="text-align:left;max-width:440px;margin:20px auto 28px"><p style="font-size:14px;font-weight:600;color:rgba(255,255,255,.4);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">What You Covered</p>${sc}</div><p style="font-size:22px;color:rgba(255,255,255,.8);line-height:1.5;max-width:500px;margin:0 auto 20px;padding:0 16px;font-style:italic">Right now, all of this exists in one place for the first time. But it's not in your family's hands yet.</p><p style="font-size:19px;color:rgba(255,255,255,.6);line-height:1.7;max-width:500px;margin:0 auto 28px;padding:0 16px">Your Resolved Brief takes everything you just entered and turns it into a single, organized document your family can actually use \u2014 with real contact numbers, step-by-step instructions, and a Family Emergency Card they can grab in 60 seconds.</p><div style="margin:28px auto;max-width:280px"><img src="data:image/jpeg;base64,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" style="width:100%;border-radius:12px;border:1px solid rgba(201,168,76,.2);box-shadow:0 8px 32px rgba(0,0,0,.3)" alt="Family Emergency Plan envelope in desk drawer"/><p style="font-size:14px;color:rgba(255,255,255,.4);margin-top:10px;text-align:center">This is what being ready looks like.</p></div><div class="unlock">
+<p style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:3px;margin-bottom:24px;text-align:center">What You\u2019re Unlocking</p>
+
+<div style="max-width:440px;margin:0 auto 32px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.12)">
+<span style="font-size:32px;flex-shrink:0">\uD83D\uDCD6</span>
+<div><p style="font-size:17px;font-weight:700;color:white;margin-bottom:4px">Your Complete Resolved Brief</p><p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.5">Personalized from every answer you just gave. Professional narratives, real contact numbers, organized by section.</p></div>
+</div>
+
+<div style="display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.1)">
+<span style="font-size:32px;flex-shrink:0">\uD83D\uDEA8</span>
+<div><p style="font-size:17px;font-weight:700;color:white;margin-bottom:4px">Family Emergency Card</p><p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.5">One page. First 24 hours. Who to call, what to access, where everything is.</p></div>
+</div>
+
+<div style="display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.1)">
+<span style="font-size:32px;flex-shrink:0">\u2705</span>
+<div><p style="font-size:17px;font-weight:700;color:white;margin-bottom:4px">Follow-Up Checklist</p><p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.5">Every item you flagged, organized with action steps so nothing falls through the cracks.</p></div>
+</div>
+
+<div style="display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)">
+<span style="font-size:32px;flex-shrink:0">\uD83D\uDD10</span>
+<div><p style="font-size:17px;font-weight:700;color:white;margin-bottom:4px">Master File Instructions</p><p style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.5">Step-by-step guide to building the secure document with your passwords and account numbers.</p></div>
+</div>
+</div>
+
+<div style="text-align:center;margin-bottom:28px">
+<div style="margin-bottom:18px;text-align:center"><div style="display:inline-block;padding:8px 18px;border-radius:100px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);color:#C9A84C;font-size:11px;font-weight:800;letter-spacing:0.22em;text-transform:uppercase">\u2605 Founding 50 \u2014 Free Forever \u2605</div></div>
+<button class="ubtn" id="unlockBtn" onclick="handleCheckout()">Send Me My Resolved Brief \u2192</button>
+<p class="trust" style="margin-top:14px">\uD83D\uDCE7 Delivered to your inbox in 2\u20133 minutes \u00B7 No payment \u00B7 Yours forever</p>
+</div>
+
+<div style="max-width:420px;margin:0 auto 24px;padding:22px 24px;border-radius:12px;background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.12)">
+<p style="font-size:16px;font-weight:700;color:#10B981;margin-bottom:6px;text-align:center">\uD83C\uDF81 Give a Founding 50 Spot</p>
+<p style="font-size:14px;color:rgba(255,255,255,.55);text-align:center;margin-bottom:16px;line-height:1.55">There are still spots open. If you have a parent, sibling, or friend who needs this \u2014 send them yours.<br/>They\u2019ll get the Brief free, too.</p>
+<div style="display:flex;gap:10px;justify-content:center">
+<button onclick="shareText()" style="flex:1;max-width:170px;padding:14px 16px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10B981;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">\uD83D\uDCF1 Text a Friend</button>
+<button onclick="shareLink()" style="flex:1;max-width:170px;padding:14px 16px;border-radius:10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#10B981;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s">\uD83D\uDD17 Copy Link</button>
+</div>
+</div>
+
+<p class="saved">Your answers are saved. Come back anytime to finish your follow-up list.</p>
+</div><div style="margin-top:40px;padding:28px;border-radius:12px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.15)"><p style="font-family:var(--serif);font-size:22px;font-weight:700;font-style:italic;color:var(--gold);margin-bottom:8px">"There's an envelope in my desk."</p><p style="font-size:16px;color:rgba(255,255,255,.4)">You earned that.</p></div></div>`
+}
 
 
-# ═══ EMAIL DELIVERY ═══
+function startW(){si=0;ci=0;view="card";render()}
+function beginS(){ci=0;view="card";render()}
+function goN(){const s=SECTIONS[si];if(ci<s.cards.length-1){ci++;view="card"}else{view="section-complete"}render()}
+function goB(){if(view==="card"&&ci>0){ci--}else if(view==="card"&&ci===0){view="section-intro"}else if(view==="section-intro"&&si>0){si--;view="section-complete"}render()}
+function nextS(){
+    if(si<SECTIONS.length-1){si++;
+        if(si===3&&META.encouragement_screens.after_section_3&&META.encouragement_screens.after_section_3.show){view="encourage";render();return}
+        if(si===5&&META.encouragement_screens.after_section_5&&META.encouragement_screens.after_section_5.show){view="encourage";render();return}
+        view="section-intro";
+    }else{view="emotional-close";}
+    render()
+}
+function showSum(){view="summary";render()}
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-FROM_EMAIL = os.getenv("FROM_EMAIL", "brief@resolvedfamily.com")
+// API INTEGRATION
+let SESSION_ID=null;
+const API_BASE=window.location.origin;
+let saveTimeout=null;
 
-async def send_brief_email(to_email: str, name: str, pdf_bytes: bytes) -> bool:
-    """Send the Resolved Brief PDF via email using Resend."""
-    if not RESEND_API_KEY:
-        print(f"WARNING: No RESEND_API_KEY set, cannot send email to {to_email}")
-        return False
+async function apiCall(endpoint,method='GET',body=null){
+    try{const opts={method,headers:{'Content-Type':'application/json'}};
+    if(body)opts.body=JSON.stringify(body);
+    const res=await fetch(API_BASE+endpoint,opts);
+    if(!res.ok)throw new Error('API error: '+res.status);
+    return await res.json();}catch(e){console.warn('API call failed:',e.message);return null;}
+}
 
-    first = name.split()[0] if name else "there"
-    pdf_b64 = base64.b64encode(pdf_bytes).decode()
-
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {RESEND_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": FROM_EMAIL,
-                    "to": [to_email],
-                    "subject": f"{first}, your Resolved Brief is ready",
-                    "html": f"""
-                    <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1B2D4F;">
-                        <div style="background: #1B2D4F; padding: 32px; text-align: center;">
-                            <h1 style="color: #F5F0E8; font-family: 'Playfair Display', Georgia, serif; margin: 0;">THE RESOLVED BRIEF</h1>
-                            <p style="color: rgba(255,255,255,0.6); margin-top: 8px;">Everything your family needs to know.</p>
-                        </div>
-                        <div style="padding: 32px; background: #F5F0E8;">
-                            <p>Hi {first},</p>
-                            <p>Your Resolved Brief is attached. This document contains everything your family needs — organized, personalized, and ready to use.</p>
-                            <p><strong>What to do next:</strong></p>
-                            <ol>
-                                <li>Print your Resolved Brief and your Family Emergency Card</li>
-                                <li>Fill in sensitive details — passwords, PINs, account numbers — by hand on the Emergency Card</li>
-                                <li>Seal it in an envelope, put it somewhere safe, and label it</li>
-                                <li>Tell one person where it is</li>
-                            </ol>
-                            <p>That's it. You just did what most families never do.</p>
-                            <p style="color: #C9A84C; font-style: italic; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; margin-top: 24px;">"There's an envelope in my desk."</p>
-                            <p style="color: #8A8578; font-size: 14px;">You earned that.</p>
-                        </div>
-                        <div style="padding: 16px; text-align: center; color: #8A8578; font-size: 12px;">
-                            <p>&copy; 2026 Resolved &middot; ResolvedFamily.com</p>
-                        </div>
-                    </div>
-                    """,
-                    "attachments": [{
-                        "filename": f"The-Resolved-Brief-{first}.pdf",
-                        "content": pdf_b64,
-                    }],
-                },
-            )
-
-            if response.status_code in (200, 201):
-                print(f"Email sent to {to_email}")
-                return True
-            else:
-                print(f"Email failed: {response.status_code} {response.text}")
-                return False
-
-    except Exception as e:
-        print(f"Email send error: {e}")
-        return False
-
-
-# ═══ PDF GENERATION ═══
-
-from app.pdf_generator import ResolvedBriefBuilder
-
-async def generate_resolved_brief(session_id: str, email: str, name: str) -> Optional[str]:
-    """Generate the Resolved Brief PDF for a paid customer."""
-    try:
-        result = supabase.table("sessions").select("*").eq("session_id", session_id).execute()
-
-        if not result.data:
-            print(f"Session not found: {session_id}")
-            return None
-
-        session = result.data[0]
-        answers = session["answers_json"] or {}
-        homework = session["homework_items"] or []
-
-        # Generate enhanced AI narratives + action guides
-        narratives = await generate_ai_narratives(answers, name)
-
-        pdf_data = {
-            "name": name,
-            "date": datetime.now().strftime("%B %d, %Y"),
-            "answers": answers,
-            "homework": homework,
-            "ai_narratives": narratives,
-        }
-
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            tmp_path = tmp.name
-
-        builder = ResolvedBriefBuilder(pdf_data)
-        builder.build(tmp_path)
-
-        with open(tmp_path, "rb") as f:
-            pdf_bytes = f.read()
-
-        email_sent = await send_brief_email(email, name, pdf_bytes)
-
-        try:
-            supabase.table("sessions").update({
-                "purchase_status": "paid",
-                "pdf_generated": True,
-                "email": email,
-                "last_activity_at": now_iso(),
-            }).eq("session_id", session_id).execute()
-        except Exception as _ue:
-            print(f"Session update note (non-critical): {_ue}")
-
-        os.unlink(tmp_path)
-
-        print(f"Resolved Brief generated and sent for session {session_id}")
-        return "sent" if email_sent else "generated_not_sent"
-
-    except Exception as e:
-        print(f"Brief generation error: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-
-# ═══ SAMCART WEBHOOK ENDPOINT ═══
-
-class SamCartWebhook(BaseModel):
-    class Config:
-        extra = "allow"
-
-@app.post("/api/webhook/samcart")
-async def samcart_webhook(request: Request):
-    """
-    Receives SamCart webhook after purchase.
-    Generates the Resolved Brief and emails it to the customer.
-    """
-    try:
-        body = await request.json()
-        print(f"SamCart webhook received: {json.dumps(body, indent=2)[:500]}")
-
-        email = (
-            body.get("customer", {}).get("email") or
-            body.get("buyer_email") or
-            body.get("email") or
-            ""
-        )
-
-        name = (
-            (
-                body.get("customer", {}).get("first_name", "") + " " +
-                body.get("customer", {}).get("last_name", "")
-            ).strip() or
-            body.get("buyer_name") or
-            body.get("name") or
-            "Valued Customer"
-        )
-
-        session_id = (
-            body.get("custom_fields", {}).get("session_id") or
-            body.get("session_id") or
-            body.get("custom", {}).get("session_id") or
-            ""
-        )
-
-        if not email:
-            print("WARNING: No email in webhook payload")
-            return JSONResponse(
-                status_code=200,
-                content={"status": "error", "message": "No email found in payload"}
-            )
-
-        if not session_id:
-            print(f"No session_id in webhook, searching by email: {email}")
-            # ─── FIX 1 BENEFIT: Q46 now synced to email column, so this works ───
-            result = supabase.table("sessions").select("session_id").eq(
-                "email", email
-            ).order("created_at", desc=True).limit(1).execute()
-
-            if result.data:
-                session_id = result.data[0]["session_id"]
-                print(f"Found session by email: {session_id}")
-            else:
-                result = supabase.table("sessions").select("session_id").eq(
-                    "walkthrough_completed", True
-                ).eq("purchase_status", "unpaid").order(
-                    "last_activity_at", desc=True
-                ).limit(1).execute()
-
-                if result.data:
-                    session_id = result.data[0]["session_id"]
-                    print(f"Found most recent unpaid session: {session_id}")
-                else:
-                    print("ERROR: No matching session found")
-                    return JSONResponse(
-                        status_code=200,
-                        content={"status": "error", "message": "No matching session"}
-                    )
-
-        result = await generate_resolved_brief(session_id, email, name)
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                "status": "success" if result else "error",
-                "session_id": session_id,
-                "email": email,
-                "pdf_status": result or "failed",
+async function startSession(){
+    const params=new URLSearchParams(window.location.search);
+    const existingId=params.get('session');
+    if(existingId){
+        const session=await apiCall('/api/session/'+existingId);
+        if(session){
+            SESSION_ID=session.session_id;
+            const savedAnswers=session.answers||{};
+            for(const[k,v]of Object.entries(savedAnswers)){if(v&&String(v).trim())A[k]=v;}
+            (session.homework||[]).forEach(qid=>{H[qid]=true;});
+            if(session.last_section_completed){
+                const idx=SECTIONS.findIndex(s=>s.section_id===session.last_section_completed);
+                if(idx>=0&&idx<SECTIONS.length-1){si=idx+1;view='section-intro';}
             }
-        )
-
-    except Exception as e:
-        print(f"Webhook error: {e}")
-        import traceback
-        traceback.print_exc()
-        return JSONResponse(
-            status_code=200,
-            content={"status": "error", "message": str(e)}
-        )
-
-
-# ═══ MANUAL PDF GENERATION (for testing) ═══
-
-class ManualBriefRequest(BaseModel):
-    email: Optional[str] = None
-    name: Optional[str] = None
-
-@app.post("/api/session/{session_id}/generate-brief")
-async def manual_generate_brief(session_id: str, data: ManualBriefRequest = ManualBriefRequest()):
-    """Manually trigger PDF generation for testing."""
-    try:
-        result = supabase.table("sessions").select("email, first_name").eq(
-            "session_id", session_id
-        ).execute()
-
-        if not result.data:
-            raise HTTPException(status_code=404, detail="Session not found")
-
-        session = result.data[0]
-        email = data.email or session.get("email") or "test@example.com"
-        name = data.name or session.get("first_name") or "Test User"
-
-        status = await generate_resolved_brief(session_id, email, name)
-
-        return {
-            "status": "success" if status else "error",
-            "pdf_status": status or "failed",
-            "session_id": session_id,
+            console.log('Session resumed:',SESSION_ID);render();return;
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-# ═══════════════════════════════════════════════════
-# SCORECARD REPORT EMAIL — Add to bottom of main.py
-# ═══════════════════════════════════════════════════
+    }
+    const result=await apiCall('/api/session/start','POST',{});
+    if(result){SESSION_ID=result.session_id;
+        const url=new URL(window.location);url.searchParams.set('session',SESSION_ID);
+        window.history.replaceState({},'',url);console.log('New session:',SESSION_ID);
+    }
+}
 
-# ═══ PYDANTIC MODEL ═══
+function debounceSave(){if(!SESSION_ID)return;clearTimeout(saveTimeout);
+    saveTimeout=setTimeout(()=>{apiCall('/api/session/'+SESSION_ID+'/answer','POST',{answers:A});},800);}
+function saveHomework(qid){if(!SESSION_ID)return;apiCall('/api/session/'+SESSION_ID+'/homework','POST',{question_id:qid});}
+function saveSectionComplete(sectionId){if(!SESSION_ID)return;apiCall('/api/session/'+SESSION_ID+'/section-complete','POST',{section_id:sectionId});}
+function saveWalkthroughComplete(){if(!SESSION_ID)return;apiCall('/api/session/'+SESSION_ID+'/complete','POST',{});}
 
-class ScorecardReportRequest(BaseModel):
-    first_name: str
-    email: str
-    score: int
-    max_score: int
-    grade_letter: str
-    grade_label: str
-    gaps: list  # List of {id, text, gapTip, sectionTitle, sectionIcon}
-    section_scores: list  # List of {id, title, icon, pct, documented, partials, gaps}
+const _origSA=sA;sA=function(id,v){_origSA(id,v);debounceSave();};
+const _origTH=tH;tH=function(id){_origTH(id);saveHomework(id);};
+const _origTMS=tMS;tMS=function(id,opt){_origTMS(id,opt);debounceSave();};
+const _origNextS=nextS;nextS=function(){const sectionId=SECTIONS[si].section_id;saveSectionComplete(sectionId);_origNextS();};
+const _origShowSum=showSum;showSum=function(){saveWalkthroughComplete();_origShowSum();};
+const _origStartW=startW;startW=function(){if(!SESSION_ID){startSession().then(()=>{_origStartW();});}else{_origStartW();}};
 
+async function handleCheckout(){
+    // FOUNDING 50 FREE PATH — calls the PDF generation API directly instead of SamCart.
+    // When we switch back to paid mode, restore SamCart logic and pass session_id through.
+    if(!SESSION_ID){alert('Session error — please refresh and try again.');return;}
+    const btn=document.getElementById('unlockBtn');
+    if(btn){btn.disabled=true;btn.innerHTML='Generating your Brief...';}
+    try{
+        const res=await fetch(API_BASE+'/api/session/'+SESSION_ID+'/generate-brief',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        const data=await res.json();
+        if(data.status==='success'){
+            document.body.innerHTML='<div style="max-width:560px;margin:80px auto;padding:48px 32px;text-align:center;font-family:var(--sans)"><div style="font-size:64px;margin-bottom:24px">✉️</div><h1 style="font-family:var(--serif);font-size:34px;color:var(--gold);margin-bottom:16px">Your Brief is on its way.</h1><p style="font-size:17px;color:rgba(255,255,255,.7);line-height:1.7;margin-bottom:24px">Check your inbox in the next 2-3 minutes. We just sent your complete Resolved Brief, Family Emergency Card, and Follow-Up Checklist as a PDF.</p><p style="font-size:14px;color:rgba(255,255,255,.4)">Not in your inbox? Check spam, then email <a href="mailto:jb@resolvedfamily.com" style="color:var(--gold)">jb@resolvedfamily.com</a>.</p></div>';
+        } else {
+            if(btn){btn.disabled=false;btn.innerHTML='Try Again →';}
+            alert('Something went wrong generating your Brief. Please email jb@resolvedfamily.com and we will send it manually.');
+        }
+    }catch(e){
+        if(btn){btn.disabled=false;btn.innerHTML='Try Again →';}
+        alert('Network error. Please try again in a moment.');
+    }
+}// SHARE FUNCTIONS
+const SHARE_URL = "https://resolvedfamily.com/quick/";
+const SHARE_TEXT = "I just did this — it's the first thing that actually made me think about what my family would need if something happened to me. The first 50 families get it free. Take the 5-minute scorecard:";
 
-# ═══ EMAIL BUILDER ═══
+function shareText(){
+    const msg = SHARE_TEXT + " " + SHARE_URL;
+    if(navigator.share){
+        navigator.share({title:"The Resolved Brief",text:SHARE_TEXT,url:SHARE_URL}).then(()=>showCode()).catch(()=>{});
+    } else {
+        window.open("sms:?body="+encodeURIComponent(msg),"_blank");
+    }
+    showCode();
+}
 
-def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
-    """Build the personalized scorecard report HTML email."""
-    from urllib.parse import quote
-    first = data.first_name
-    score = data.score
-    max_score = data.max_score
-    grade = data.grade_letter
-    label = data.grade_label
-    gaps = data.gaps
-    sections = data.section_scores
-    # Founding 50: hand off first_name+email to /free/ so it skips the form.
-    cta_link = f"https://resolvedfamily.com/free/?name={quote(first or '')}&email={quote(data.email or '')}"
+function shareLink(){
+    if(navigator.clipboard){
+        navigator.clipboard.writeText(SHARE_URL).then(()=>{
+            showCode();
+            const btn=event.target;btn.textContent="\u2705 Copied!";setTimeout(()=>{btn.textContent="\uD83D\uDD17 Copy Link"},2000);
+        });
+    } else {
+        prompt("Copy this link:",SHARE_URL);
+        showCode();
+    }
+}
 
-    # Grade color
-    if label in ("Excellent", "Strong"):
-        grade_color = "#10B981"
-    elif label in ("Fair", "Good"):
-        grade_color = "#F59E0B"
-    else:
-        grade_color = "#EF4444"
+function showCode(){
+    const el=document.getElementById("shareCode");
+    if(el)el.style.display="block";
+    const pd=document.getElementById("priceDisplay");
+    if(pd){
+        pd.innerHTML='<span class="old" style="font-size:18px;margin-right:8px">$49</span><span class="new" style="color:#10B981">$25</span>';
+    }
+}
 
-    # Build gap items HTML
-    gap_items_html = ""
-    for i, gap in enumerate(gaps):
-        gap_items_html += f"""
-        <div style="margin-bottom: 24px; padding: 20px 24px; background: #fff; border: 1.5px solid #E8E5DE; border-left: 4px solid #EF4444; border-radius: 8px;">
-            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
-                <span style="font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: #D4913B; min-width: 24px;">{i+1}.</span>
-                <p style="font-size: 16px; font-weight: 700; color: #1B3A5C; margin: 0; line-height: 1.4;">{gap.get('text', '')}</p>
-            </div>
-            <div style="margin-left: 36px; padding: 12px 16px; background: #FEF9F0; border-radius: 6px; border: 1px solid rgba(212,145,59,0.2);">
-                <p style="font-size: 13px; font-weight: 700; color: #D4913B; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">⚠ Why This Matters</p>
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">{gap.get('gapTip', '')}</p>
-            </div>
-            <p style="font-size: 13px; color: #9CA3AF; margin: 8px 0 0 36px;">{gap.get('sectionIcon', '')} {gap.get('sectionTitle', '')}</p>
-        </div>
-        """
-
-    # Build section scores HTML
-    section_html = ""
-    for sec in sections:
-        pct = round(sec.get('pct', 0))
-        bar_color = "#10B981" if pct >= 75 else "#F59E0B" if pct >= 45 else "#EF4444"
-        section_html += f"""
-        <div style="margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <span style="font-size: 15px; font-weight: 600; color: #1B3A5C;">{sec.get('icon', '')} {sec.get('title', '')}</span>
-                <span style="font-size: 15px; font-weight: 700; color: {bar_color};">{pct}%</span>
-            </div>
-            <div style="height: 6px; background: #E8E5DE; border-radius: 6px; overflow: hidden;">
-                <div style="height: 100%; width: {pct}%; background: {bar_color}; border-radius: 6px;"></div>
-            </div>
-            <div style="display: flex; gap: 12px; margin-top: 4px;">
-                <span style="font-size: 13px; color: #10B981;">✅ {sec.get('documented', 0)}</span>
-                <span style="font-size: 13px; color: #F59E0B;">⚠️ {sec.get('partials', 0)}</span>
-                <span style="font-size: 13px; color: #EF4444;">🔴 {sec.get('gaps', 0)}</span>
-            </div>
-        </div>
-        """
-
-    # Bridge copy — dynamic based on gap count
-    gap_count = len(gaps)
-    if gap_count == 0:
-        bridge_headline = "Your family is well covered — but can anyone else find it?"
-        bridge_body = f"You scored well, {first}. But here's the question most high scorers miss: if something happened to both you and your spouse, could your kids, your parents, or your sister find everything within an hour? The Resolved Brief puts it all in one document anyone can follow."
-    elif gap_count <= 3:
-        bridge_headline = "A few gaps — but they're the ones that matter most."
-        bridge_body = f"You've got a solid foundation, {first}. But those {gap_count} gap{'s' if gap_count > 1 else ''} above? Each one is a specific moment where your family would be stuck, guessing, or fighting. The Resolved Brief closes all of them in one sitting."
-    else:
-        bridge_headline = f"That's {gap_count} moments where your family would be lost."
-        bridge_body = f"Each gap above isn't just a checkbox, {first} — it's a real scenario. Your family on the phone with a bank that won't talk to them. Standing in a funeral home making permanent decisions nobody agreed on. Searching for a life insurance policy nobody knew existed. The Resolved Brief closes every single one of these in about 20 minutes."
-
-    return f"""
-    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; background: #FAFAF7;">
-
-        <!-- HEADER -->
-        <div style="background: #1B3A5C; padding: 32px; text-align: center;">
-            <p style="font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.5); margin: 0 0 8px;">RESOLVED FAMILY</p>
-            <h1 style="font-family: Georgia, serif; font-size: 24px; font-weight: 700; color: #D4913B; margin: 0;">Your Family Readiness Report</h1>
-        </div>
-
-        <!-- SCORE BLOCK -->
-        <div style="background: #F0EDE5; padding: 32px; text-align: center; border-bottom: 2px solid #E8E5DE;">
-            <p style="font-size: 15px; color: #6B7280; margin: 0 0 4px;">Hi {first} — here's your full breakdown.</p>
-            <p style="font-size: 13px; color: #9CA3AF; margin: 0 0 12px;">💡 Save this report: On iPhone, tap the share icon → Print → Save as PDF. On desktop, File → Print → Save as PDF.</p>
-            <div style="display: inline-block; width: 80px; height: 80px; border-radius: 50%; border: 3px solid {grade_color}; line-height: 80px; text-align: center; margin: 0 auto 12px;">
-                <span style="font-family: Georgia, serif; font-size: 36px; font-weight: 700; color: {grade_color};">{grade}</span>
-            </div>
-            <p style="font-family: Georgia, serif; font-size: 32px; font-weight: 700; color: #1B3A5C; margin: 0 0 4px;">{score} / {max_score}</p>
-            <p style="font-size: 14px; font-weight: 700; color: {grade_color}; text-transform: uppercase; letter-spacing: 2px; margin: 0;">{label}</p>
-        </div>
-
-        <div style="padding: 32px;">
-
-            <!-- SECTION BREAKDOWN -->
-            <h2 style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; margin: 0 0 20px;">Section Breakdown</h2>
-            {section_html}
-
-            <!-- GAP LIST -->
-            {'<h2 style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; margin: 32px 0 8px;">🎯 What Your Family Would Face</h2><p style="font-size: 15px; color: #6B7280; margin: 0 0 20px; line-height: 1.6;">These are the specific moments where your family would be stuck, guessing, or fighting. Each one is real.</p>' + gap_items_html if gap_count > 0 else '<div style="padding: 24px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 8px; text-align: center; margin: 24px 0;"><p style="font-size: 16px; color: #10B981; font-weight: 600; margin: 0;">🎉 No critical gaps detected — your family has the essentials covered.</p></div>'}
-
-            <!-- BRIDGE -->
-            <div style="margin: 32px 0; padding: 28px 24px; background: #1B3A5C; border-radius: 12px; text-align: center;">
-                <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
-                <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
-                <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
-                <a href="{cta_link}" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
-                <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">Founding 50 — free while it lasts. 20 minutes. One document. Done.</p>
-            </div>
-
-            <!-- SHARE COUPON -->
-            <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
-                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px; margin-bottom: 16px;">
-                    <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; letter-spacing: 1px;">SHARE50</span>
-                </div>
-                <div style="margin-top: 8px;">
-                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
-                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
-                </div>
-            </div>
-
-            <!-- CLOSING -->
-            <p style="font-size: 15px; color: #6B7280; line-height: 1.7;">You took the scorecard. You saw where you stand. Most people never get this far.<br/><br/>Now finish it.</p>
-            <p style="font-size: 15px; color: #4B5563; margin-top: 16px;">— JB</p>
-            <p style="font-family: Georgia, serif; font-size: 18px; font-style: italic; color: #D4913B; margin-top: 24px;">"There's an envelope in my desk."</p>
-            <p style="font-size: 13px; color: #9CA3AF;">Be the person who can say that.</p>
-
-        </div>
-
-        <!-- FOOTER -->
-        <div style="padding: 20px 32px; border-top: 1px solid #E8E5DE; text-align: center;">
-            <p style="font-size: 12px; color: #9CA3AF; margin: 0;">© 2026 Resolved Family · ResolvedFamily.com</p>
-            <p style="font-size: 12px; color: #9CA3AF; margin: 4px 0 0;">Educational material. Not legal, financial, or medical advice.</p>
-        </div>
-
-    </div>
-    """
-
-
-# ═══ NEW ENDPOINT ═══
-
-@app.post("/api/scorecard/send-report")
-async def send_scorecard_report(data: ScorecardReportRequest):
-    """
-    Receives scorecard results after email gate submission.
-    Sends personalized gap report email via Resend.
-    """
-    if not RESEND_API_KEY:
-        print(f"WARNING: No RESEND_API_KEY — cannot send scorecard report to {data.email}")
-        return JSONResponse(status_code=200, content={"status": "no_key"})
-
-    try:
-        html_content = build_scorecard_report_email(data)
-
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                "https://api.resend.com/emails",
-                headers={
-                    "Authorization": f"Bearer {RESEND_API_KEY}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "from": "jb@resolvedfamily.com",
-                    "to": [data.email],
-                    "subject": f"{data.first_name}, here's your Family Readiness Report",
-                    "html": html_content,
-                },
-            )
-
-            if response.status_code in (200, 201):
-                print(f"Scorecard report sent to {data.email}")
-                return JSONResponse(status_code=200, content={"status": "sent"})
-            else:
-                print(f"Scorecard report email failed: {response.status_code} {response.text}")
-                return JSONResponse(status_code=200, content={"status": "failed", "detail": response.text})
-
-    except Exception as e:
-        print(f"Scorecard report error: {e}")
-        return JSONResponse(status_code=200, content={"status": "error", "message": str(e)})
+render();
+</script>
+</body>
+</html>
