@@ -1104,21 +1104,9 @@ def build_scorecard_report_email(data: ScorecardReportRequest) -> str:
             <div style="margin: 32px 0; padding: 28px 24px; background: #1B3A5C; border-radius: 12px; text-align: center;">
                 <h2 style="font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 12px; line-height: 1.3;">{bridge_headline}</h2>
                 <p style="font-size: 16px; color: rgba(255,255,255,0.75); line-height: 1.7; margin: 0 0 20px;">{bridge_body}</p>
-                <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 30-minute guided session that walks you through every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
+                <p style="font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.7; margin: 0 0 24px;">The Resolved Brief is a 20-minute guided walkthrough covering every area your family would need — finances, insurance, medical wishes, digital access, final instructions. You answer the questions. It builds one complete, organized document your family can follow.<br/><br/><strong style="color: #D4913B;">Print a copy. Save it digitally. Done.</strong></p>
                 <a href="{cta_link}" style="display: inline-block; font-size: 17px; font-weight: 700; padding: 16px 32px; border-radius: 8px; background: linear-gradient(135deg, #D4913B, #BF7E2F); color: #1B3A5C; text-decoration: none; letter-spacing: 0.3px;">START MY RESOLVED BRIEF — FREE →</a>
                 <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin: 16px 0 0;">Founding 50 — free while it lasts. 20 minutes. One document. Done.</p>
-            </div>
-
-            <!-- SHARE COUPON -->
-            <div style="padding: 24px; background: #F0EDE5; border-radius: 12px; text-align: center; margin-bottom: 24px;">
-                <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0 0 16px;">Share this scorecard with two people you care about and use code <strong style="color: #1B3A5C;">SHARE50</strong> — your Resolved Brief drops from $49 to <strong style="color: #10B981;">$24.50</strong>.</p>
-                <div style="display: inline-block; padding: 10px 24px; background: #fff; border: 1.5px solid rgba(212,145,59,0.4); border-radius: 100px; margin-bottom: 16px;">
-                    <span style="font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #1B3A5C; letter-spacing: 1px;">SHARE50</span>
-                </div>
-                <div style="margin-top: 8px;">
-                    <a href="sms:&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%20https%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #1B3A5C; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">📲 Text a Friend</a>
-                    <a href="mailto:?subject=You%20need%20to%20take%20this%20%E2%80%94%205%20minutes&body=I%20just%20took%20this%20and%20I%27m%20glad%20I%20did.%205%20minutes%20and%20you%27ll%20know%20exactly%20what%20your%20family%20would%20need%20if%20something%20happened%20to%20you.%0A%0Ahttps%3A%2F%2Ffamilycrisisplaybook.com%2Fquick-landing%2F" style="display: inline-block; padding: 10px 20px; background: #D4913B; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; margin: 4px;">✉️ Email a Friend</a>
-                </div>
             </div>
 
             <!-- CLOSING -->
