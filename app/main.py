@@ -423,7 +423,7 @@ async def section_complete(session_id: str, data: SectionComplete):
 async def walkthrough_complete(session_id: str):
     try:
         result = supabase.table("sessions").select(
-            "answers_json, homework_items"
+            "answers_json, homework_items, email, first_name"
         ).eq("session_id", session_id).execute()
 
         if not result.data:
@@ -440,10 +440,35 @@ async def walkthrough_complete(session_id: str):
             "last_activity_at": now_iso(),
         }).eq("session_id", session_id).execute()
 
+        # ─── FOUNDING 50 FREE MODE: auto-send Brief on completion ───
+        # Remove this block when switching to paid; SamCart webhook will take over.
+        brief_sent = False
+        email = (
+            (current.get("email") or "").strip()
+            or (answers.get("Q46") or "").strip()
+        )
+        name = (
+            current.get("first_name")
+            or answers.get("Q1")
+            or "there"
+        )
+        if email:
+            try:
+                status = await generate_resolved_brief(session_id, email, name)
+                brief_sent = bool(status)
+                print(f"Auto-send Brief on completion: session={session_id} email={email} sent={brief_sent}")
+            except Exception as e:
+                print(f"Auto-send Brief on completion FAILED for {session_id}: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print(f"Auto-send Brief skipped — no email on session {session_id}")
+
         return {
             "status": "walkthrough_completed",
             "progress_percent": progress,
             "homework_count": len(homework),
+            "brief_sent": brief_sent,
         }
     except HTTPException:
         raise
